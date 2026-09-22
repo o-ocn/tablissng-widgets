@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family:
+        Inter,
+        "Segoe UI",
+        "Microsoft YaHei",
+        sans-serif;
+      color: white;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      padding: 22px 24px;
+      border-radius: 22px;
+
+      background: rgba(20, 24, 32, 0.52);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .server-name {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #63e6a5;
+      box-shadow: 0 0 12px rgba(99, 230, 165, 0.8);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .label {
+      font-size: 11px;
+      opacity: 0.58;
+      margin-bottom: 5px;
+    }
+
+    .value {
+      font-size: 19px;
+      font-weight: 600;
+    }
+
+    .traffic {
+      margin-top: auto;
+    }
+
+    .traffic-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .traffic-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .bar {
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.13);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 25%;
+      border-radius: inherit;
+      background: rgba(255, 255, 255, 0.82);
+      transition: width 0.6s ease;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      font-size: 10px;
+      opacity: 0.45;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="server-name">VMISS LA</div>
+
+      <div class="status">
+        <div class="dot"></div>
+        ONLINE
+      </div>
+    </div>
+
+    <div class="stats">
+      <div>
+        <div class="label">CPU</div>
+        <div class="value" id="cpu">12%</div>
+      </div>
+
+      <div>
+        <div class="label">RAM</div>
+        <div class="value" id="ram">43%</div>
+      </div>
+
+      <div>
+        <div class="label">PING</div>
+        <div class="value" id="ping">143 ms</div>
+      </div>
+    </div>
+
+    <div class="traffic">
+      <div class="traffic-top">
+        <div class="label">MONTHLY TRAFFIC</div>
+        <div class="traffic-value">
+          <span id="used">127.3</span> / 500 GB
+        </div>
+      </div>
+
+      <div class="bar">
+        <div class="bar-fill" id="bar"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>VMISS 9929</span>
+      <span id="updated">Updated --:--:--</span>
+    </div>
+  </div>
+
+  <script>
+    let traffic = 127.3;
+
+    function randomBetween(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function update() {
+      const cpu = randomBetween(5, 28);
+      const ram = randomBetween(38, 48);
+      const ping = randomBetween(125, 170);
+
+      traffic += Math.random() * 0.03;
+
+      document.getElementById("cpu").textContent = cpu + "%";
+      document.getElementById("ram").textContent = ram + "%";
+      document.getElementById("ping").textContent = ping + " ms";
+
+      document.getElementById("used").textContent =
+        traffic.toFixed(2);
+
+      document.getElementById("bar").style.width =
+        Math.min((traffic / 500) * 100, 100) + "%";
+
+      const now = new Date();
+
+      document.getElementById("updated").textContent =
+        "Updated " +
+        now.toLocaleTimeString("zh-CN", {
+          hour12: false
+        });
+    }
+
+    update();
+
+    setInterval(update, 3000);
+  </script>
+</body>
+</html>
