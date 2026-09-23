@@ -121,12 +121,31 @@ body {
   color: rgba(255, 255, 255, 0.64);
   cursor: pointer;
 
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
   display: flex;
   align-items: center;
   justify-content: center;
 
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
-  transition: color 0.16s ease, opacity 0.16s ease;
+  transition:
+    color 0.16s ease,
+    opacity 0.18s ease,
+    visibility 0s linear 0.18s;
+}
+
+.app:hover .sidebar-scroll:not([hidden]),
+.app:focus-within .sidebar-scroll:not([hidden]) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  transition:
+    color 0.16s ease,
+    opacity 0.18s ease,
+    visibility 0s linear 0s;
 }
 
 .sidebar-scroll:hover {
