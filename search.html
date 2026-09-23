@@ -264,6 +264,47 @@ body {
 }
 
 
+/*
+   透明原生选择器覆盖在左侧按钮上。
+   下拉列表由浏览器绘制，不会被 iframe 高度裁掉。
+*/
+
+.engine-select {
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width:
+    var(--left-w);
+
+  height:
+    var(--bar-h);
+
+  z-index: 10;
+
+  border: 0;
+  outline: 0;
+
+  color: transparent;
+  background: transparent;
+
+  cursor: pointer;
+}
+
+
+.engine-select option {
+
+  color: #111;
+  background: #fff;
+
+}
+
+
 /* 分隔线 */
 
 .divider {
@@ -759,6 +800,24 @@ body {
   </button>
 
 
+  <select
+    id="engineSelect"
+    class="engine-select"
+    aria-label="选择搜索引擎"
+    title="选择搜索引擎"
+  >
+    <option value="google">
+      Google
+    </option>
+    <option value="baidu">
+      百度
+    </option>
+    <option value="bing">
+      Bing
+    </option>
+  </select>
+
+
   <div
     class="divider"
   ></div>
@@ -951,6 +1010,13 @@ const engineIcon =
   document.getElementById(
     "engineIcon"
   );
+
+
+const engineSelect =
+  document.getElementById(
+    "engineSelect"
+  );
+
 
 const searchInput =
   document.getElementById(
@@ -1173,6 +1239,10 @@ function applyEngine(
     engine.name;
 
 
+  engineSelect.value =
+    key;
+
+
   localStorage.setItem(
     STORAGE_KEY,
     key
@@ -1203,6 +1273,24 @@ engineButton.addEventListener(
 
 
     toggleMenu();
+
+  }
+);
+
+
+/* 原生下拉选择器 */
+
+engineSelect.addEventListener(
+  "change",
+  event => {
+
+    applyEngine(
+      event.target.value,
+      true
+    );
+
+
+    closeMenu();
 
   }
 );

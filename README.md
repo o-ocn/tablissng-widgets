@@ -6,9 +6,14 @@
 - `search.html`：Apple 风格搜索框
 - `shortcuts.html`：分类快捷方式
 - `tabliss/search-widget.html`：粘贴到 TablissNG 自定义 HTML
-- `tabliss/search-host.js`：粘贴到 TablissNG 自定义 JavaScript
 
-搜索框的父级脚本会在菜单关闭时把 iframe 恢复为搜索栏高度，避免透明区域覆盖下面的快捷方式；打开菜单时才会按宽度等比例扩展 iframe。
+搜索引擎列表使用浏览器原生选择器，可以在保持 iframe 为搜索栏高度的同时显示下拉菜单，避免透明区域覆盖下面的快捷方式。
+
+搜索框嵌入地址使用：
+
+```text
+https://o-ocn.github.io/vps-widget/search.html?v=11
+```
 
 快捷方式嵌入地址建议使用：
 
