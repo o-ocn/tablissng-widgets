@@ -17,13 +17,7 @@ body {
   height: 100%;
   overflow: hidden;
   background: transparent;
-
-  font-family:
-    Inter,
-    "Segoe UI",
-    "Microsoft YaHei",
-    sans-serif;
-
+  font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
   color: #fff;
 }
 
@@ -33,600 +27,274 @@ body {
   justify-content: center;
 }
 
-
-/* =========================
-   整个搜索框
-   ========================= */
-
 .search-bar {
   width: 100%;
   height: 100%;
-
   display: flex;
   align-items: center;
-
   background: transparent;
-
   color: rgba(255, 255, 255, 0.95);
 }
 
-
-/* =========================
-   左侧搜索引擎选择器
-   ========================= */
-
-.engine-select {
+/* 左侧引擎按钮区域 */
+.engine-select-wrap {
   position: relative;
-
-  width: 68px;
+  width: 58px;
   height: 100%;
-
-  flex: 0 0 68px;
+  flex: 0 0 58px;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  gap: 7px;
-
-  cursor: pointer;
+  gap: 6px;
 }
 
-
-/* 官方图标 */
-
+/* 图标 */
 .engine-icon {
-  width: 20px;
-  height: 20px;
-
+  width: 18px;
+  height: 18px;
+  display: block;
   object-fit: contain;
-
-  border-radius: 4px;
-
-  filter:
-    drop-shadow(
-      0 1px 2px
-      rgba(0, 0, 0, 0.18)
-    );
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.14));
 }
-
 
 /* 小倒三角 */
-
 .engine-arrow {
   width: 0;
   height: 0;
-
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid
-    rgba(255, 255, 255, 0.68);
-
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-top: 5px solid rgba(255, 255, 255, 0.55);
   transform: translateY(1px);
-
   pointer-events: none;
+  flex: 0 0 auto;
 }
 
-
-/*
-  真正负责弹出菜单的是这个原生 select。
-  它完全透明，覆盖整个左侧按钮。
-*/
-
+/* 透明原生 select，负责点击切换 */
 .engine-native-select {
   position: absolute;
-
   inset: 0;
-
   width: 100%;
   height: 100%;
-
   opacity: 0;
-
   cursor: pointer;
-
   border: 0;
+  outline: 0;
 }
-
 
 /* 分隔线 */
-
 .divider {
   width: 1px;
-  height: 48%;
-
+  height: 42%;
   flex: 0 0 1px;
-
-  background:
-    rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.10);
 }
 
-
-/* =========================
-   输入框
-   ========================= */
-
+/* 表单 */
 .search-form {
   height: 100%;
-
   flex: 1;
-
   display: flex;
   align-items: center;
-
   min-width: 0;
 }
 
 .search-input {
   flex: 1;
-
   min-width: 0;
   height: 100%;
 
   border: 0;
   outline: 0;
-
   background: transparent;
 
-  color:
-    rgba(255, 255, 255, 0.95);
-
-  padding:
-    0 8px
-    0 14px;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0 8px 0 12px;
 
   font-family: inherit;
-
   font-size: 15px;
   font-weight: 500;
 
-  text-shadow:
-    0 1px 2px
-    rgba(0, 0, 0, 0.24);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 
 .search-input::placeholder {
-  color:
-    rgba(255, 255, 255, 0.56);
+  color: transparent;
 }
 
-
-/* =========================
-   右侧搜索按钮
-   ========================= */
-
+/* 右侧搜索按钮 */
 .search-button {
-  width: 50px;
+  width: 54px;
   height: 100%;
-
-  flex: 0 0 50px;
+  flex: 0 0 54px;
 
   border: 0;
   outline: 0;
-
   background: transparent;
-
   color: #fff;
-
   cursor: pointer;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 0;
 }
 
 .search-button:hover {
-  background:
-    rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .search-icon {
-  width: 20px;
-  height: 20px;
-
+  width: 24px;
+  height: 24px;
   fill: none;
-
-  stroke:
-    rgba(255, 255, 255, 0.82);
-
+  stroke: rgba(255, 255, 255, 0.80);
   stroke-width: 2.2;
-
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-
 </style>
 </head>
-
 
 <body>
 
 <div class="search-bar">
 
-  <!-- 搜索引擎选择器 -->
-  <div
-    class="engine-select"
-    title="选择搜索引擎"
-  >
-
-    <img
-      id="engineIcon"
-      class="engine-icon"
-      alt=""
-    >
-
-    <span
-      class="engine-arrow"
-    ></span>
+  <div class="engine-select-wrap" title="选择搜索引擎">
+    <img id="engineIcon" class="engine-icon" alt="">
+    <span class="engine-arrow"></span>
 
     <select
       id="engineSelect"
       class="engine-native-select"
       aria-label="选择搜索引擎"
     >
-      <option value="google">
-        Google
-      </option>
-
-      <option value="baidu">
-        百度
-      </option>
-
-      <option value="bing">
-        Microsoft Bing
-      </option>
+      <option value="google">Google</option>
+      <option value="baidu">百度</option>
+      <option value="bing">Bing</option>
     </select>
-
   </div>
-
 
   <div class="divider"></div>
 
-
-  <!-- 输入 -->
-  <form
-    id="searchForm"
-    class="search-form"
-    autocomplete="off"
-  >
-
+  <form id="searchForm" class="search-form" autocomplete="off">
     <input
       id="searchInput"
       class="search-input"
       type="text"
       autocomplete="off"
       spellcheck="false"
+      placeholder=""
       autofocus
     >
 
-
-    <button
-      class="search-button"
-      type="submit"
-      title="搜索"
-    >
-
-      <svg
-        class="search-icon"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <circle
-          cx="11"
-          cy="11"
-          r="7"
-        ></circle>
-
-        <path
-          d="M20 20L16.65 16.65"
-        ></path>
-
+    <button class="search-button" type="submit" title="搜索">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20L16.65 16.65"></path>
       </svg>
-
     </button>
-
   </form>
 
 </div>
 
-
 <script>
-
-const STORAGE_KEY =
-  "tabliss_search_engine_v2";
-
-
-/* =========================
-   搜索引擎
-   ========================= */
+const STORAGE_KEY = "tabliss_search_engine_v3";
 
 const engines = {
-
   google: {
     name: "Google",
-
-    /*
-      Google 官方 favicon
-    */
-    icon:
-      "https://www.google.com/favicon.ico",
-
-    placeholder:
-      "Google 搜索",
-
+    icon: "https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png",
     url(query) {
-      return (
-        "https://www.google.com/search?q="
-        +
-        encodeURIComponent(query)
-      );
+      return "https://www.google.com/search?q=" + encodeURIComponent(query);
     }
   },
-
 
   baidu: {
     name: "百度",
-
-    /*
-      百度官方 favicon
-    */
-    icon:
-      "https://www.baidu.com/favicon.ico",
-
-    placeholder:
-      "百度搜索",
-
+    icon: "https://www.baidu.com/favicon.ico",
     url(query) {
-      return (
-        "https://www.baidu.com/s?wd="
-        +
-        encodeURIComponent(query)
-      );
+      return "https://www.baidu.com/s?wd=" + encodeURIComponent(query);
     }
   },
 
-
   bing: {
-    name: "Microsoft Bing",
-
-    /*
-      Bing 官方 favicon
-    */
-    icon:
-      "https://www.bing.com/favicon.ico",
-
-    placeholder:
-      "Bing 搜索",
-
+    name: "Bing",
+    icon: "https://www.bing.com/sa/simg/favicon-trans-bg-blue-mg.ico",
     url(query) {
-      return (
-        "https://www.bing.com/search?q="
-        +
-        encodeURIComponent(query)
-      );
+      return "https://www.bing.com/search?q=" + encodeURIComponent(query);
     }
   }
-
 };
 
+const engineOrder = ["google", "baidu", "bing"];
 
-const engineOrder = [
-  "google",
-  "baidu",
-  "bing"
-];
+const engineSelect = document.getElementById("engineSelect");
+const engineIcon = document.getElementById("engineIcon");
+const searchInput = document.getElementById("searchInput");
+const searchForm = document.getElementById("searchForm");
 
+let currentEngine = localStorage.getItem(STORAGE_KEY);
 
-const engineSelect =
-  document.getElementById(
-    "engineSelect"
-  );
-
-const engineIcon =
-  document.getElementById(
-    "engineIcon"
-  );
-
-const searchInput =
-  document.getElementById(
-    "searchInput"
-  );
-
-const searchForm =
-  document.getElementById(
-    "searchForm"
-  );
-
-
-let currentEngine =
-  localStorage.getItem(
-    STORAGE_KEY
-  );
-
-
-if (
-  !engines[currentEngine]
-) {
-  currentEngine =
-    "google";
+if (!engines[currentEngine]) {
+  currentEngine = "google";
 }
 
+function applyEngine(engineKey, focus = false) {
+  currentEngine = engineKey;
 
-/* =========================
-   应用搜索引擎
-   ========================= */
+  const engine = engines[engineKey];
 
-function applyEngine(
-  engineKey,
-  focus = false
-) {
+  engineSelect.value = engineKey;
+  engineIcon.src = engine.icon;
+  engineIcon.alt = engine.name;
 
-  currentEngine =
-    engineKey;
-
-
-  const engine =
-    engines[engineKey];
-
-
-  engineSelect.value =
-    engineKey;
-
-
-  engineIcon.src =
-    engine.icon;
-
-
-  engineIcon.alt =
-    engine.name;
-
-
-  searchInput.placeholder =
-    engine.placeholder;
-
-
-  localStorage.setItem(
-    STORAGE_KEY,
-    engineKey
-  );
-
+  localStorage.setItem(STORAGE_KEY, engineKey);
 
   if (focus) {
     searchInput.focus();
   }
-
 }
 
+engineSelect.addEventListener("change", () => {
+  applyEngine(engineSelect.value, true);
+});
 
-/* =========================
-   下拉菜单选择
-   ========================= */
+function cycleEngine(direction) {
+  const index = engineOrder.indexOf(currentEngine);
+  let next = index + direction;
 
-engineSelect.addEventListener(
-  "change",
-  () => {
-
-    applyEngine(
-      engineSelect.value,
-      true
-    );
-
-  }
-);
-
-
-/* =========================
-   Tab 循环
-   ========================= */
-
-function cycleEngine(
-  direction
-) {
-
-  const index =
-    engineOrder.indexOf(
-      currentEngine
-    );
-
-
-  let next =
-    index + direction;
-
-
-  if (
-    next >= engineOrder.length
-  ) {
+  if (next >= engineOrder.length) {
     next = 0;
   }
 
-
-  if (
-    next < 0
-  ) {
-    next =
-      engineOrder.length - 1;
+  if (next < 0) {
+    next = engineOrder.length - 1;
   }
 
-
-  applyEngine(
-    engineOrder[next]
-  );
-
+  applyEngine(engineOrder[next], true);
 }
 
-
-searchInput.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.key === "Tab"
-    ) {
-
-      event.preventDefault();
-
-
-      cycleEngine(
-        event.shiftKey
-          ? -1
-          : 1
-      );
-
-    }
-
-  }
-);
-
-
-/* =========================
-   搜索
-   ========================= */
-
-searchForm.addEventListener(
-  "submit",
-  event => {
-
+searchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Tab") {
     event.preventDefault();
-
-
-    const query =
-      searchInput.value.trim();
-
-
-    if (!query) {
-      return;
-    }
-
-
-    const url =
-      engines[
-        currentEngine
-      ].url(query);
-
-
-    /*
-      新标签页打开
-    */
-    window.open(
-      url,
-      "_blank",
-      "noopener,noreferrer"
-    );
-
+    cycleEngine(event.shiftKey ? -1 : 1);
   }
-);
+});
 
+searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-/* =========================
-   初始化
-   ========================= */
+  const query = searchInput.value.trim();
+  if (!query) return;
 
-applyEngine(
-  currentEngine
-);
+  const url = engines[currentEngine].url(query);
 
+  window.open(url, "_blank", "noopener,noreferrer");
+});
+
+applyEngine(currentEngine);
 </script>
 
 </body>
