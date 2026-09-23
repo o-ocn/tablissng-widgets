@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Shortcuts</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  background: transparent;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+
+  color: #fff;
+}
+
+body {
+  user-select: none;
+}
+
+
+/* ==================================================
+   整体
+   ================================================== */
+
+.app {
+  width: 100%;
+  height: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    104px 1fr;
+
+  gap: 18px;
+
+  padding:
+    10px 12px;
+
+  overflow: hidden;
+}
+
+
+/* ==================================================
+   左侧分类
+   ================================================== */
+
+.sidebar {
+  height: 100%;
+
+  padding:
+    8px 5px;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+
+  gap: 2px;
+
+  border-radius: 22px;
+
+  background:
+    rgba(
+      20,
+      24,
+      32,
+      0.10
+    );
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(
+      255,
+      255,
+      255,
+      0.03
+    );
+}
+
+
+.nav-item {
+  width: 100%;
+  height: 22px;
+
+  appearance: none;
+
+  border: 0;
+  outline: 0;
+
+  padding:
+    0 9px;
+
+  border-radius: 10px;
+
+  background:
+    transparent;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.48
+    );
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+
+.nav-item:hover {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.82
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.055
+    );
+}
+
+
+.nav-item.active {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.96
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.09
+    );
+}
+
+
+.nav-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  flex: 0 0 auto;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.18
+    );
+
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+
+.nav-item.active
+.nav-dot {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.95
+    );
+
+  box-shadow:
+    0 0 8px
+    rgba(
+      255,
+      255,
+      255,
+      0.38
+    );
+
+  transform:
+    scale(1.15);
+}
+
+
+/* ==================================================
+   快捷方式区域
+   ================================================== */
+
+.content {
+  min-width: 0;
+
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+
+.grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  grid-auto-rows:
+    88px;
+
+  gap:
+    8px 9px;
+
+  align-content: center;
+}
+
+
+.grid.animate-next {
+  animation:
+    enterNext
+    0.25s
+    cubic-bezier(.2,.75,.3,1);
+}
+
+
+.grid.animate-prev {
+  animation:
+    enterPrev
+    0.25s
+    cubic-bezier(.2,.75,.3,1);
+}
+
+
+@keyframes enterNext {
+
+  from {
+    opacity: 0;
+    transform:
+      translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+@keyframes enterPrev {
+
+  from {
+    opacity: 0;
+    transform:
+      translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+/* ==================================================
+   单个快捷图标
+   ================================================== */
+
+.shortcut {
+  min-width: 0;
+
+  text-decoration: none;
+
+  color: inherit;
+
+  border-radius: 18px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    7px 6px 6px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0
+    );
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0
+    );
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.shortcut:hover {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.085
+    );
+
+  border-color:
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
+
+  box-shadow:
+    0 7px 20px
+    rgba(
+      0,
+      0,
+      0,
+      0.10
+    );
+
+  transform:
+    translateY(-2px);
+}
+
+
+.icon-shell {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 15px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.13
+    );
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+
+  box-shadow:
+    0 5px 16px
+    rgba(
+      0,
+      0,
+      0,
+      0.10
+    ),
+    inset 0 1px 0
+    rgba(
+      255,
+      255,
+      255,
+      0.05
+    );
+
+  transition:
+    transform 0.18s ease;
+}
+
+
+.shortcut:hover
+.icon-shell {
+  transform:
+    scale(1.045);
+}
+
+
+.icon-shell img {
+  width: 40px;
+  height: 40px;
+
+  object-fit: contain;
+
+  display: block;
+}
+
+
+.fallback {
+  position: absolute;
+
+  inset: 0;
+
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.93
+    );
+
+  font-size: 20px;
+  font-weight: 650;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
+}
+
+
+.shortcut-label {
+  width: 100%;
+
+  padding:
+    0 3px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  text-align: center;
+
+  font-size: 11px;
+
+  font-weight: 500;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.90
+    );
+
+  text-shadow:
+    0 1px 3px
+    rgba(
+      0,
+      0,
+      0,
+      0.50
+    );
+}
+
+
+/* ==================================================
+   下方极淡提示
+   ================================================== */
+
+.hint {
+  position: absolute;
+
+  left: 50%;
+  bottom: 2px;
+
+  transform:
+    translateX(-50%);
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.25
+    );
+
+  font-size: 8px;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  transition:
+    opacity 0.2s ease;
+}
+
+
+body:hover
+.hint {
+  opacity: 1;
+}
+
+
+/* ==================================================
+   小屏适配
+   ================================================== */
+
+@media (max-width: 540px) {
+
+  .app {
+    grid-template-columns:
+      90px 1fr;
+
+    gap: 10px;
+
+    padding:
+      8px;
+  }
+
+  .grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    grid-auto-rows:
+      80px;
+
+    gap: 5px;
+  }
+
+  .icon-shell {
+    width: 43px;
+    height: 43px;
+
+    border-radius: 14px;
+  }
+
+  .icon-shell img {
+    width: 35px;
+    height: 35px;
+  }
+
+  .shortcut-label {
+    font-size: 10px;
+  }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="app">
+
+  <nav
+    class="sidebar"
+    id="sidebar"
+  ></nav>
+
+
+  <main
+    class="content"
+  >
+
+    <div
+      class="grid"
+      id="grid"
+    ></div>
+
+  </main>
+
+</div>
+
+
+<div class="hint">
+  滚轮切换分组
+</div>
+
+
+<script>
+
+/* ==================================================
+   基础工具
+   ================================================== */
+
+const STORAGE_KEY =
+  "tabliss-shortcuts-group-v1";
+
+
+function iconUrl(url) {
+
+  if (!url) {
+    return "";
+  }
+
+  if (
+    url.startsWith("/")
+  ) {
+
+    return (
+      "https://web.gotab.cn"
+      +
+      url
+    );
+
+  }
+
+  return url;
+
+}
+
+
+/* ==================================================
+   网站数据库
+   首页和分类可以共用同一个网站
+   ================================================== */
+
+const sites = {
+
+
+  /* ---------- 邮箱 ---------- */
+
+  outlook: {
+    label: "Outlook",
+    url: "https://outlook.live.com/",
+    icon: "https://files.codelife.cc/icons/outlook.svg"
+  },
+
+  gmail: {
+    label: "Gmail",
+    url: "https://gmail.com/",
+    icon: "https://files.codelife.cc/icons/gmail.svg"
+  },
+
+  qqmail: {
+    label: "QQ邮箱",
+    url: "https://mail.qq.com/",
+    icon: "https://files.codelife.cc/icons/qq-mail.svg"
+  },
+
+  netease: {
+    label: "网易邮箱",
+    url: "https://email.163.com",
+    icon: "https://files.codelife.cc/icons/eb58486c2f648735.png"
+  },
+
+
+  /* ---------- 高频 / 论坛 ---------- */
+
+  qianmo: {
+    label: "阡陌居",
+    url: "http://www.1000qm.vip/",
+    icon: "https://files.codelife.cc/user-website-icon/20240110/gu-VMXO-ECF-ibdMPLkjR2327.png"
+  },
+
+  soushuba: {
+    label: "搜书吧",
+    url: "http://2303--1416.0314.world.chickengotogo.com:1223/o/?sigin=vpm72416787818706x8xfV38717172",
+    icon: "https://files.codelife.cc/user-website-icon/20240110/pxwn78duASsVjdH2Kszls3244.png"
+  },
+
+  laowang: {
+    label: "老王论坛",
+    url: "https://laowang.vip/",
+    icon: "https://files.codelife.cc/user-website-icon/20240110/bZgfRN7wkOc43X2_mamKC4656.png"
+  },
+
+  tieba: {
+    label: "百度贴吧",
+    url: "https://tieba.baidu.com",
+    icon: "/sourceStore/website/01JB3YE3ZR2D3C3PMNRB7FDQBC.svg"
+  },
+
+  loltieba: {
+    label: "LOL台服吧",
+    url: "https://tieba.baidu.com/f?kw=lol%CC%A8%B7%FE",
+    icon: "https://files.codelife.cc/icons/tieba.svg"
+  },
+
+  keylol: {
+    label: "其乐 Keylol",
+    url: "https://keylol.com",
+    icon: "https://files.codelife.cc/icons/60b9eaf9ae5a9ba4024b39d2.png"
+  },
+
+  threedm: {
+    label: "3DM论坛",
+    url: "https://bbs.3dmgame.com/forum.php",
+    icon: "https://files.codelife.cc/website/5b862e120576296373cacabf.png"
+  },
+
+
+  /* ---------- 工具 ---------- */
+
+  googleTranslate: {
+    label: "Google翻译",
+    url: "https://translate.google.com/",
+    icon: "https://files.codelife.cc/icons/translate-google.svg"
+  },
+
+  deepl: {
+    label: "DeepL",
+    url: "https://www.deepl.com/zh/translator",
+    icon: "https://files.codelife.cc/icons/deepl.svg"
+  },
+
+  speedtest: {
+    label: "Speedtest",
+    url: "https://www.speedtest.net/",
+    icon: "https://files.codelife.cc/icons/www.speedtest.net.svg"
+  },
+
+  googleImage: {
+    label: "Google识图",
+    url: "https://images.google.com/",
+    icon: "https://files.codelife.cc/icons/google.svg"
+  },
+
+  baiduImage: {
+    label: "百度识图",
+    url: "https://graph.baidu.com/pcpage/index?tpl_from=pc",
+    icon: "https://files.codelife.cc/icons/baidu.svg"
+  },
+
+  localsend: {
+    label: "LocalSend",
+    url: "https://web.localsend.org/zh-CN",
+    icon: "/uploads/202604/01KPK5A8Z2TCC2JKC16XGZEKQ0.png"
+  },
+
+  notion: {
+    label: "Notion",
+    url: "https://www.notion.so/",
+    icon: "https://files.codelife.cc/icons/notion.svg"
+  },
+
+  github: {
+    label: "GitHub",
+    url: "https://github.com",
+    icon: "/sourceStore/website/01J8HDBKK28SS2GX9AT0MVT48V.svg"
+  },
+
+
+  /* ---------- 影音 ---------- */
+
+  bilibili: {
+    label: "哔哩哔哩",
+    url: "https://www.bilibili.com/",
+    icon: "https://files.codelife.cc/icons/bilibili2.svg"
+  },
+
+  youtube: {
+    label: "YouTube",
+    url: "https://www.youtube.com/",
+    icon: "https://files.codelife.cc/icons/youtube.svg"
+  },
+
+  douyin: {
+    label: "抖音",
+    url: "https://www.douyin.com/",
+    icon: "https://files.codelife.cc/website/douyin.svg"
+  },
+
+  twitch: {
+    label: "Twitch",
+    url: "https://www.twitch.tv/",
+    icon: "/uploads/202604/01KQ45ESQW5RCXFH82T5F5970D.jpg"
+  },
+
+
+  /* ---------- 社交 ---------- */
+
+  douban: {
+    label: "豆瓣",
+    url: "https://www.douban.com/",
+    icon: "https://files.codelife.cc/icons/douban.svg"
+  },
+
+  zhihu: {
+    label: "知乎",
+    url: "https://www.zhihu.com/",
+    icon: "https://files.codelife.cc/icons/zhihu.svg"
+  },
+
+  weibo: {
+    label: "微博",
+    url: "https://weibo.com/",
+    icon: "https://files.codelife.cc/icons/weibo.svg"
+  },
+
+  xiaohongshu: {
+    label: "小红书",
+    url: "https://www.xiaohongshu.com/",
+    icon: "https://files.codelife.cc/icons/xiaohongshu.svg"
+  },
+
+  x: {
+    label: "X",
+    url: "https://x.com",
+    icon: "/sourceStore/website/01J8HASDEH6ABY7GHT7B96DBVC.svg"
+  },
+
+  instagram: {
+    label: "Instagram",
+    url: "https://www.instagram.com/",
+    icon: "/uploads/202605/01KSVE560W4QRVT0MAPM46BV4P.png"
+  },
+
+  discord: {
+    label: "Discord",
+    url: "https://discord.com/app",
+    icon: "https://files.codelife.cc/icons/discordapp.com.svg"
+  },
+
+  reddit: {
+    label: "Reddit",
+    url: "https://www.reddit.com",
+    icon: "/uploads/202507/01K0R4WQ4TN2RQQZFEWDRBC16D.svg"
+  },
+
+
+  /* ---------- AI ---------- */
+
+  chatgpt: {
+    label: "ChatGPT",
+    url: "https://chatgpt.com/",
+    icon: "/uploads/202608/01KYWMRENKGVR8SS3S4XYZWTPJ.png"
+  },
+
+  grok: {
+    label: "Grok",
+    url: "https://grok.com",
+    icon: "/sourceStore/website/01KK8WQNGSYN8D2VHJ6QR8637T.svg"
+  },
+
+  gemini: {
+    label: "Gemini",
+    url: "https://gemini.google.com/",
+    icon: "https://files.codelife.cc/user-website-icon/20250515/FOfpxZGQ9JrcsfvNUA4AI6419.png"
+  },
+
+  kimi: {
+    label: "Kimi",
+    url: "https://kimi.moonshot.cn/",
+    icon: "https://files.codelife.cc/icons/kimi.moonshot.png"
+  },
+
+  glm: {
+    label: "智谱清言",
+    url: "https://chatglm.cn/",
+    icon: "https://files.codelife.cc/icons/chatglm.cn.png"
+  },
+
+  deepseek: {
+    label: "DeepSeek",
+    url: "https://chat.deepseek.com/",
+    icon: "/uploads/202411/01JCJTJNTJGB5G9H7MVP2NR8AG.png"
+  },
+
+  tongyi: {
+    label: "通义千问",
+    url: "https://tongyi.aliyun.com/",
+    icon: "https://files.codelife.cc/icons/tongyi.aliyun.png"
+  },
+
+  doubao: {
+    label: "豆包",
+    url: "https://www.doubao.com/",
+    icon: "https://files.codelife.cc/icons/doubao.com.webp"
+  },
+
+  xiezuocat: {
+    label: "秘塔写作猫",
+    url: "https://xiezuocat.com/",
+    icon: "https://files.codelife.cc/icons/xiezuocat.com.svg"
+  },
+
+  yuanbao: {
+    label: "腾讯元宝",
+    url: "https://yuanbao.tencent.com/",
+    icon: "https://cdn-bot.hunyuan.tencent.com/logo-v2.png"
+  },
+
+  deepseekPlatform: {
+    label: "DeepSeek平台",
+    url: "https://platform.deepseek.com",
+    icon: "/uploads/202605/01KRP7CTKB3XW46W5E5B1QQ1XP.png"
+  },
+
+
+  /* ---------- 网盘 ---------- */
+
+  onedrive: {
+    label: "OneDrive",
+    url: "https://onedrive.live.com/",
+    icon: "/uploads/202608/01M0FW6WR4ZM8M3F4GFBNRQJHH.png"
+  },
+
+  gdrive: {
+    label: "Google Drive",
+    url: "https://drive.google.com/drive/",
+    icon: "/uploads/202608/01M0FW3634HJGBTBFBXBAXRV7G.png"
+  },
+
+  baidupan: {
+    label: "百度网盘",
+    url: "https://pan.baidu.com/",
+    icon: "https://files.codelife.cc/icons/pan-baidu.svg"
+  },
+
+  aliyun: {
+    label: "阿里云盘",
+    url: "https://www.aliyundrive.com/",
+    icon: "https://files.codelife.cc/website/aliyundrive.svg"
+  },
+
+  quark: {
+    label: "夸克网盘",
+    url: "https://pan.quark.cn",
+    icon: "https://files.codelife.cc/icons/b20bacf68b2efe5b.png"
+  },
+
+  pikpak: {
+    label: "PikPak",
+    url: "https://mypikpak.com/drive/all",
+    icon: "https://mypikpak.com/apple-touch-icon.png"
+  },
+
+
+  /* ---------- 购物 ---------- */
+
+  taobao: {
+    label: "淘宝",
+    url: "https://www.taobao.com/",
+    icon: "https://files.codelife.cc/icons/aitaobao.svg"
+  },
+
+  jd: {
+    label: "京东",
+    url: "https://home.jd.com/",
+    icon: "https://files.codelife.cc/icons/jd.svg"
+  },
+
+  smzdm: {
+    label: "什么值得买",
+    url: "https://www.smzdm.com/",
+    icon: "https://files.codelife.cc/icons/smzdm.svg"
+  },
+
+
+  /* ---------- 游戏 ---------- */
+
+  kook: {
+    label: "KOOK",
+    url: "https://www.kookapp.cn/",
+    icon: "https://static.kookapp.cn/app/favicon.ico"
+  },
+
+  steampy: {
+    label: "SteamPY",
+    url: "https://steampy.com/home",
+    icon: "https://files.codelife.cc/icons/60b9ebb4ae5a9ba4024b3c39.png"
+  },
+
+  opgg: {
+    label: "OP.GG",
+    url: "https://www.op.gg/champions",
+    icon: "https://files.codelife.cc/icons/www.op.gg.svg"
+  },
+
+  sonkwo: {
+    label: "杉果游戏",
+    url: "https://www.sonkwo.com/store",
+    icon: "https://files.codelife.cc/icons/60b9eaacae5a9ba4024b3885.png"
+  },
+
+  epic: {
+    label: "Epic",
+    url: "https://store.epicgames.com/zh-CN/",
+    icon: "https://files.codelife.cc/icons/60ba0628ae5a9ba4024b9394.png"
+  },
+
+  xiaoheihe: {
+    label: "小黑盒",
+    url: "https://www.xiaoheihe.cn/home",
+    icon: "https://files.codelife.cc/icons/www.xiaoheihe.cnhome.svg"
+  },
+
+  tarkov: {
+    label: "塔科夫",
+    url: "https://www.eftarkov.com/",
+    icon: "https://www.eftarkov.com/favicon.ico"
+  },
+
+  oopz: {
+    label: "Oopz",
+    url: "https://web.oopz.cn/",
+    icon: "/uploads/202604/01KNTX320SQ6WRXHZKTT9PR9K1.png"
+  },
+
+
+  /* ---------- 直播工作 ---------- */
+
+  douyinBusiness: {
+    label: "抖音来客",
+    url: "https://life.douyin.com/p/home",
+    icon: "/uploads/202608/01KYWHKPT7RTF45NP3RFVX1F83.png"
+  },
+
+  douyinLive: {
+    label: "直播专业版",
+    url: "https://eos.douyin.com/livesite/live/current",
+    icon: "/sourceStore/website/01J8GTDYZPHKXE4VF6614C45VM.svg"
+  },
+
+  localAds: {
+    label: "巨量本地推",
+    url: "https://localads.chengzijianzhan.cn/lamp/pc/home",
+    icon: "/uploads/202608/01KYWHJMKANXQ3950SK65QXDJE.png"
+  },
+
+  anchor: {
+    label: "主播平台",
+    url: "https://anchor.douyin.com/anchor/dashboard/home",
+    icon: "/sourceStore/website/01J8GTDYZPHKXE4VF6614C45VM.svg"
+  },
+
+
+  /* ---------- 表情 ---------- */
+
+  fabiaoqing: {
+    label: "发表情",
+    url: "https://fabiaoqing.com/",
+    icon: "https://files.codelife.cc/icons/5b0bee5e8b6029438eae9535.png"
+  },
+
+  dbbqb: {
+    label: "逗比拯救世界",
+    url: "https://www.dbbqb.com/",
+    icon: "https://www.dbbqb.com/logo192.png"
+  },
+
+  pkdoutu: {
+    label: "斗图啦",
+    url: "https://www.pkdoutu.com/",
+    icon: "https://www.pkdoutu.com/favicon.ico"
+  },
+
+  weshine: {
+    label: "闪萌",
+    url: "https://www.weshineapp.com/",
+    icon: "https://files.codelife.cc/website/5b9a5ec153aef51fa149f374.png"
+  },
+
+  mengma: {
+    label: "颜文字",
+    url: "https://mengma.moe/#greet",
+    icon: "https://mengma.moe/favicon.ico"
+  }
+
+};
+
+
+/* ==================================================
+   分组
+   首页只是常用副本
+   ================================================== */
+
+const groups = [
+
+  {
+    id: "home",
+    label: "主页",
+
+    items: [
+      "outlook",
+      "gmail",
+      "googleTranslate",
+      "qianmo",
+      "soushuba",
+      "laowang",
+      "github"
+    ]
+  },
+
+
+  {
+    id: "mail",
+    label: "邮箱",
+
+    items: [
+      "outlook",
+      "gmail",
+      "qqmail",
+      "netease"
+    ]
+  },
+
+
+  {
+    id: "forum",
+    label: "论坛",
+
+    items: [
+      "qianmo",
+      "soushuba",
+      "laowang",
+      "tieba",
+      "loltieba",
+      "keylol",
+      "threedm"
+    ]
+  },
+
+
+  {
+    id: "tools",
+    label: "工具",
+
+    items: [
+      "googleTranslate",
+      "deepl",
+      "speedtest",
+      "googleImage",
+      "baiduImage",
+      "localsend",
+      "notion",
+      "github"
+    ]
+  },
+
+
+  {
+    id: "media",
+    label: "影音",
+
+    items: [
+      "bilibili",
+      "youtube",
+      "douyin",
+      "twitch"
+    ]
+  },
+
+
+  {
+    id: "social",
+    label: "社交",
+
+    items: [
+      "douban",
+      "zhihu",
+      "weibo",
+      "xiaohongshu",
+      "x",
+      "instagram",
+      "discord",
+      "reddit",
+      "tieba"
+    ]
+  },
+
+
+  {
+    id: "ai",
+    label: "AI",
+
+    items: [
+      "chatgpt",
+      "grok",
+      "gemini",
+      "kimi",
+      "glm",
+      "deepseek",
+      "tongyi",
+      "doubao",
+      "xiezuocat",
+      "yuanbao",
+      "deepseekPlatform"
+    ]
+  },
+
+
+  {
+    id: "cloud",
+    label: "网盘",
+
+    items: [
+      "onedrive",
+      "gdrive",
+      "baidupan",
+      "aliyun",
+      "quark",
+      "pikpak"
+    ]
+  },
+
+
+  {
+    id: "shop",
+    label: "购物",
+
+    items: [
+      "taobao",
+      "jd",
+      "smzdm"
+    ]
+  },
+
+
+  {
+    id: "game",
+    label: "游戏",
+
+    items: [
+      "discord",
+      "kook",
+      "steampy",
+      "keylol",
+      "opgg",
+      "threedm",
+      "sonkwo",
+      "epic",
+      "xiaoheihe",
+      "tarkov",
+      "oopz",
+      "twitch"
+    ]
+  },
+
+
+  {
+    id: "live",
+    label: "直播",
+
+    items: [
+      "douyinBusiness",
+      "douyinLive",
+      "localAds",
+      "anchor"
+    ]
+  },
+
+
+  {
+    id: "emoji",
+    label: "表情",
+
+    items: [
+      "fabiaoqing",
+      "dbbqb",
+      "pkdoutu",
+      "weshine",
+      "mengma"
+    ]
+  }
+
+];
+
+
+/* ==================================================
+   DOM
+   ================================================== */
+
+const sidebar =
+  document.getElementById(
+    "sidebar"
+  );
+
+const grid =
+  document.getElementById(
+    "grid"
+  );
+
+
+/* ==================================================
+   当前分组
+   ================================================== */
+
+let current =
+  Number(
+    localStorage.getItem(
+      STORAGE_KEY
+    )
+  );
+
+
+if (
+  !Number.isInteger(current)
+  ||
+  current < 0
+  ||
+  current >= groups.length
+) {
+
+  current = 0;
+
+}
+
+
+/* ==================================================
+   建立左侧菜单
+   ================================================== */
+
+function buildSidebar() {
+
+  sidebar.innerHTML =
+    "";
+
+
+  groups.forEach(
+    (group, index) => {
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.className =
+        "nav-item";
+
+
+      if (
+        index === current
+      ) {
+
+        button.classList.add(
+          "active"
+        );
+
+      }
+
+
+      button.innerHTML = `
+        <span class="nav-dot"></span>
+        <span>${group.label}</span>
+      `;
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const direction =
+            index > current
+              ? 1
+              : -1;
+
+
+          switchGroup(
+            index,
+            direction
+          );
+
+        }
+      );
+
+
+      sidebar.appendChild(
+        button
+      );
+
+    }
+  );
+
+}
+
+
+/* ==================================================
+   单个快捷方式
+   ================================================== */
+
+function shortcutHtml(
+  key
+) {
+
+  const site =
+    sites[key];
+
+
+  if (!site) {
+    return "";
+  }
+
+
+  const icon =
+    iconUrl(
+      site.icon
+    );
+
+
+  const first =
+    site.label
+      ?.trim()
+      ?.charAt(0)
+      ||
+      "?";
+
+
+  return `
+
+    <a
+      class="shortcut"
+
+      href="${site.url}"
+
+      target="_blank"
+
+      rel="noopener noreferrer"
+
+      title="${site.label}"
+    >
+
+      <div
+        class="icon-shell"
+      >
+
+        <img
+          src="${icon}"
+          alt=""
+          loading="lazy"
+
+          onerror="
+            this.style.display='none';
+            this.nextElementSibling.style.display='flex';
+          "
+        >
+
+        <span
+          class="fallback"
+        >
+          ${first}
+        </span>
+
+      </div>
+
+
+      <div
+        class="shortcut-label"
+      >
+        ${site.label}
+      </div>
+
+    </a>
+
+  `;
+
+}
+
+
+/* ==================================================
+   渲染当前组
+   ================================================== */
+
+function renderGroup(
+  direction = 1
+) {
+
+  const group =
+    groups[current];
+
+
+  grid.classList.remove(
+    "animate-next",
+    "animate-prev"
+  );
+
+
+  grid.innerHTML =
+    group.items
+      .map(shortcutHtml)
+      .join("");
+
+
+  void grid.offsetWidth;
+
+
+  grid.classList.add(
+    direction >= 0
+      ? "animate-next"
+      : "animate-prev"
+  );
+
+
+  buildSidebar();
+
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    String(current)
+  );
+
+}
+
+
+/* ==================================================
+   切换分组
+   ================================================== */
+
+function switchGroup(
+  index,
+  direction = 1
+) {
+
+  if (
+    index < 0
+  ) {
+
+    index =
+      groups.length - 1;
+
+  }
+
+
+  if (
+    index >=
+    groups.length
+  ) {
+
+    index = 0;
+
+  }
+
+
+  if (
+    index === current
+  ) {
+
+    return;
+
+  }
+
+
+  current = index;
+
+
+  renderGroup(
+    direction
+  );
+
+}
+
+
+/* ==================================================
+   鼠标滚轮切换
+   带阈值 + 防抖
+   ================================================== */
+
+let wheelSum = 0;
+
+let wheelLocked =
+  false;
+
+
+document.addEventListener(
+
+  "wheel",
+
+  event => {
+
+    event.preventDefault();
+
+
+    if (
+      wheelLocked
+    ) {
+
+      return;
+
+    }
+
+
+    wheelSum +=
+      event.deltaY;
+
+
+    if (
+      Math.abs(
+        wheelSum
+      ) < 38
+    ) {
+
+      return;
+
+    }
+
+
+    const direction =
+      wheelSum > 0
+        ? 1
+        : -1;
+
+
+    wheelSum = 0;
+
+
+    wheelLocked =
+      true;
+
+
+    switchGroup(
+      current + direction,
+      direction
+    );
+
+
+    setTimeout(
+      () => {
+
+        wheelLocked =
+          false;
+
+      },
+
+      380
+    );
+
+  },
+
+  {
+    passive: false
+  }
+
+);
+
+
+/* ==================================================
+   键盘也可以切换
+   ================================================== */
+
+document.addEventListener(
+
+  "keydown",
+
+  event => {
+
+    if (
+      event.key ===
+      "ArrowDown"
+    ) {
+
+      switchGroup(
+        current + 1,
+        1
+      );
+
+    }
+
+
+    if (
+      event.key ===
+      "ArrowUp"
+    ) {
+
+      switchGroup(
+        current - 1,
+        -1
+      );
+
+    }
+
+  }
+
+);
+
+
+/* ==================================================
+   初始化
+   ================================================== */
+
+renderGroup(1);
+
+</script>
+
+</body>
+</html>
