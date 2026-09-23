@@ -34,6 +34,7 @@ body {
   border-radius: 20px;
 
   background: rgba(245, 245, 245, 0.10);
+
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 
@@ -44,6 +45,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   cursor: pointer;
+
   display: flex;
   flex-direction: column;
 
@@ -59,6 +61,11 @@ body {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
+
+/* =========================
+   顶部
+   ========================= */
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -68,6 +75,7 @@ body {
 
 .server {
   min-width: 0;
+
   display: flex;
   align-items: center;
   gap: 7px;
@@ -80,6 +88,7 @@ body {
 .server-name {
   font-size: 15px;
   font-weight: 650;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,29 +96,40 @@ body {
 
 .status {
   flex: 0 0 auto;
+
   display: flex;
   align-items: center;
   gap: 6px;
 
   font-size: 9px;
   font-weight: 700;
+
   letter-spacing: 0.5px;
 }
 
 .status-dot {
   width: 7px;
   height: 7px;
+
   border-radius: 50%;
 
   background: #f3c969;
-  box-shadow: 0 0 8px rgba(243, 201, 105, 0.8);
+
+  box-shadow:
+    0 0 8px rgba(243, 201, 105, 0.8);
 }
+
+
+/* =========================
+   CPU / RAM / UP / DOWN
+   ========================= */
 
 .metrics {
   margin-top: 14px;
 
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+
   gap: 12px;
 }
 
@@ -121,8 +141,10 @@ body {
   margin-bottom: 4px;
 
   color: rgba(255, 255, 255, 0.55);
+
   font-size: 8px;
   font-weight: 500;
+
   letter-spacing: 0.5px;
 }
 
@@ -147,12 +169,17 @@ body {
   color: #75e4aa;
 }
 
+
+/* =========================
+   流量
+   ========================= */
+
 .traffic {
   margin-top: 14px;
 }
 
 .traffic-head {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 
   display: flex;
   justify-content: space-between;
@@ -161,6 +188,7 @@ body {
 
 .traffic-title {
   color: rgba(255, 255, 255, 0.55);
+
   font-size: 8px;
   letter-spacing: 0.5px;
 }
@@ -170,25 +198,47 @@ body {
   font-weight: 650;
 }
 
-.bar {
-  height: 4px;
 
-  overflow: hidden;
-  border-radius: 999px;
+/* 点断式流量条 */
+
+.bar {
+  width: 100%;
+  height: 6px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 3px;
+
+  background: transparent;
+}
+
+.bar-segment {
+  flex: 1;
+
+  min-width: 0;
+  height: 5px;
+
+  border-radius: 2px;
 
   background: rgba(255, 255, 255, 0.13);
+
+  transition:
+    background 0.35s ease,
+    opacity 0.35s ease;
 }
 
-.bar-fill {
-  width: 0%;
-  height: 100%;
-
-  border-radius: inherit;
-
+.bar-segment.used {
   background: rgba(255, 255, 255, 0.82);
 
-  transition: width 0.5s ease;
+  box-shadow:
+    0 0 3px rgba(255, 255, 255, 0.08);
 }
+
+
+/* =========================
+   底部
+   ========================= */
 
 .footer {
   margin-top: auto;
@@ -196,10 +246,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   gap: 10px;
 
-  color: rgba(255, 255, 255, 0.46);
-  font-size: 8px;
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 10px;
+  font-weight: 600;
+
+  letter-spacing: 0.1px;
 }
 
 .footer span {
@@ -207,77 +262,163 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="card" id="card" title="打开完整 Komari 监控">
+<div
+  class="card"
+  id="card"
+  title="打开完整 Komari 监控"
+>
 
   <div class="header">
 
     <div class="server">
-      <span class="flag">🇺🇸</span>
-      <span class="server-name" id="serverName">
+
+      <span class="flag">
+        🇺🇸
+      </span>
+
+      <span
+        class="server-name"
+        id="serverName"
+      >
         US-VMISS-9929
       </span>
+
     </div>
 
     <div class="status">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="statusText">CONNECTING</span>
+
+      <span
+        class="status-dot"
+        id="statusDot"
+      ></span>
+
+      <span id="statusText">
+        CONNECTING
+      </span>
+
     </div>
 
   </div>
+
 
   <div class="metrics">
 
     <div class="metric">
-      <div class="label">CPU</div>
-      <div class="value" id="cpu">--</div>
+
+      <div class="label">
+        CPU
+      </div>
+
+      <div
+        class="value"
+        id="cpu"
+      >
+        --
+      </div>
+
     </div>
 
-    <div class="metric">
-      <div class="label">RAM</div>
-      <div class="value" id="ram">--</div>
-    </div>
 
     <div class="metric">
-      <div class="label">UP</div>
-      <div class="value up" id="up">--</div>
+
+      <div class="label">
+        RAM
+      </div>
+
+      <div
+        class="value"
+        id="ram"
+      >
+        --
+      </div>
+
     </div>
 
+
     <div class="metric">
-      <div class="label">DOWN</div>
-      <div class="value down" id="down">--</div>
+
+      <div class="label">
+        UP
+      </div>
+
+      <div
+        class="value up"
+        id="up"
+      >
+        --
+      </div>
+
+    </div>
+
+
+    <div class="metric">
+
+      <div class="label">
+        DOWN
+      </div>
+
+      <div
+        class="value down"
+        id="down"
+      >
+        --
+      </div>
+
     </div>
 
   </div>
+
 
   <div class="traffic">
 
     <div class="traffic-head">
-      <span class="traffic-title">MONTHLY TRAFFIC</span>
-      <span class="traffic-value" id="trafficText">
+
+      <span class="traffic-title">
+        MONTHLY TRAFFIC
+      </span>
+
+      <span
+        class="traffic-value"
+        id="trafficText"
+      >
         -- / 500 GB
       </span>
+
     </div>
 
-    <div class="bar">
-      <div class="bar-fill" id="trafficFill"></div>
-    </div>
+    <div
+      class="bar"
+      id="trafficBar"
+    ></div>
 
   </div>
 
+
   <div class="footer">
-    <span id="expireText">点击查看完整监控</span>
-    <span id="updated">--:--:--</span>
+
+    <span id="expireText">
+      到期 --/--
+    </span>
+
+    <span id="updated">
+      --:--:--
+    </span>
+
   </div>
 
 </div>
 
+
 <script>
-const UUID = "312e359a-52d7-4725-98d1-593182f062e4";
+
+const UUID =
+  "312e359a-52d7-4725-98d1-593182f062e4";
 
 const BASE =
   "https://38-207-167-188.sslip.io:8444";
@@ -288,36 +429,144 @@ const RECENT_API =
 const NODES_API =
   `${BASE}/api/nodes`;
 
-let trafficLimit = 536870912000;
+let trafficLimit =
+  536870912000;
+
+
+/* 流量条分段数量 */
+
+const SEGMENT_COUNT = 28;
+
 
 const $ = id =>
   document.getElementById(id);
 
-function gb(bytes) {
-  return bytes / 1024 / 1024 / 1024;
+
+/* =========================
+   初始化点断式流量条
+   ========================= */
+
+function createTrafficSegments() {
+
+  const bar =
+    $("trafficBar");
+
+  bar.innerHTML = "";
+
+  for (
+    let i = 0;
+    i < SEGMENT_COUNT;
+    i++
+  ) {
+
+    const segment =
+      document.createElement("div");
+
+    segment.className =
+      "bar-segment";
+
+    bar.appendChild(segment);
+  }
 }
+
+
+/* 更新流量条 */
+
+function updateTrafficSegments(percent) {
+
+  const segments =
+    document.querySelectorAll(
+      ".bar-segment"
+    );
+
+  const usedSegments =
+    Math.round(
+      SEGMENT_COUNT *
+      percent /
+      100
+    );
+
+  segments.forEach(
+    (segment, index) => {
+
+      segment.classList.toggle(
+        "used",
+        index < usedSegments
+      );
+
+    }
+  );
+}
+
+
+/* =========================
+   数据格式
+   ========================= */
+
+function gb(bytes) {
+
+  return (
+    bytes /
+    1024 /
+    1024 /
+    1024
+  );
+
+}
+
 
 function pct(value) {
-  return Number(value).toFixed(1) + "%";
+
+  return (
+    Number(value)
+      .toFixed(1)
+    + "%"
+  );
+
 }
+
 
 function speed(bytes) {
-  if (bytes >= 1024 * 1024) {
+
+  if (
+    bytes >=
+    1024 * 1024
+  ) {
+
     return (
-      bytes / 1024 / 1024
-    ).toFixed(2) + " MB/s";
+      bytes /
+      1024 /
+      1024
+    ).toFixed(2)
+      + " MB/s";
+
   }
 
-  if (bytes >= 1024) {
+
+  if (
+    bytes >=
+    1024
+  ) {
+
     return (
-      bytes / 1024
-    ).toFixed(2) + " KB/s";
+      bytes /
+      1024
+    ).toFixed(2)
+      + " KB/s";
+
   }
 
-  return Math.round(bytes) + " B/s";
+
+  return (
+    Math.round(bytes)
+    + " B/s"
+  );
+
 }
 
+
 function time(value) {
+
   return new Date(value)
     .toLocaleTimeString(
       "zh-CN",
@@ -328,160 +577,311 @@ function time(value) {
         second: "2-digit"
       }
     );
+
 }
+
+
+/* =========================
+   在线状态
+   ========================= */
 
 function status(type) {
-  const dot = $("statusDot");
-  const text = $("statusText");
 
-  if (type === "online") {
-    text.textContent = "ONLINE";
-    dot.style.background = "#66e3aa";
+  const dot =
+    $("statusDot");
+
+  const text =
+    $("statusText");
+
+
+  if (
+    type === "online"
+  ) {
+
+    text.textContent =
+      "ONLINE";
+
+    dot.style.background =
+      "#66e3aa";
+
     dot.style.boxShadow =
       "0 0 8px rgba(102,227,170,.85)";
+
   }
 
-  if (type === "stale") {
-    text.textContent = "STALE";
-    dot.style.background = "#f3c969";
+
+  if (
+    type === "stale"
+  ) {
+
+    text.textContent =
+      "STALE";
+
+    dot.style.background =
+      "#f3c969";
+
     dot.style.boxShadow =
       "0 0 8px rgba(243,201,105,.80)";
+
   }
 
-  if (type === "offline") {
-    text.textContent = "OFFLINE";
-    dot.style.background = "#ff7474";
+
+  if (
+    type === "offline"
+  ) {
+
+    text.textContent =
+      "OFFLINE";
+
+    dot.style.background =
+      "#ff7474";
+
     dot.style.boxShadow =
       "0 0 8px rgba(255,116,116,.80)";
+
   }
+
 }
 
+
+/* =========================
+   Fetch
+   ========================= */
+
 async function get(url) {
+
   const controller =
     new AbortController();
 
+
   const timer =
     setTimeout(
-      () => controller.abort(),
+      () =>
+        controller.abort(),
       6000
     );
 
+
   try {
+
     return await fetch(
       url,
       {
         cache: "no-store",
-        signal: controller.signal
+        signal:
+          controller.signal
       }
     );
-  } finally {
-    clearTimeout(timer);
+
   }
+
+  finally {
+
+    clearTimeout(timer);
+
+  }
+
 }
 
+
+/* =========================
+   节点基础信息
+   ========================= */
+
 async function loadMeta() {
+
   try {
+
     const res =
-      await get(NODES_API);
+      await get(
+        NODES_API
+      );
+
 
     const json =
       await res.json();
+
 
     const node =
       json.data?.find(
-        item => item.uuid === UUID
+        item =>
+          item.uuid === UUID
       );
 
-    if (!node) return;
 
-    $("serverName").textContent =
+    if (!node) {
+      return;
+    }
+
+
+    $("serverName")
+      .textContent =
       node.name;
 
-    if (node.traffic_limit) {
+
+    if (
+      node.traffic_limit
+    ) {
+
       trafficLimit =
         node.traffic_limit;
+
     }
 
-    if (node.expired_at) {
+
+    if (
+      node.expired_at
+    ) {
+
       const d =
-        new Date(node.expired_at);
+        new Date(
+          node.expired_at
+        );
 
-      $("expireText").textContent =
-        `到期 ${d.getMonth() + 1}/${d.getDate()}`;
+
+      $("expireText")
+        .textContent =
+        `到期 ${
+          d.getMonth() + 1
+        }/${d.getDate()}`;
+
     }
-  } catch (e) {
-    console.warn(e);
+
   }
+
+  catch (e) {
+
+    console.warn(e);
+
+  }
+
 }
 
+
+/* =========================
+   实时数据
+   ========================= */
+
 async function refresh() {
+
   try {
+
     const res =
-      await get(RECENT_API);
+      await get(
+        RECENT_API
+      );
+
 
     if (!res.ok) {
+
       throw new Error(
         `HTTP ${res.status}`
       );
+
     }
+
 
     const json =
       await res.json();
 
-    if (!json.data?.length) {
+
+    if (
+      !json.data?.length
+    ) {
+
       throw new Error(
         "No monitoring data"
       );
+
     }
+
 
     const latest =
       json.data[
         json.data.length - 1
       ];
 
+
     const ramPercent =
-      (latest.ram.used /
-        latest.ram.total) *
+      (
+        latest.ram.used /
+        latest.ram.total
+      ) *
       100;
 
-    $("cpu").textContent =
-      pct(latest.cpu.usage);
 
-    $("ram").textContent =
-      pct(ramPercent);
+    $("cpu")
+      .textContent =
+      pct(
+        latest.cpu.usage
+      );
 
-    $("up").textContent =
-      speed(latest.network.up);
 
-    $("down").textContent =
-      speed(latest.network.down);
+    $("ram")
+      .textContent =
+      pct(
+        ramPercent
+      );
+
+
+    $("up")
+      .textContent =
+      speed(
+        latest.network.up
+      );
+
+
+    $("down")
+      .textContent =
+      speed(
+        latest.network.down
+      );
+
 
     const total =
-      latest.network.totalUp +
+      latest.network.totalUp
+      +
       latest.network.totalDown;
+
 
     const usedGB =
       gb(total);
 
-    const limitGB =
-      gb(trafficLimit);
 
-    $("trafficText").textContent =
+    const limitGB =
+      gb(
+        trafficLimit
+      );
+
+
+    $("trafficText")
+      .textContent =
       `${usedGB.toFixed(1)} / ${limitGB.toFixed(0)} GB`;
 
-    $("trafficFill").style.width =
+
+    const percentage =
       Math.min(
-        total /
-        trafficLimit *
+        (
+          total /
+          trafficLimit
+        ) *
         100,
         100
-      ) + "%";
+      );
+
+
+    updateTrafficSegments(
+      percentage
+    );
+
 
     const age =
-      Date.now() -
+      Date.now()
+      -
       new Date(
         latest.updated_at
       ).getTime();
+
 
     status(
       age < 90000
@@ -489,34 +889,68 @@ async function refresh() {
         : "stale"
     );
 
-    $("updated").textContent =
-      time(latest.updated_at);
 
-  } catch (e) {
+    $("updated")
+      .textContent =
+      time(
+        latest.updated_at
+      );
+
+  }
+
+  catch (e) {
+
     console.error(e);
 
-    status("offline");
 
-    $("updated").textContent =
+    status(
+      "offline"
+    );
+
+
+    $("updated")
+      .textContent =
       "读取失败";
+
   }
+
 }
 
-$("card").addEventListener(
-  "click",
-  () => {
-    window.open(
-      BASE + "/",
-      "_blank",
-      "noopener,noreferrer"
-    );
-  }
-);
+
+/* =========================
+   点击打开 Komari
+   ========================= */
+
+$("card")
+  .addEventListener(
+    "click",
+    () => {
+
+      window.open(
+        BASE + "/",
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    }
+  );
+
+
+/* =========================
+   启动
+   ========================= */
+
+createTrafficSegments();
 
 refresh();
+
 loadMeta();
 
-setInterval(refresh, 15000);
+setInterval(
+  refresh,
+  15000
+);
+
 </script>
 
 </body>
