@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Widget</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: #fff;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .search-shell {
+      width: 100%;
+      height: 100%;
+      min-height: 64px;
+
+      display: flex;
+      align-items: center;
+
+      border-radius: 999px;
+      overflow: visible;
+
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      border: 1px solid rgba(255, 255, 255, 0.20);
+
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .engine-area {
+      position: relative;
+      flex: 0 0 auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .engine-btn {
+      appearance: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #fff;
+
+      height: 100%;
+      min-width: 78px;
+      padding: 0 14px 0 16px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      cursor: pointer;
+      border-radius: 999px 0 0 999px;
+
+      transition: background 0.18s ease;
+    }
+
+    .engine-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .engine-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      color: #fff;
+
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+    }
+
+    .badge-google {
+      background: linear-gradient(135deg, #4285f4, #34a853);
+    }
+
+    .badge-baidu {
+      background: linear-gradient(135deg, #2f7cf6, #6aa3ff);
+    }
+
+    .badge-bing {
+      background: linear-gradient(135deg, #008373, #23b8aa);
+    }
+
+    .engine-caret {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid rgba(255, 255, 255, 0.82);
+      opacity: 0.9;
+      transform: translateY(1px);
+    }
+
+    .divider {
+      width: 1px;
+      height: 54%;
+      background: rgba(255, 255, 255, 0.14);
+      flex: 0 0 auto;
+    }
+
+    .search-form {
+      flex: 1 1 auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .search-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 100%;
+
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #fff;
+
+      font-size: 20px;
+      font-weight: 500;
+
+      padding: 0 10px 0 18px;
+      text-shadow: 0 1px 2px rgba(0,0,0,.25);
+    }
+
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.68);
+    }
+
+    .search-submit {
+      appearance: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+
+      width: 68px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 0 999px 999px 0;
+      transition: background 0.18s ease;
+    }
+
+    .search-submit:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .search-icon {
+      width: 22px;
+      height: 22px;
+      opacity: 0.92;
+      stroke: rgba(255,255,255,0.92);
+      stroke-width: 2.4;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
+    }
+
+    .menu {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 8px;
+      min-width: 190px;
+
+      padding: 8px;
+      border-radius: 18px;
+
+      background: rgba(32, 40, 54, 0.55);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      border: 1px solid rgba(255,255,255,0.16);
+
+      box-shadow:
+        0 14px 34px rgba(0,0,0,0.24),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+
+      display: none;
+      z-index: 20;
+    }
+
+    .menu.open {
+      display: block;
+    }
+
+    .menu-item {
+      width: 100%;
+      appearance: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+
+      padding: 12px 12px;
+      border-radius: 12px;
+
+      transition: background 0.16s ease;
+      text-align: left;
+    }
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.10);
+    }
+
+    .menu-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .menu-label {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .check {
+      color: rgba(255,255,255,0.90);
+      font-size: 14px;
+      font-weight: 800;
+      opacity: 0;
+    }
+
+    .menu-item.active .check {
+      opacity: 1;
+    }
+
+    .tip {
+      position: absolute;
+      left: 14px;
+      bottom: -24px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.48);
+      user-select: none;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 700px) {
+      .engine-btn {
+        min-width: 72px;
+        padding-left: 14px;
+        padding-right: 12px;
+      }
+
+      .search-input {
+        font-size: 17px;
+        padding-left: 14px;
+      }
+
+      .search-submit {
+        width: 58px;
+      }
+
+      .menu {
+        min-width: 176px;
+      }
+
+      .tip {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="search-shell">
+      <div class="engine-area">
+        <button class="engine-btn" id="engineBtn" type="button" title="切换搜索引擎">
+          <span id="engineBadge" class="engine-badge badge-google">G</span>
+          <span class="engine-caret"></span>
+        </button>
+
+        <div class="menu" id="engineMenu"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <form class="search-form" id="searchForm" autocomplete="off">
+        <input
+          id="searchInput"
+          class="search-input"
+          type="text"
+          placeholder="Google 搜索"
+          spellcheck="false"
+          autocomplete="off"
+          autofocus
+        />
+
+        <button class="search-submit" type="submit" title="搜索">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M20 20L16.65 16.65"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="tip">Tab / Shift+Tab 可快速切换搜索引擎</div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "tabliss_search_engine_v1";
+
+    const ENGINES = [
+      {
+        key: "google",
+        name: "Google",
+        badge: "G",
+        badgeClass: "badge-google",
+        placeholder: "Google 搜索",
+        buildUrl: q => `https://www.google.com/search?q=${encodeURIComponent(q)}`
+      },
+      {
+        key: "baidu",
+        name: "百度",
+        badge: "百",
+        badgeClass: "badge-baidu",
+        placeholder: "百度搜索",
+        buildUrl: q => `https://www.baidu.com/s?wd=${encodeURIComponent(q)}`
+      },
+      {
+        key: "bing",
+        name: "Bing",
+        badge: "B",
+        badgeClass: "badge-bing",
+        placeholder: "Bing 搜索",
+        buildUrl: q => `https://www.bing.com/search?q=${encodeURIComponent(q)}`
+      }
+    ];
+
+    const engineBtn = document.getElementById("engineBtn");
+    const engineMenu = document.getElementById("engineMenu");
+    const engineBadge = document.getElementById("engineBadge");
+    const searchInput = document.getElementById("searchInput");
+    const searchForm = document.getElementById("searchForm");
+
+    let currentIndex = 0;
+
+    function loadEngine() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const idx = ENGINES.findIndex(item => item.key === saved);
+      currentIndex = idx >= 0 ? idx : 0;
+      applyEngine();
+    }
+
+    function applyEngine() {
+      const engine = ENGINES[currentIndex];
+
+      engineBadge.textContent = engine.badge;
+      engineBadge.className = `engine-badge ${engine.badgeClass}`;
+      searchInput.placeholder = engine.placeholder;
+
+      localStorage.setItem(STORAGE_KEY, engine.key);
+      renderMenu();
+    }
+
+    function renderMenu() {
+      engineMenu.innerHTML = "";
+
+      ENGINES.forEach((engine, index) => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "menu-item" + (index === currentIndex ? " active" : "");
+
+        item.innerHTML = `
+          <span class="menu-left">
+            <span class="engine-badge ${engine.badgeClass}">${engine.badge}</span>
+            <span class="menu-label">${engine.name}</span>
+          </span>
+          <span class="check">✓</span>
+        `;
+
+        item.addEventListener("click", () => {
+          currentIndex = index;
+          applyEngine();
+          closeMenu();
+          searchInput.focus();
+        });
+
+        engineMenu.appendChild(item);
+      });
+    }
+
+    function openMenu() {
+      engineMenu.classList.add("open");
+    }
+
+    function closeMenu() {
+      engineMenu.classList.remove("open");
+    }
+
+    function toggleMenu() {
+      engineMenu.classList.toggle("open");
+    }
+
+    function cycleEngine(step = 1) {
+      currentIndex = (currentIndex + step + ENGINES.length) % ENGINES.length;
+      applyEngine();
+    }
+
+    function doSearch() {
+      const q = searchInput.value.trim();
+      if (!q) return;
+
+      const engine = ENGINES[currentIndex];
+      const url = engine.buildUrl(q);
+
+      window.open(url, "_top");
+    }
+
+    engineBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!engineMenu.contains(e.target) && !engineBtn.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      doSearch();
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        cycleEngine(e.shiftKey ? -1 : 1);
+      }
+    });
+
+    loadEngine();
+  </script>
+</body>
+</html>
