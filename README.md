@@ -7,12 +7,12 @@
 - `shortcuts.html`：分类快捷方式
 - `tabliss/search-widget.html`：粘贴到 TablissNG 自定义 HTML
 
-搜索引擎列表使用浏览器原生选择器，可以在保持 iframe 为搜索栏高度的同时显示下拉菜单，避免透明区域覆盖下面的快捷方式。
+搜索引擎列表在搜索框内部横向展开，可以保持 iframe 为搜索栏高度，避免透明区域覆盖下面的快捷方式。
 
 搜索框嵌入地址使用：
 
 ```text
-https://o-ocn.github.io/vps-widget/search.html?v=11
+https://o-ocn.github.io/vps-widget/search.html?v=12
 ```
 
 快捷方式嵌入地址建议使用：

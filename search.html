@@ -77,27 +77,27 @@ body {
 
   --menu-top:
     calc(
-      var(--bar-h) + 7px
+      var(--bar-h) * 0.08
     );
 
   --menu-width:
     calc(
-      var(--bar-h) * 3
+      var(--bar-h) * 5.2
     );
 
   --menu-icon:
     calc(
-      var(--bar-h) * 0.36
+      var(--bar-h) * 0.30
     );
 
   --menu-item-h:
     calc(
-      var(--bar-h) * 0.80
+      var(--bar-h) * 0.68
     );
 
   --menu-font:
     calc(
-      var(--bar-h) * 0.29
+      var(--bar-h) * 0.24
     );
 }
 
@@ -260,47 +260,6 @@ body {
   transform:
     translateY(1px)
     rotate(180deg);
-
-}
-
-
-/*
-   透明原生选择器覆盖在左侧按钮上。
-   下拉列表由浏览器绘制，不会被 iframe 高度裁掉。
-*/
-
-.engine-select {
-
-  appearance: none;
-  -webkit-appearance: none;
-
-  position: absolute;
-
-  top: 0;
-  left: 0;
-
-  width:
-    var(--left-w);
-
-  height:
-    var(--bar-h);
-
-  z-index: 10;
-
-  border: 0;
-  outline: 0;
-
-  color: transparent;
-  background: transparent;
-
-  cursor: pointer;
-}
-
-
-.engine-select option {
-
-  color: #111;
-  background: #fff;
 
 }
 
@@ -520,6 +479,8 @@ body {
 
   left:
     calc(
+      var(--left-w)
+      +
       var(--bar-h) * 0.08
     );
 
@@ -528,12 +489,20 @@ body {
 
   padding:
     calc(
-      var(--bar-h) * 0.12
+      var(--bar-h) * 0.08
+    );
+
+  display: flex;
+  align-items: center;
+
+  gap:
+    calc(
+      var(--bar-h) * 0.04
     );
 
   border-radius:
     calc(
-      var(--bar-h) * 0.27
+      var(--bar-h) * 0.42
     );
 
   background:
@@ -541,7 +510,7 @@ body {
       28,
       33,
       47,
-      0.34
+      0.58
     );
 
   backdrop-filter:
@@ -571,7 +540,7 @@ body {
 
   box-shadow:
 
-    0 10px 30px
+    0 6px 18px
     rgba(
       0,
       0,
@@ -593,7 +562,7 @@ body {
     hidden;
 
   transform:
-    translateY(-5px)
+    translateX(-5px)
     scale(0.985);
 
   transform-origin:
@@ -635,7 +604,9 @@ body {
 
 .engine-item {
 
-  width: 100%;
+  width: auto;
+
+  flex: 1 1 0;
 
   height:
     var(--menu-item-h);
@@ -665,16 +636,18 @@ body {
     0
 
     calc(
-      var(--bar-h) * 0.20
+      var(--bar-h) * 0.10
     );
 
   display: flex;
 
   align-items: center;
 
+  justify-content: center;
+
   gap:
     calc(
-      var(--bar-h) * 0.18
+      var(--bar-h) * 0.10
     );
 
   font-family:
@@ -743,23 +716,7 @@ body {
 
 .engine-check {
 
-  margin-left:
-    auto;
-
-  font-size:
-    calc(
-      var(--bar-h) * 0.25
-    );
-
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      0.55
-    );
-
-  opacity: 0;
+  display: none;
 
 }
 
@@ -767,7 +724,7 @@ body {
 .engine-item.active
 .engine-check {
 
-  opacity: 1;
+  display: none;
 
 }
 
@@ -798,24 +755,6 @@ body {
     ></span>
 
   </button>
-
-
-  <select
-    id="engineSelect"
-    class="engine-select"
-    aria-label="选择搜索引擎"
-    title="选择搜索引擎"
-  >
-    <option value="google">
-      Google
-    </option>
-    <option value="baidu">
-      百度
-    </option>
-    <option value="bing">
-      Bing
-    </option>
-  </select>
 
 
   <div
@@ -1012,12 +951,6 @@ const engineIcon =
   );
 
 
-const engineSelect =
-  document.getElementById(
-    "engineSelect"
-  );
-
-
 const searchInput =
   document.getElementById(
     "searchInput"
@@ -1143,23 +1076,6 @@ function buildMenu() {
    菜单开关
    ================================================== */
 
-function notifyMenuState(open) {
-
-  window.parent.postMessage(
-    {
-
-      type:
-        "tabliss-search-menu-state",
-
-      open
-
-    },
-    "*"
-  );
-
-}
-
-
 function openMenu() {
 
   engineMenu.classList.add(
@@ -1171,8 +1087,6 @@ function openMenu() {
     "open"
   );
 
-
-  notifyMenuState(true);
 
 }
 
@@ -1188,8 +1102,6 @@ function closeMenu() {
     "open"
   );
 
-
-  notifyMenuState(false);
 
 }
 
@@ -1239,10 +1151,6 @@ function applyEngine(
     engine.name;
 
 
-  engineSelect.value =
-    key;
-
-
   localStorage.setItem(
     STORAGE_KEY,
     key
@@ -1278,24 +1186,6 @@ engineButton.addEventListener(
 );
 
 
-/* 原生下拉选择器 */
-
-engineSelect.addEventListener(
-  "change",
-  event => {
-
-    applyEngine(
-      event.target.value,
-      true
-    );
-
-
-    closeMenu();
-
-  }
-);
-
-
 /* 点击菜单外关闭 */
 
 document.addEventListener(
@@ -1317,14 +1207,6 @@ document.addEventListener(
     }
 
   }
-);
-
-
-/* 焦点离开搜索组件时也收起菜单 */
-
-window.addEventListener(
-  "blur",
-  closeMenu
 );
 
 
@@ -1464,15 +1346,6 @@ searchForm.addEventListener(
 applyEngine(
   currentEngine
 );
-
-
-/*
-   默认告诉父页面只保留搜索栏高度。
-   打开下拉菜单时才临时扩展 iframe，
-   避免透明区域覆盖下面的快捷方式。
-*/
-
-notifyMenuState(false);
 
 </script>
 
