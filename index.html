@@ -75,7 +75,6 @@ body {
 
 .server {
   min-width: 0;
-
   display: flex;
   align-items: center;
   gap: 7px;
@@ -88,7 +87,6 @@ body {
 .server-name {
   font-size: 15px;
   font-weight: 650;
-
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -96,27 +94,22 @@ body {
 
 .status {
   flex: 0 0 auto;
-
   display: flex;
   align-items: center;
   gap: 6px;
 
   font-size: 9px;
   font-weight: 700;
-
   letter-spacing: 0.5px;
 }
 
 .status-dot {
   width: 7px;
   height: 7px;
-
   border-radius: 50%;
 
   background: #f3c969;
-
-  box-shadow:
-    0 0 8px rgba(243, 201, 105, 0.8);
+  box-shadow: 0 0 8px rgba(243, 201, 105, 0.8);
 }
 
 
@@ -129,7 +122,6 @@ body {
 
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-
   gap: 12px;
 }
 
@@ -144,7 +136,6 @@ body {
 
   font-size: 8px;
   font-weight: 500;
-
   letter-spacing: 0.5px;
 }
 
@@ -207,7 +198,6 @@ body {
 
   display: flex;
   align-items: center;
-
   gap: 3px;
 
   background: transparent;
@@ -245,22 +235,38 @@ body {
 
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
 
   gap: 10px;
-
-  color: rgba(255, 255, 255, 0.68);
-
-  font-size: 10px;
-  font-weight: 600;
-
-  letter-spacing: 0.1px;
 }
 
-.footer span {
+
+/* “到期”两个字保持原来的小字效果 */
+.expire-label {
+  color: rgba(255, 255, 255, 0.46);
+
+  font-size: 8px;
+  font-weight: 400;
+}
+
+
+/* 日期单独稍微放大 */
+.expire-date {
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* 更新时间继续放大 */
+.updated-time {
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+  font-weight: 600;
+
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 </style>
@@ -402,11 +408,20 @@ body {
 
   <div class="footer">
 
-    <span id="expireText">
-      到期 --/--
+    <span>
+      <span class="expire-label">到期</span>
+      <span
+        class="expire-date"
+        id="expireDate"
+      >
+        --/--
+      </span>
     </span>
 
-    <span id="updated">
+    <span
+      class="updated-time"
+      id="updated"
+    >
       --:--:--
     </span>
 
@@ -432,8 +447,6 @@ const NODES_API =
 let trafficLimit =
   536870912000;
 
-
-/* 流量条分段数量 */
 
 const SEGMENT_COUNT = 28;
 
@@ -470,7 +483,7 @@ function createTrafficSegments() {
 }
 
 
-/* 更新流量条 */
+/* 更新点断式流量条 */
 
 function updateTrafficSegments(percent) {
 
@@ -500,7 +513,7 @@ function updateTrafficSegments(percent) {
 
 
 /* =========================
-   数据格式
+   格式化
    ========================= */
 
 function gb(bytes) {
@@ -739,9 +752,9 @@ async function loadMeta() {
         );
 
 
-      $("expireText")
+      $("expireDate")
         .textContent =
-        `到期 ${
+        `${
           d.getMonth() + 1
         }/${d.getDate()}`;
 
