@@ -13,5 +13,5 @@
 快捷方式嵌入地址建议使用：
 
 ```text
-https://o-ocn.github.io/vps-widget/shortcuts.html?v=4
+https://o-ocn.github.io/vps-widget/shortcuts.html?v=5
 ```
