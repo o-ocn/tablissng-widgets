@@ -1077,6 +1077,23 @@ function buildMenu() {
    菜单开关
    ================================================== */
 
+function notifyMenuState(open) {
+
+  window.parent.postMessage(
+    {
+
+      type:
+        "tabliss-search-menu-state",
+
+      open
+
+    },
+    "*"
+  );
+
+}
+
+
 function openMenu() {
 
   engineMenu.classList.add(
@@ -1087,6 +1104,9 @@ function openMenu() {
   engineButton.classList.add(
     "open"
   );
+
+
+  notifyMenuState(true);
 
 }
 
@@ -1101,6 +1121,9 @@ function closeMenu() {
   engineButton.classList.remove(
     "open"
   );
+
+
+  notifyMenuState(false);
 
 }
 
@@ -1345,6 +1368,15 @@ searchForm.addEventListener(
 applyEngine(
   currentEngine
 );
+
+
+/*
+   默认告诉父页面只保留搜索栏高度。
+   打开下拉菜单时才临时扩展 iframe，
+   避免透明区域覆盖下面的快捷方式。
+*/
+
+notifyMenuState(false);
 
 </script>
 
