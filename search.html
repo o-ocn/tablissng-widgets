@@ -1232,6 +1232,14 @@ document.addEventListener(
 );
 
 
+/* 焦点离开搜索组件时也收起菜单 */
+
+window.addEventListener(
+  "blur",
+  closeMenu
+);
+
+
 /* ESC 关闭 */
 
 document.addEventListener(
