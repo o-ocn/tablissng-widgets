@@ -550,6 +550,18 @@ const ICON_OVERRIDE_KEY =
   "tabliss-shortcuts-icon-overrides-v1";
 
 
+/*
+   已验证图标地址的持久缓存。
+
+   图标文件本身继续交给浏览器 HTTP 缓存；
+   localStorage 只记录最终可用地址，
+   避免每次刷新都重新探测多组 favicon。
+*/
+
+const ICON_CACHE_STORAGE_KEY =
+  "tabliss-shortcuts-resolved-icons-v1";
+
+
 /* ========================================
    自定义图标覆盖
    ======================================== */
@@ -578,13 +590,215 @@ catch {
 
 
 /* ========================================
-   图标解析缓存
+   图标两级缓存
 
-   同一个网站只解析一次图标。
+   第一层：当前页面的 Map
+   第二层：localStorage
    ======================================== */
 
 const iconResolutionCache =
   new Map();
+
+
+let storedIconCache = {};
+
+
+try {
+
+  const parsed =
+    JSON.parse(
+      localStorage.getItem(
+        ICON_CACHE_STORAGE_KEY
+      )
+      ||
+      "{}"
+    );
+
+
+  if (
+    parsed
+    &&
+    typeof parsed === "object"
+    &&
+    !Array.isArray(parsed)
+  ) {
+
+    storedIconCache =
+      parsed;
+
+  }
+
+}
+
+catch {
+
+  storedIconCache = {};
+
+}
+
+
+function iconCacheSignature(
+  key,
+  site
+) {
+
+  return JSON.stringify([
+
+    iconOverrides[key]
+      || "",
+
+    site.customIcon
+      || "",
+
+    site.icon
+      || "",
+
+    site.url
+      || ""
+
+  ]);
+
+}
+
+
+function getStoredIcon(
+  key,
+  site
+) {
+
+  const entry =
+    storedIconCache[key];
+
+
+  if (
+    !entry
+    ||
+    typeof entry.src !== "string"
+    ||
+    entry.signature !==
+      iconCacheSignature(
+        key,
+        site
+      )
+  ) {
+
+    return "";
+
+  }
+
+
+  return entry.src;
+
+}
+
+
+function saveStoredIcon(
+  key,
+  site,
+  src
+) {
+
+  if (!src) {
+    return;
+  }
+
+
+  /*
+     data URL 已由 iconOverrides 持久保存，
+     这里不重复存一份，避免占用双倍空间。
+  */
+
+  if (
+    src.startsWith("data:")
+    ||
+    src.startsWith("blob:")
+  ) {
+
+    return;
+
+  }
+
+
+  storedIconCache[key] = {
+
+    src,
+
+    signature:
+      iconCacheSignature(
+        key,
+        site
+      )
+
+  };
+
+
+  try {
+
+    localStorage.setItem(
+      ICON_CACHE_STORAGE_KEY,
+      JSON.stringify(
+        storedIconCache
+      )
+    );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to save icon cache",
+      error
+    );
+
+  }
+
+}
+
+
+function clearStoredIcon(key) {
+
+  iconResolutionCache.delete(
+    key
+  );
+
+
+  if (
+    !Object.prototype
+      .hasOwnProperty.call(
+        storedIconCache,
+        key
+      )
+  ) {
+
+    return;
+
+  }
+
+
+  delete storedIconCache[key];
+
+
+  try {
+
+    localStorage.setItem(
+      ICON_CACHE_STORAGE_KEY,
+      JSON.stringify(
+        storedIconCache
+      )
+    );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to update icon cache",
+      error
+    );
+
+  }
+
+}
 
 
 function getHostname(url) {
@@ -760,10 +974,13 @@ function probeImage(url) {
 
 function resolveIcon(
   key,
-  site
+  site,
+  forceRefresh = false
 ) {
 
   if (
+    !forceRefresh
+    &&
     iconResolutionCache
       .has(key)
   ) {
@@ -776,13 +993,48 @@ function resolveIcon(
   }
 
 
+  if (!forceRefresh) {
+
+    const storedIcon =
+      getStoredIcon(
+        key,
+        site
+      );
+
+
+    if (storedIcon) {
+
+      const cachedPromise =
+        Promise.resolve(
+          storedIcon
+        );
+
+
+      iconResolutionCache.set(
+        key,
+        cachedPromise
+      );
+
+
+      return cachedPromise;
+
+    }
+
+  }
+
+
   const promise =
     (async () => {
 
-      const candidates = [
+      const candidates =
+        [...new Set([
 
         iconOverrides[key]
           || "",
+
+        normaliseIcon(
+          site.customIcon
+        ),
 
         normaliseIcon(
           site.icon
@@ -800,7 +1052,7 @@ function resolveIcon(
           site.url
         )
 
-      ];
+      ])];
 
 
       for (
@@ -820,6 +1072,13 @@ function resolveIcon(
 
 
         if (success) {
+
+          saveStoredIcon(
+            key,
+            site,
+            candidate
+          );
+
 
           return candidate;
 
@@ -1571,6 +1830,108 @@ function createShortcut(
       .charAt(0);
 
 
+  function showIcon(icon) {
+
+    img.src =
+      icon;
+
+
+    img.style.display =
+      "block";
+
+
+    fallback.style.display =
+      "none";
+
+  }
+
+
+  function showFallback() {
+
+    img.style.display =
+      "none";
+
+
+    fallback.style.display =
+      "flex";
+
+  }
+
+
+  const storedIcon =
+    getStoredIcon(
+      key,
+      site
+    );
+
+
+  if (storedIcon) {
+
+    showIcon(
+      storedIcon
+    );
+
+  }
+
+  else {
+
+    showFallback();
+
+  }
+
+
+  let retriedAfterError =
+    false;
+
+
+  img.addEventListener(
+    "error",
+    () => {
+
+      if (retriedAfterError) {
+
+        showFallback();
+
+        return;
+
+      }
+
+
+      retriedAfterError =
+        true;
+
+
+      showFallback();
+
+
+      clearStoredIcon(
+        key
+      );
+
+
+      resolveIcon(
+        key,
+        site,
+        true
+      )
+      .then(
+        icon => {
+
+          if (icon) {
+
+            showIcon(
+              icon
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
   shell.appendChild(
     img
   );
@@ -1623,27 +1984,15 @@ function createShortcut(
 
       if (icon) {
 
-        img.src =
-          icon;
-
-
-        img.style.display =
-          "block";
-
-
-        fallback.style.display =
-          "none";
+        showIcon(
+          icon
+        );
 
       }
 
       else {
 
-        img.style.display =
-          "none";
-
-
-        fallback.style.display =
-          "flex";
+        showFallback();
 
       }
 
