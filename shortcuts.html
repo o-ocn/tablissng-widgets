@@ -35,7 +35,7 @@ body {
 
 
 /* ==================================================
-   整体
+   整体布局
    ================================================== */
 
 .app {
@@ -57,7 +57,8 @@ body {
 
 
 /* ==================================================
-   左侧分类
+   左侧分组
+   不再额外覆盖一层磨砂背景
    ================================================== */
 
 .sidebar {
@@ -73,35 +74,17 @@ body {
 
   gap: 2px;
 
-  border-radius: 22px;
+  background: transparent;
 
-  background:
-    rgba(
-      20,
-      24,
-      32,
-      0.10
-    );
+  border: 0;
 
-  border:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      0.08
-    );
-
-  box-shadow:
-    inset 0 1px 0
-    rgba(
-      255,
-      255,
-      255,
-      0.03
-    );
+  box-shadow: none;
 }
 
+
+/* ==================================================
+   分组项目
+   ================================================== */
 
 .nav-item {
   width: 100%;
@@ -117,8 +100,7 @@ body {
 
   border-radius: 10px;
 
-  background:
-    transparent;
+  background: transparent;
 
   color:
     rgba(
@@ -128,9 +110,19 @@ body {
       0.48
     );
 
-  font-family: inherit;
+  /*
+     先试楷体
+  */
+  font-family:
+    "KaiTi",
+    "STKaiti",
+    "Kaiti SC",
+    "楷体",
+    serif;
 
-  font-size: 11px;
+  font-size: 12px;
+
+  font-weight: 500;
 
   cursor: pointer;
 
@@ -153,7 +145,7 @@ body {
       255,
       255,
       255,
-      0.82
+      0.84
     );
 
   background:
@@ -161,7 +153,7 @@ body {
       255,
       255,
       255,
-      0.055
+      0.035
     );
 }
 
@@ -172,7 +164,7 @@ body {
       255,
       255,
       255,
-      0.96
+      0.98
     );
 
   background:
@@ -180,7 +172,7 @@ body {
       255,
       255,
       255,
-      0.09
+      0.075
     );
 }
 
@@ -198,7 +190,7 @@ body {
       255,
       255,
       255,
-      0.18
+      0.17
     );
 
   transition:
@@ -215,7 +207,7 @@ body {
       255,
       255,
       255,
-      0.95
+      0.96
     );
 
   box-shadow:
@@ -228,7 +220,7 @@ body {
     );
 
   transform:
-    scale(1.15);
+    scale(1.18);
 }
 
 
@@ -269,10 +261,14 @@ body {
 }
 
 
+/* ==================================================
+   分组切换动画
+   ================================================== */
+
 .grid.animate-next {
   animation:
     enterNext
-    0.25s
+    0.22s
     cubic-bezier(.2,.75,.3,1);
 }
 
@@ -280,17 +276,16 @@ body {
 .grid.animate-prev {
   animation:
     enterPrev
-    0.25s
+    0.22s
     cubic-bezier(.2,.75,.3,1);
 }
 
 
 @keyframes enterNext {
-
   from {
     opacity: 0;
     transform:
-      translateY(12px);
+      translateY(10px);
   }
 
   to {
@@ -298,16 +293,14 @@ body {
     transform:
       translateY(0);
   }
-
 }
 
 
 @keyframes enterPrev {
-
   from {
     opacity: 0;
     transform:
-      translateY(-12px);
+      translateY(-10px);
   }
 
   to {
@@ -315,12 +308,11 @@ body {
     transform:
       translateY(0);
   }
-
 }
 
 
 /* ==================================================
-   单个快捷图标
+   单个快捷方式
    ================================================== */
 
 .shortcut {
@@ -346,21 +338,10 @@ body {
     7px 6px 6px;
 
   background:
-    rgba(
-      255,
-      255,
-      255,
-      0
-    );
+    transparent;
 
   border:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      0
-    );
+    1px solid transparent;
 
   cursor: pointer;
 
@@ -378,7 +359,7 @@ body {
       255,
       255,
       255,
-      0.085
+      0.075
     );
 
   border-color:
@@ -386,7 +367,7 @@ body {
       255,
       255,
       255,
-      0.10
+      0.09
     );
 
   box-shadow:
@@ -395,7 +376,7 @@ body {
       0,
       0,
       0,
-      0.10
+      0.09
     );
 
   transform:
@@ -403,27 +384,37 @@ body {
 }
 
 
+/* ==================================================
+   图标
+   ================================================== */
+
 .icon-shell {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
 
   border-radius: 15px;
 
   display: flex;
 
   align-items: center;
+
   justify-content: center;
 
   position: relative;
 
   overflow: hidden;
 
+  /*
+     不再强制给每个图标铺一个明显灰底。
+     网站本身有图标就直接显示。
+  */
+
   background:
     rgba(
       255,
       255,
       255,
-      0.13
+      0.055
     );
 
   border:
@@ -432,46 +423,50 @@ body {
       255,
       255,
       255,
-      0.12
+      0.075
     );
 
   box-shadow:
-    0 5px 16px
+    0 4px 13px
     rgba(
       0,
       0,
       0,
-      0.10
-    ),
-    inset 0 1px 0
-    rgba(
-      255,
-      255,
-      255,
-      0.05
+      0.08
     );
 
   transition:
-    transform 0.18s ease;
+    transform 0.18s ease,
+    background 0.18s ease;
 }
 
 
 .shortcut:hover
 .icon-shell {
   transform:
-    scale(1.045);
+    scale(1.055);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.09
+    );
 }
 
 
 .icon-shell img {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
 
   object-fit: contain;
 
   display: block;
 }
 
+
+/* 最后的文字兜底 */
 
 .fallback {
   position: absolute;
@@ -481,6 +476,7 @@ body {
   display: none;
 
   align-items: center;
+
   justify-content: center;
 
   color:
@@ -488,10 +484,11 @@ body {
       255,
       255,
       255,
-      0.93
+      0.95
     );
 
   font-size: 20px;
+
   font-weight: 650;
 
   background:
@@ -499,10 +496,14 @@ body {
       255,
       255,
       255,
-      0.10
+      0.08
     );
 }
 
+
+/* ==================================================
+   名称
+   ================================================== */
 
 .shortcut-label {
   width: 100%;
@@ -542,45 +543,7 @@ body {
 
 
 /* ==================================================
-   下方极淡提示
-   ================================================== */
-
-.hint {
-  position: absolute;
-
-  left: 50%;
-  bottom: 2px;
-
-  transform:
-    translateX(-50%);
-
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      0.25
-    );
-
-  font-size: 8px;
-
-  pointer-events: none;
-
-  opacity: 0;
-
-  transition:
-    opacity 0.2s ease;
-}
-
-
-body:hover
-.hint {
-  opacity: 1;
-}
-
-
-/* ==================================================
-   小屏适配
+   小屏
    ================================================== */
 
 @media (max-width: 540px) {
@@ -595,6 +558,7 @@ body:hover
       8px;
   }
 
+
   .grid {
     grid-template-columns:
       repeat(4, minmax(0, 1fr));
@@ -605,17 +569,20 @@ body:hover
     gap: 5px;
   }
 
-  .icon-shell {
-    width: 43px;
-    height: 43px;
 
-    border-radius: 14px;
+  .icon-shell {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 13px;
   }
+
 
   .icon-shell img {
-    width: 35px;
-    height: 35px;
+    width: 34px;
+    height: 34px;
   }
+
 
   .shortcut-label {
     font-size: 10px;
@@ -651,26 +618,26 @@ body:hover
 </div>
 
 
-<div class="hint">
-  滚轮切换分组
-</div>
-
-
 <script>
 
 /* ==================================================
-   基础工具
+   设置
    ================================================== */
 
 const STORAGE_KEY =
-  "tabliss-shortcuts-group-v1";
+  "tabliss-shortcuts-group-v2";
 
 
-function iconUrl(url) {
+/* ==================================================
+   图标工具
+   ================================================== */
+
+function normaliseIcon(url) {
 
   if (!url) {
     return "";
   }
+
 
   if (
     url.startsWith("/")
@@ -684,20 +651,113 @@ function iconUrl(url) {
 
   }
 
+
   return url;
+
+}
+
+
+function getHostname(url) {
+
+  try {
+
+    return (
+      new URL(url).hostname
+    );
+
+  }
+
+  catch {
+
+    return "";
+
+  }
+
+}
+
+
+function getOriginFavicon(url) {
+
+  try {
+
+    const parsed =
+      new URL(url);
+
+
+    /*
+       GitHub Pages 是 HTTPS。
+       HTTP favicon 会被浏览器作为 mixed content 拦截，
+       所以只直接使用 HTTPS 网站 favicon。
+    */
+
+    if (
+      parsed.protocol !==
+      "https:"
+    ) {
+
+      return "";
+
+    }
+
+
+    return (
+      parsed.origin
+      +
+      "/favicon.ico"
+    );
+
+  }
+
+  catch {
+
+    return "";
+
+  }
+
+}
+
+
+function getGoogleFavicon(url) {
+
+  return (
+    "https://www.google.com/s2/favicons?sz=128&domain_url="
+    +
+    encodeURIComponent(url)
+  );
+
+}
+
+
+function getDuckFavicon(url) {
+
+  const host =
+    getHostname(url);
+
+
+  if (!host) {
+    return "";
+  }
+
+
+  return (
+    "https://icons.duckduckgo.com/ip3/"
+    +
+    host
+    +
+    ".ico"
+  );
 
 }
 
 
 /* ==================================================
    网站数据库
-   首页和分类可以共用同一个网站
    ================================================== */
 
 const sites = {
 
 
-  /* ---------- 邮箱 ---------- */
+  /* ================= 邮箱 ================= */
 
   outlook: {
     label: "Outlook",
@@ -719,12 +779,12 @@ const sites = {
 
   netease: {
     label: "网易邮箱",
-    url: "https://email.163.com",
+    url: "https://email.163.com/",
     icon: "https://files.codelife.cc/icons/eb58486c2f648735.png"
   },
 
 
-  /* ---------- 高频 / 论坛 ---------- */
+  /* ================= 论坛 / 阅读 ================= */
 
   qianmo: {
     label: "阡陌居",
@@ -746,8 +806,8 @@ const sites = {
 
   tieba: {
     label: "百度贴吧",
-    url: "https://tieba.baidu.com",
-    icon: "/sourceStore/website/01JB3YE3ZR2D3C3PMNRB7FDQBC.svg"
+    url: "https://tieba.baidu.com/",
+    icon: "https://files.codelife.cc/icons/tieba.svg"
   },
 
   loltieba: {
@@ -758,7 +818,7 @@ const sites = {
 
   keylol: {
     label: "其乐 Keylol",
-    url: "https://keylol.com",
+    url: "https://keylol.com/",
     icon: "https://files.codelife.cc/icons/60b9eaf9ae5a9ba4024b39d2.png"
   },
 
@@ -769,7 +829,7 @@ const sites = {
   },
 
 
-  /* ---------- 工具 ---------- */
+  /* ================= 工具 ================= */
 
   googleTranslate: {
     label: "Google翻译",
@@ -815,12 +875,12 @@ const sites = {
 
   github: {
     label: "GitHub",
-    url: "https://github.com",
-    icon: "/sourceStore/website/01J8HDBKK28SS2GX9AT0MVT48V.svg"
+    url: "https://github.com/",
+    icon: "https://github.githubassets.com/favicons/favicon.svg"
   },
 
 
-  /* ---------- 影音 ---------- */
+  /* ================= 影音 ================= */
 
   bilibili: {
     label: "哔哩哔哩",
@@ -847,7 +907,7 @@ const sites = {
   },
 
 
-  /* ---------- 社交 ---------- */
+  /* ================= 社交 ================= */
 
   douban: {
     label: "豆瓣",
@@ -875,14 +935,14 @@ const sites = {
 
   x: {
     label: "X",
-    url: "https://x.com",
-    icon: "/sourceStore/website/01J8HASDEH6ABY7GHT7B96DBVC.svg"
+    url: "https://x.com/",
+    icon: ""
   },
 
   instagram: {
     label: "Instagram",
     url: "https://www.instagram.com/",
-    icon: "/uploads/202605/01KSVE560W4QRVT0MAPM46BV4P.png"
+    icon: ""
   },
 
   discord: {
@@ -893,23 +953,23 @@ const sites = {
 
   reddit: {
     label: "Reddit",
-    url: "https://www.reddit.com",
-    icon: "/uploads/202507/01K0R4WQ4TN2RQQZFEWDRBC16D.svg"
+    url: "https://www.reddit.com/",
+    icon: ""
   },
 
 
-  /* ---------- AI ---------- */
+  /* ================= AI ================= */
 
   chatgpt: {
     label: "ChatGPT",
     url: "https://chatgpt.com/",
-    icon: "/uploads/202608/01KYWMRENKGVR8SS3S4XYZWTPJ.png"
+    icon: ""
   },
 
   grok: {
     label: "Grok",
-    url: "https://grok.com",
-    icon: "/sourceStore/website/01KK8WQNGSYN8D2VHJ6QR8637T.svg"
+    url: "https://grok.com/",
+    icon: ""
   },
 
   gemini: {
@@ -933,7 +993,7 @@ const sites = {
   deepseek: {
     label: "DeepSeek",
     url: "https://chat.deepseek.com/",
-    icon: "/uploads/202411/01JCJTJNTJGB5G9H7MVP2NR8AG.png"
+    icon: ""
   },
 
   tongyi: {
@@ -960,25 +1020,19 @@ const sites = {
     icon: "https://cdn-bot.hunyuan.tencent.com/logo-v2.png"
   },
 
-  deepseekPlatform: {
-    label: "DeepSeek平台",
-    url: "https://platform.deepseek.com",
-    icon: "/uploads/202605/01KRP7CTKB3XW46W5E5B1QQ1XP.png"
-  },
 
-
-  /* ---------- 网盘 ---------- */
+  /* ================= 网盘 ================= */
 
   onedrive: {
     label: "OneDrive",
     url: "https://onedrive.live.com/",
-    icon: "/uploads/202608/01M0FW6WR4ZM8M3F4GFBNRQJHH.png"
+    icon: ""
   },
 
   gdrive: {
     label: "Google Drive",
-    url: "https://drive.google.com/drive/",
-    icon: "/uploads/202608/01M0FW3634HJGBTBFBXBAXRV7G.png"
+    url: "https://drive.google.com/",
+    icon: ""
   },
 
   baidupan: {
@@ -995,7 +1049,7 @@ const sites = {
 
   quark: {
     label: "夸克网盘",
-    url: "https://pan.quark.cn",
+    url: "https://pan.quark.cn/",
     icon: "https://files.codelife.cc/icons/b20bacf68b2efe5b.png"
   },
 
@@ -1006,7 +1060,7 @@ const sites = {
   },
 
 
-  /* ---------- 购物 ---------- */
+  /* ================= 购物 ================= */
 
   taobao: {
     label: "淘宝",
@@ -1027,7 +1081,7 @@ const sites = {
   },
 
 
-  /* ---------- 游戏 ---------- */
+  /* ================= 游戏 ================= */
 
   kook: {
     label: "KOOK",
@@ -1074,38 +1128,38 @@ const sites = {
   oopz: {
     label: "Oopz",
     url: "https://web.oopz.cn/",
-    icon: "/uploads/202604/01KNTX320SQ6WRXHZKTT9PR9K1.png"
+    icon: ""
   },
 
 
-  /* ---------- 直播工作 ---------- */
+  /* ================= 直播 ================= */
 
   douyinBusiness: {
     label: "抖音来客",
     url: "https://life.douyin.com/p/home",
-    icon: "/uploads/202608/01KYWHKPT7RTF45NP3RFVX1F83.png"
+    icon: ""
   },
 
   douyinLive: {
     label: "直播专业版",
     url: "https://eos.douyin.com/livesite/live/current",
-    icon: "/sourceStore/website/01J8GTDYZPHKXE4VF6614C45VM.svg"
+    icon: ""
   },
 
   localAds: {
     label: "巨量本地推",
     url: "https://localads.chengzijianzhan.cn/lamp/pc/home",
-    icon: "/uploads/202608/01KYWHJMKANXQ3950SK65QXDJE.png"
+    icon: ""
   },
 
   anchor: {
     label: "主播平台",
     url: "https://anchor.douyin.com/anchor/dashboard/home",
-    icon: "/sourceStore/website/01J8GTDYZPHKXE4VF6614C45VM.svg"
+    icon: ""
   },
 
 
-  /* ---------- 表情 ---------- */
+  /* ================= 表情 ================= */
 
   fabiaoqing: {
     label: "发表情",
@@ -1142,7 +1196,6 @@ const sites = {
 
 /* ==================================================
    分组
-   首页只是常用副本
    ================================================== */
 
 const groups = [
@@ -1254,8 +1307,7 @@ const groups = [
       "tongyi",
       "doubao",
       "xiezuocat",
-      "yuanbao",
-      "deepseekPlatform"
+      "yuanbao"
     ]
   },
 
@@ -1378,7 +1430,7 @@ if (
 
 
 /* ==================================================
-   建立左侧菜单
+   左侧菜单
    ================================================== */
 
 function buildSidebar() {
@@ -1425,15 +1477,12 @@ function buildSidebar() {
         "click",
         () => {
 
-          const direction =
-            index > current
-              ? 1
-              : -1;
+          const difference =
+            index - current;
 
 
-          switchGroup(
-            index,
-            direction
+          switchGroupBy(
+            difference
           );
 
         }
@@ -1451,10 +1500,148 @@ function buildSidebar() {
 
 
 /* ==================================================
+   创建图标
+   ================================================== */
+
+function createIcon(
+  site,
+  img,
+  fallback
+) {
+
+  const candidates = [];
+
+
+  /* 1. 导出时保存的图标 */
+
+  if (
+    site.icon
+  ) {
+
+    candidates.push(
+      normaliseIcon(
+        site.icon
+      )
+    );
+
+  }
+
+
+  /* 2. 网站自己的 favicon */
+
+  const originIcon =
+    getOriginFavicon(
+      site.url
+    );
+
+
+  if (
+    originIcon
+  ) {
+
+    candidates.push(
+      originIcon
+    );
+
+  }
+
+
+  /* 3. Google favicon */
+
+  candidates.push(
+    getGoogleFavicon(
+      site.url
+    )
+  );
+
+
+  /* 4. DuckDuckGo favicon */
+
+  candidates.push(
+    getDuckFavicon(
+      site.url
+    )
+  );
+
+
+  let index = 0;
+
+
+  function tryNext() {
+
+    /*
+       清除无效地址
+    */
+
+    while (
+      index < candidates.length
+      &&
+      !candidates[index]
+    ) {
+
+      index++;
+
+    }
+
+
+    if (
+      index >=
+      candidates.length
+    ) {
+
+      img.style.display =
+        "none";
+
+
+      fallback.style.display =
+        "flex";
+
+
+      return;
+
+    }
+
+
+    img.src =
+      candidates[index];
+
+
+    index++;
+
+  }
+
+
+  img.onload =
+    () => {
+
+      img.style.display =
+        "block";
+
+
+      fallback.style.display =
+        "none";
+
+    };
+
+
+  img.onerror =
+    () => {
+
+      tryNext();
+
+    };
+
+
+  tryNext();
+
+}
+
+
+/* ==================================================
    单个快捷方式
    ================================================== */
 
-function shortcutHtml(
+function createShortcut(
   key
 ) {
 
@@ -1463,17 +1650,69 @@ function shortcutHtml(
 
 
   if (!site) {
-    return "";
+
+    return null;
+
   }
 
 
-  const icon =
-    iconUrl(
-      site.icon
+  const link =
+    document.createElement(
+      "a"
     );
 
 
-  const first =
+  link.className =
+    "shortcut";
+
+
+  link.href =
+    site.url;
+
+
+  link.target =
+    "_blank";
+
+
+  link.rel =
+    "noopener noreferrer";
+
+
+  link.title =
+    site.label;
+
+
+  const iconShell =
+    document.createElement(
+      "div"
+    );
+
+
+  iconShell.className =
+    "icon-shell";
+
+
+  const img =
+    document.createElement(
+      "img"
+    );
+
+
+  img.alt =
+    "";
+
+
+  const fallback =
+    document.createElement(
+      "span"
+    );
+
+
+  fallback.className =
+    "fallback";
+
+
+  fallback.textContent =
     site.label
       ?.trim()
       ?.charAt(0)
@@ -1481,59 +1720,54 @@ function shortcutHtml(
       "?";
 
 
-  return `
-
-    <a
-      class="shortcut"
-
-      href="${site.url}"
-
-      target="_blank"
-
-      rel="noopener noreferrer"
-
-      title="${site.label}"
-    >
-
-      <div
-        class="icon-shell"
-      >
-
-        <img
-          src="${icon}"
-          alt=""
-          loading="lazy"
-
-          onerror="
-            this.style.display='none';
-            this.nextElementSibling.style.display='flex';
-          "
-        >
-
-        <span
-          class="fallback"
-        >
-          ${first}
-        </span>
-
-      </div>
+  iconShell.appendChild(
+    img
+  );
 
 
-      <div
-        class="shortcut-label"
-      >
-        ${site.label}
-      </div>
+  iconShell.appendChild(
+    fallback
+  );
 
-    </a>
 
-  `;
+  const label =
+    document.createElement(
+      "div"
+    );
+
+
+  label.className =
+    "shortcut-label";
+
+
+  label.textContent =
+    site.label;
+
+
+  link.appendChild(
+    iconShell
+  );
+
+
+  link.appendChild(
+    label
+  );
+
+
+  createIcon(
+    site,
+    img,
+    fallback
+  );
+
+
+  return link;
 
 }
 
 
 /* ==================================================
-   渲染当前组
+   渲染当前分组
    ================================================== */
 
 function renderGroup(
@@ -1551,9 +1785,30 @@ function renderGroup(
 
 
   grid.innerHTML =
-    group.items
-      .map(shortcutHtml)
-      .join("");
+    "";
+
+
+  group.items.forEach(
+    key => {
+
+      const element =
+        createShortcut(
+          key
+        );
+
+
+      if (
+        element
+      ) {
+
+        grid.appendChild(
+          element
+        );
+
+      }
+
+    }
+  );
 
 
   void grid.offsetWidth;
@@ -1578,36 +1833,40 @@ function renderGroup(
 
 
 /* ==================================================
-   切换分组
+   循环索引
    ================================================== */
 
-function switchGroup(
-  index,
-  direction = 1
+function wrapIndex(
+  index
+) {
+
+  const count =
+    groups.length;
+
+
+  return (
+    (
+      index % count
+    )
+    +
+    count
+  )
+  %
+  count;
+
+}
+
+
+/* ==================================================
+   一次可以跨多个分组
+   ================================================== */
+
+function switchGroupBy(
+  steps
 ) {
 
   if (
-    index < 0
-  ) {
-
-    index =
-      groups.length - 1;
-
-  }
-
-
-  if (
-    index >=
-    groups.length
-  ) {
-
-    index = 0;
-
-  }
-
-
-  if (
-    index === current
+    !steps
   ) {
 
     return;
@@ -1615,7 +1874,16 @@ function switchGroup(
   }
 
 
-  current = index;
+  const direction =
+    steps > 0
+      ? 1
+      : -1;
+
+
+  current =
+    wrapIndex(
+      current + steps
+    );
 
 
   renderGroup(
@@ -1626,14 +1894,36 @@ function switchGroup(
 
 
 /* ==================================================
-   鼠标滚轮切换
-   带阈值 + 防抖
+   新滚轮逻辑
+
+   慢滚：
+   每达到一个阈值切一组
+
+   快滚：
+   可以一次跨多个分组
+
+   不再使用 380ms 整体锁定
    ================================================== */
 
-let wheelSum = 0;
+let wheelAccumulator = 0;
 
-let wheelLocked =
-  false;
+let wheelResetTimer = null;
+
+
+/*
+   数字越小越灵敏。
+   目前 70 比之前明显跟手。
+*/
+
+const WHEEL_THRESHOLD = 70;
+
+
+/*
+   单个 wheel 事件最多跨 4 组，
+   防止某些高灵敏鼠标瞬间跳完整圈。
+*/
+
+const MAX_STEPS_PER_EVENT = 4;
 
 
 document.addEventListener(
@@ -1645,59 +1935,82 @@ document.addEventListener(
     event.preventDefault();
 
 
-    if (
-      wheelLocked
-    ) {
-
-      return;
-
-    }
-
-
-    wheelSum +=
+    wheelAccumulator +=
       event.deltaY;
 
 
+    let steps =
+      Math.trunc(
+        wheelAccumulator
+        /
+        WHEEL_THRESHOLD
+      );
+
+
     if (
-      Math.abs(
-        wheelSum
-      ) < 38
+      steps === 0
     ) {
+
+      clearTimeout(
+        wheelResetTimer
+      );
+
+
+      wheelResetTimer =
+        setTimeout(
+          () => {
+
+            wheelAccumulator =
+              0;
+
+          },
+
+          120
+        );
+
 
       return;
 
     }
 
 
-    const direction =
-      wheelSum > 0
-        ? 1
-        : -1;
+    steps =
+      Math.max(
+        -MAX_STEPS_PER_EVENT,
+        Math.min(
+          MAX_STEPS_PER_EVENT,
+          steps
+        )
+      );
 
 
-    wheelSum = 0;
+    wheelAccumulator -=
+      steps
+      *
+      WHEEL_THRESHOLD;
 
 
-    wheelLocked =
-      true;
-
-
-    switchGroup(
-      current + direction,
-      direction
+    switchGroupBy(
+      steps
     );
 
 
-    setTimeout(
-      () => {
-
-        wheelLocked =
-          false;
-
-      },
-
-      380
+    clearTimeout(
+      wheelResetTimer
     );
+
+
+    wheelResetTimer =
+      setTimeout(
+        () => {
+
+          wheelAccumulator =
+            0;
+
+        },
+
+        120
+      );
 
   },
 
@@ -1709,7 +2022,7 @@ document.addEventListener(
 
 
 /* ==================================================
-   键盘也可以切换
+   键盘
    ================================================== */
 
 document.addEventListener(
@@ -1723,10 +2036,7 @@ document.addEventListener(
       "ArrowDown"
     ) {
 
-      switchGroup(
-        current + 1,
-        1
-      );
+      switchGroupBy(1);
 
     }
 
@@ -1736,10 +2046,7 @@ document.addEventListener(
       "ArrowUp"
     ) {
 
-      switchGroup(
-        current - 1,
-        -1
-      );
+      switchGroupBy(-1);
 
     }
 
