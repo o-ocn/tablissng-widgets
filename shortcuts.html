@@ -481,6 +481,163 @@ body {
     );
 }
 
+
+/* ========================================
+   右键菜单与编辑窗口
+   ======================================== */
+
+[hidden] {
+  display: none !important;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 300;
+  min-width: 168px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(30, 32, 40, 0.82);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+}
+
+.context-menu button {
+  width: 100%;
+  height: 34px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.context-menu button:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.context-menu .danger {
+  color: #ff9b96;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(5, 8, 14, 0.28);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.modal-card {
+  width: min(350px, 100%);
+  padding: 17px;
+  border-radius: 20px;
+  background: rgba(31, 34, 43, 0.86);
+  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.modal-title {
+  margin: 0 0 13px;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.field {
+  display: block;
+  margin-top: 10px;
+}
+
+.field span {
+  display: block;
+  margin: 0 0 5px 2px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+}
+
+.field input {
+  width: 100%;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 11px;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  user-select: text;
+}
+
+.field input:focus {
+  border-color: rgba(10, 132, 255, 0.72);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.14);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.modal-actions button {
+  height: 32px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.button-secondary {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.button-primary {
+  background: #0A84FF;
+}
+
+.form-error {
+  min-height: 14px;
+  margin-top: 7px;
+  color: #ff9b96;
+  font-size: 10px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  z-index: 500;
+  max-width: calc(100% - 32px);
+  padding: 8px 13px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: rgba(28, 31, 39, 0.86);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 </style>
 </head>
 
@@ -500,6 +657,124 @@ body {
   ></main>
 
 </div>
+
+
+<div
+  class="context-menu"
+  id="shortcutMenu"
+  hidden
+>
+  <button type="button" data-action="upload-icon">
+    本地上传图标
+  </button>
+  <button type="button" data-action="icon-url">
+    使用图标链接
+  </button>
+  <button type="button" data-action="reset-icon">
+    恢复自动图标
+  </button>
+</div>
+
+
+<div
+  class="context-menu"
+  id="blankMenu"
+  hidden
+>
+  <button type="button" data-action="add-shortcut">
+    添加快捷方式
+  </button>
+</div>
+
+
+<input
+  id="iconFileInput"
+  type="file"
+  accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+  hidden
+>
+
+
+<div
+  class="modal-overlay"
+  id="addModal"
+  hidden
+>
+  <form class="modal-card" id="addForm">
+    <h2 class="modal-title">添加快捷方式</h2>
+
+    <label class="field">
+      <span>名称</span>
+      <input
+        id="shortcutNameInput"
+        type="text"
+        maxlength="24"
+        autocomplete="off"
+        required
+      >
+    </label>
+
+    <label class="field">
+      <span>网站链接</span>
+      <input
+        id="shortcutUrlInput"
+        type="text"
+        inputmode="url"
+        placeholder="https://example.com"
+        autocomplete="off"
+        required
+      >
+    </label>
+
+    <div class="form-error" id="addFormError"></div>
+
+    <div class="modal-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        取消
+      </button>
+      <button class="button-primary" type="submit">
+        保存
+      </button>
+    </div>
+  </form>
+</div>
+
+
+<div
+  class="modal-overlay"
+  id="iconUrlModal"
+  hidden
+>
+  <form class="modal-card" id="iconUrlForm">
+    <h2 class="modal-title">使用图标链接</h2>
+
+    <label class="field">
+      <span>图片直链（建议 HTTPS）</span>
+      <input
+        id="iconUrlInput"
+        type="text"
+        inputmode="url"
+        placeholder="https://example.com/icon.png"
+        autocomplete="off"
+        required
+      >
+    </label>
+
+    <div class="form-error" id="iconUrlFormError"></div>
+
+    <div class="modal-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        取消
+      </button>
+      <button class="button-primary" type="submit">
+        保存
+      </button>
+    </div>
+  </form>
+</div>
+
+
+<div class="toast" id="toast" hidden></div>
 
 
 <script>
@@ -541,6 +816,10 @@ const ICON_CACHE_STORAGE_KEY =
   "tabliss-shortcuts-resolved-icons-v1";
 
 
+const CUSTOM_SITES_STORAGE_KEY =
+  "tabliss-shortcuts-custom-sites-v1";
+
+
 /* ========================================
    自定义图标覆盖
    ======================================== */
@@ -564,6 +843,98 @@ try {
 catch {
 
   iconOverrides = {};
+
+}
+
+
+function saveIconOverrides() {
+
+  try {
+
+    localStorage.setItem(
+      ICON_OVERRIDE_KEY,
+      JSON.stringify(
+        iconOverrides
+      )
+    );
+
+
+    return true;
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to save custom icon",
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+let customSites = [];
+
+
+try {
+
+  const parsed =
+    JSON.parse(
+      localStorage.getItem(
+        CUSTOM_SITES_STORAGE_KEY
+      )
+      ||
+      "[]"
+    );
+
+
+  if (Array.isArray(parsed)) {
+
+    customSites = parsed;
+
+  }
+
+}
+
+catch {
+
+  customSites = [];
+
+}
+
+
+function saveCustomSites() {
+
+  try {
+
+    localStorage.setItem(
+      CUSTOM_SITES_STORAGE_KEY,
+      JSON.stringify(
+        customSites
+      )
+    );
+
+
+    return true;
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to save custom shortcut",
+      error
+    );
+
+
+    return false;
+
+  }
 
 }
 
@@ -1678,6 +2049,67 @@ const groups = [
 
 
 /* ========================================
+   合并用户新增的快捷方式
+   ======================================== */
+
+customSites =
+  customSites.filter(
+    entry =>
+      entry
+      &&
+      typeof entry.key === "string"
+      &&
+      typeof entry.label === "string"
+      &&
+      typeof entry.url === "string"
+      &&
+      typeof entry.groupId === "string"
+  );
+
+
+customSites.forEach(
+  entry => {
+
+    const group =
+      groups.find(
+        item =>
+          item.id ===
+          entry.groupId
+      )
+      ||
+      groups[0];
+
+
+    sites[entry.key] = {
+
+      label:
+        entry.label,
+
+      url:
+        entry.url,
+
+      icon: ""
+
+    };
+
+
+    if (
+      !group.items.includes(
+        entry.key
+      )
+    ) {
+
+      group.items.push(
+        entry.key
+      );
+
+    }
+
+  }
+);
+
+
+/* ========================================
    DOM
    ======================================== */
 
@@ -1691,6 +2123,96 @@ const content =
   document.getElementById(
     "content"
   );
+
+
+const shortcutMenu =
+  document.getElementById(
+    "shortcutMenu"
+  );
+
+
+const blankMenu =
+  document.getElementById(
+    "blankMenu"
+  );
+
+
+const iconFileInput =
+  document.getElementById(
+    "iconFileInput"
+  );
+
+
+const addModal =
+  document.getElementById(
+    "addModal"
+  );
+
+
+const addForm =
+  document.getElementById(
+    "addForm"
+  );
+
+
+const shortcutNameInput =
+  document.getElementById(
+    "shortcutNameInput"
+  );
+
+
+const shortcutUrlInput =
+  document.getElementById(
+    "shortcutUrlInput"
+  );
+
+
+const addFormError =
+  document.getElementById(
+    "addFormError"
+  );
+
+
+const iconUrlModal =
+  document.getElementById(
+    "iconUrlModal"
+  );
+
+
+const iconUrlForm =
+  document.getElementById(
+    "iconUrlForm"
+  );
+
+
+const iconUrlInput =
+  document.getElementById(
+    "iconUrlInput"
+  );
+
+
+const iconUrlFormError =
+  document.getElementById(
+    "iconUrlFormError"
+  );
+
+
+const toast =
+  document.getElementById(
+    "toast"
+  );
+
+
+let selectedShortcutKey =
+  "";
+
+
+let pendingIconKey =
+  "";
+
+
+let toastTimer =
+  null;
 
 
 /* ========================================
@@ -1726,6 +2248,559 @@ if (
 
 const groupElements =
   new Map();
+
+
+/* ========================================
+   右键菜单与本地编辑
+   ======================================== */
+
+function hideContextMenus() {
+
+  shortcutMenu.hidden =
+    true;
+
+
+  blankMenu.hidden =
+    true;
+
+}
+
+
+function openContextMenu(
+  menu,
+  x,
+  y
+) {
+
+  hideContextMenus();
+
+
+  menu.hidden =
+    false;
+
+
+  menu.style.left =
+    "0px";
+
+
+  menu.style.top =
+    "0px";
+
+
+  const rect =
+    menu.getBoundingClientRect();
+
+
+  const left =
+    Math.max(
+      8,
+      Math.min(
+        x,
+        window.innerWidth
+        -
+        rect.width
+        -
+        8
+      )
+    );
+
+
+  const top =
+    Math.max(
+      8,
+      Math.min(
+        y,
+        window.innerHeight
+        -
+        rect.height
+        -
+        8
+      )
+    );
+
+
+  menu.style.left =
+    `${left}px`;
+
+
+  menu.style.top =
+    `${top}px`;
+
+}
+
+
+function showToast(message) {
+
+  clearTimeout(
+    toastTimer
+  );
+
+
+  toast.textContent =
+    message;
+
+
+  toast.hidden =
+    false;
+
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        toast.hidden =
+          true;
+
+      },
+      1800
+    );
+
+}
+
+
+function closeModal(modal) {
+
+  modal.hidden =
+    true;
+
+}
+
+
+function openModal(
+  modal,
+  focusTarget
+) {
+
+  hideContextMenus();
+
+
+  modal.hidden =
+    false;
+
+
+  requestAnimationFrame(
+    () => {
+
+      focusTarget.focus();
+
+    }
+  );
+
+}
+
+
+function normaliseShortcutUrl(value) {
+
+  let input =
+    value.trim();
+
+
+  if (
+    !/^[a-z][a-z\d+.-]*:/i
+      .test(input)
+  ) {
+
+    input =
+      `https://${input}`;
+
+  }
+
+
+  const parsed =
+    new URL(input);
+
+
+  if (
+    parsed.protocol !== "https:"
+    &&
+    parsed.protocol !== "http:"
+  ) {
+
+    throw new Error(
+      "只支持 HTTP 或 HTTPS 网站链接"
+    );
+
+  }
+
+
+  return parsed.href;
+
+}
+
+
+function normaliseRemoteIconUrl(value) {
+
+  const parsed =
+    new URL(
+      normaliseShortcutUrl(
+        value
+      )
+    );
+
+
+  if (
+    parsed.protocol !== "https:"
+  ) {
+
+    throw new Error(
+      "图标链接需要使用 HTTPS"
+    );
+
+  }
+
+
+  return parsed.href;
+
+}
+
+
+function refreshShortcutGroups() {
+
+  groupElements.clear();
+
+
+  buildAllGroups();
+
+
+  const active =
+    groupElements.get(
+      currentId
+    );
+
+
+  if (active) {
+
+    active.classList.add(
+      "active"
+    );
+
+  }
+
+
+  updateNav();
+
+}
+
+
+function applyIconOverride(
+  key,
+  value
+) {
+
+  const previous =
+    iconOverrides[key];
+
+
+  iconOverrides[key] =
+    value;
+
+
+  clearStoredIcon(
+    key
+  );
+
+
+  if (!saveIconOverrides()) {
+
+    if (previous) {
+
+      iconOverrides[key] =
+        previous;
+
+    }
+
+    else {
+
+      delete iconOverrides[key];
+
+    }
+
+
+    showToast(
+      "保存失败：本地存储空间不足"
+    );
+
+
+    return false;
+
+  }
+
+
+  refreshShortcutGroups();
+
+
+  return true;
+
+}
+
+
+function resetIconOverride(key) {
+
+  if (!iconOverrides[key]) {
+
+    showToast(
+      "当前已经是自动图标"
+    );
+
+
+    return;
+
+  }
+
+
+  delete iconOverrides[key];
+
+
+  clearStoredIcon(
+    key
+  );
+
+
+  saveIconOverrides();
+
+
+  refreshShortcutGroups();
+
+
+  showToast(
+    "已恢复自动图标"
+  );
+
+}
+
+
+function readLocalIcon(file) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
+
+        reject(
+          new Error(
+            "请选择图片文件"
+          )
+        );
+
+
+        return;
+
+      }
+
+
+      if (
+        file.size >
+        5 * 1024 * 1024
+      ) {
+
+        reject(
+          new Error(
+            "图片不能超过 5 MB"
+          )
+        );
+
+
+        return;
+
+      }
+
+
+      const reader =
+        new FileReader();
+
+
+      reader.onerror =
+        () => {
+
+          reject(
+            new Error(
+              "读取图片失败"
+            )
+          );
+
+        };
+
+
+      reader.onload =
+        () => {
+
+          const image =
+            new Image();
+
+
+          image.onerror =
+            () => {
+
+              reject(
+                new Error(
+                  "无法识别这张图片"
+                )
+              );
+
+            };
+
+
+          image.onload =
+            () => {
+
+              const maxSide =
+                256;
+
+
+              const scale =
+                Math.min(
+                  1,
+                  maxSide
+                  /
+                  Math.max(
+                    image.naturalWidth,
+                    image.naturalHeight
+                  )
+                );
+
+
+              const canvas =
+                document.createElement(
+                  "canvas"
+                );
+
+
+              canvas.width =
+                Math.max(
+                  1,
+                  Math.round(
+                    image.naturalWidth
+                    *
+                    scale
+                  )
+                );
+
+
+              canvas.height =
+                Math.max(
+                  1,
+                  Math.round(
+                    image.naturalHeight
+                    *
+                    scale
+                  )
+                );
+
+
+              const context =
+                canvas.getContext(
+                  "2d"
+                );
+
+
+              context.drawImage(
+                image,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+
+
+              resolve(
+                canvas.toDataURL(
+                  "image/webp",
+                  0.90
+                )
+              );
+
+            };
+
+
+          image.src =
+            reader.result;
+
+        };
+
+
+      reader.readAsDataURL(
+        file
+      );
+
+    }
+  );
+
+}
+
+
+function verifyRemoteIcon(url) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const image =
+        new Image();
+
+
+      const timer =
+        setTimeout(
+          () => {
+
+            image.src =
+              "";
+
+
+            reject(
+              new Error(
+                "图标加载超时，请检查图片直链"
+              )
+            );
+
+          },
+          8000
+        );
+
+
+      image.onload =
+        () => {
+
+          clearTimeout(
+            timer
+          );
+
+
+          resolve(url);
+
+        };
+
+
+      image.onerror =
+        () => {
+
+          clearTimeout(
+            timer
+          );
+
+
+          reject(
+            new Error(
+              "这个链接没有返回可用图片"
+            )
+          );
+
+        };
+
+
+      image.referrerPolicy =
+        "no-referrer";
+
+
+      image.src =
+        url;
+
+    }
+  );
+
+}
 
 
 /* ========================================
@@ -1771,6 +2846,32 @@ function createShortcut(
 
   link.title =
     site.label;
+
+
+  link.dataset.siteKey =
+    key;
+
+
+  link.addEventListener(
+    "contextmenu",
+    event => {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+
+      selectedShortcutKey =
+        key;
+
+
+      openContextMenu(
+        shortcutMenu,
+        event.clientX,
+        event.clientY
+      );
+
+    }
+  );
 
 
   const shell =
@@ -2302,6 +3403,537 @@ function moveGroups(
 
 
 /* ========================================
+   右键菜单事件
+   ======================================== */
+
+content.addEventListener(
+  "contextmenu",
+  event => {
+
+    if (
+      event.target.closest(
+        ".shortcut"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    event.preventDefault();
+
+
+    selectedShortcutKey =
+      "";
+
+
+    openContextMenu(
+      blankMenu,
+      event.clientX,
+      event.clientY
+    );
+
+  }
+);
+
+
+shortcutMenu.addEventListener(
+  "click",
+  event => {
+
+    const button =
+      event.target.closest(
+        "button[data-action]"
+      );
+
+
+    if (
+      !button
+      ||
+      !selectedShortcutKey
+    ) {
+
+      return;
+
+    }
+
+
+    const key =
+      selectedShortcutKey;
+
+
+    const action =
+      button.dataset.action;
+
+
+    hideContextMenus();
+
+
+    if (
+      action ===
+      "upload-icon"
+    ) {
+
+      pendingIconKey =
+        key;
+
+
+      iconFileInput.value =
+        "";
+
+
+      iconFileInput.click();
+
+    }
+
+
+    if (
+      action ===
+      "icon-url"
+    ) {
+
+      pendingIconKey =
+        key;
+
+
+      iconUrlFormError.textContent =
+        "";
+
+
+      iconUrlInput.value =
+        /^https:\/\//i.test(
+          iconOverrides[key]
+          ||
+          ""
+        )
+        ?
+        iconOverrides[key]
+        :
+        "";
+
+
+      openModal(
+        iconUrlModal,
+        iconUrlInput
+      );
+
+    }
+
+
+    if (
+      action ===
+      "reset-icon"
+    ) {
+
+      resetIconOverride(
+        key
+      );
+
+    }
+
+  }
+);
+
+
+blankMenu.addEventListener(
+  "click",
+  event => {
+
+    const button =
+      event.target.closest(
+        "button[data-action='add-shortcut']"
+      );
+
+
+    if (!button) {
+
+      return;
+
+    }
+
+
+    shortcutNameInput.value =
+      "";
+
+
+    shortcutUrlInput.value =
+      "";
+
+
+    addFormError.textContent =
+      "";
+
+
+    openModal(
+      addModal,
+      shortcutNameInput
+    );
+
+  }
+);
+
+
+iconFileInput.addEventListener(
+  "change",
+  async () => {
+
+    const file =
+      iconFileInput.files[0];
+
+
+    const key =
+      pendingIconKey;
+
+
+    if (
+      !file
+      ||
+      !key
+    ) {
+
+      return;
+
+    }
+
+
+    try {
+
+      const dataUrl =
+        await readLocalIcon(
+          file
+        );
+
+
+      if (
+        applyIconOverride(
+          key,
+          dataUrl
+        )
+      ) {
+
+        showToast(
+          "本地图标已保存"
+        );
+
+      }
+
+    }
+
+    catch (error) {
+
+      showToast(
+        error.message
+        ||
+        "图标处理失败"
+      );
+
+    }
+
+
+    finally {
+
+      pendingIconKey =
+        "";
+
+
+      iconFileInput.value =
+        "";
+
+    }
+
+  }
+);
+
+
+iconUrlForm.addEventListener(
+  "submit",
+  async event => {
+
+    event.preventDefault();
+
+
+    iconUrlFormError.textContent =
+      "";
+
+
+    try {
+
+      const key =
+        pendingIconKey;
+
+
+      if (!key) {
+
+        throw new Error(
+          "没有找到要修改的快捷方式"
+        );
+
+      }
+
+
+      const url =
+        normaliseRemoteIconUrl(
+          iconUrlInput.value
+        );
+
+
+      await verifyRemoteIcon(
+        url
+      );
+
+
+      if (
+        applyIconOverride(
+          key,
+          url
+        )
+      ) {
+
+        closeModal(
+          iconUrlModal
+        );
+
+
+        pendingIconKey =
+          "";
+
+
+        showToast(
+          "图标链接已保存"
+        );
+
+      }
+
+    }
+
+    catch (error) {
+
+      iconUrlFormError.textContent =
+        error.message
+        ||
+        "图标链接不可用";
+
+    }
+
+  }
+);
+
+
+addForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+
+    addFormError.textContent =
+      "";
+
+
+    try {
+
+      const group =
+        groups.find(
+          item =>
+            item.id ===
+            currentId
+        );
+
+
+      if (!group) {
+
+        throw new Error(
+          "没有找到当前分类"
+        );
+
+      }
+
+
+      if (
+        group.items.length >=
+        12
+      ) {
+
+        throw new Error(
+          "当前分类已满，最多可放 12 个快捷方式"
+        );
+
+      }
+
+
+      const label =
+        shortcutNameInput.value
+          .trim();
+
+
+      if (!label) {
+
+        throw new Error(
+          "请填写名称"
+        );
+
+      }
+
+
+      const url =
+        normaliseShortcutUrl(
+          shortcutUrlInput.value
+        );
+
+
+      const key =
+        `custom-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+
+
+      const entry = {
+
+        key,
+        label,
+        url,
+        groupId:
+          group.id
+
+      };
+
+
+      customSites.push(
+        entry
+      );
+
+
+      if (!saveCustomSites()) {
+
+        customSites.pop();
+
+
+        throw new Error(
+          "保存失败：本地存储空间不足"
+        );
+
+      }
+
+
+      sites[key] = {
+
+        label,
+        url,
+        icon: ""
+
+      };
+
+
+      group.items.push(
+        key
+      );
+
+
+      closeModal(
+        addModal
+      );
+
+
+      refreshShortcutGroups();
+
+
+      showToast(
+        `已添加到「${group.label}」`
+      );
+
+    }
+
+    catch (error) {
+
+      addFormError.textContent =
+        error.message
+        ||
+        "无法添加快捷方式";
+
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  "pointerdown",
+  event => {
+
+    if (
+      !event.target.closest(
+        ".context-menu"
+      )
+    ) {
+
+      hideContextMenus();
+
+    }
+
+  }
+);
+
+
+document
+  .querySelectorAll(
+    "[data-close-modal]"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const modal =
+            button.closest(
+              ".modal-overlay"
+            );
+
+
+          if (modal) {
+
+            closeModal(
+              modal
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+[addModal, iconUrlModal]
+  .forEach(
+    modal => {
+
+      modal.addEventListener(
+        "pointerdown",
+        event => {
+
+          if (
+            event.target ===
+            modal
+          ) {
+
+            closeModal(
+              modal
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+/* ========================================
    鼠标滚轮
 
    滚得越快 / 越远，
@@ -2383,6 +4015,17 @@ document.addEventListener(
   event => {
 
     event.preventDefault();
+
+
+    if (
+      !addModal.hidden
+      ||
+      !iconUrlModal.hidden
+    ) {
+
+      return;
+
+    }
 
 
     wheelAccumulator +=
@@ -2478,6 +4121,47 @@ document.addEventListener(
   "keydown",
 
   event => {
+
+    if (
+      event.key ===
+      "Escape"
+    ) {
+
+      hideContextMenus();
+
+
+      closeModal(
+        addModal
+      );
+
+
+      closeModal(
+        iconUrlModal
+      );
+
+
+      pendingIconKey =
+        "";
+
+
+      return;
+
+    }
+
+
+    if (
+      !addModal.hidden
+      ||
+      !iconUrlModal.hidden
+      ||
+      /^(INPUT|TEXTAREA)$/.test(
+        document.activeElement.tagName
+      )
+    ) {
+
+      return;
+
+    }
 
     if (
       event.key ===
