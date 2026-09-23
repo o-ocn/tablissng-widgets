@@ -21,6 +21,27 @@ body {
   color: #fff;
 }
 
+:root {
+  --bar-h: 44px;
+  --radius: calc(var(--bar-h) * 0.48);
+  --left-w: calc(var(--bar-h) * 1.28);
+  --right-w: calc(var(--bar-h) * 1.18);
+  --icon-size: calc(var(--bar-h) * 0.42);
+  --search-icon-size: calc(var(--bar-h) * 0.50);
+  --arrow-size: calc(var(--bar-h) * 0.11);
+  --divider-h: calc(var(--bar-h) * 0.42);
+  --divider-mx: calc(var(--bar-h) * 0.08);
+  --input-font: calc(var(--bar-h) * 0.30);
+  --menu-top: calc(var(--bar-h) + 8px);
+  --menu-left: 4px;
+  --menu-w: calc(var(--bar-h) * 3.15);
+  --menu-pad: calc(var(--bar-h) * 0.14);
+  --menu-radius: calc(var(--bar-h) * 0.30);
+  --menu-item-h: calc(var(--bar-h) * 0.86);
+  --menu-icon: calc(var(--bar-h) * 0.38);
+  --menu-font: calc(var(--bar-h) * 0.31);
+}
+
 body {
   position: relative;
 }
@@ -30,16 +51,23 @@ body {
    ========================= */
 .search-bar {
   position: absolute;
-  top: 0;
-  left: 0;
-
+  inset: 0;
   width: 100%;
-  height: 44px;
-
+  height: 100%;
   display: flex;
   align-items: center;
 
-  background: transparent;
+  border-radius: var(--radius);
+
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(calc(var(--bar-h) * 0.38));
+  -webkit-backdrop-filter: blur(calc(var(--bar-h) * 0.38));
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* =========================
@@ -47,9 +75,10 @@ body {
    ========================= */
 .engine-button {
   appearance: none;
-  width: 58px;
-  height: 44px;
-  flex: 0 0 58px;
+  width: var(--left-w);
+  height: 100%;
+  flex: 0 0 var(--left-w);
+
   border: 0;
   outline: 0;
   background: transparent;
@@ -57,19 +86,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: calc(var(--bar-h) * 0.12);
 
   padding: 0;
   cursor: pointer;
+
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
 }
 
 .engine-button:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .engine-icon {
-  width: 20px;
-  height: 20px;
+  width: var(--icon-size);
+  height: var(--icon-size);
   display: block;
   object-fit: contain;
   flex: 0 0 auto;
@@ -79,9 +111,9 @@ body {
 .engine-arrow {
   width: 0;
   height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid rgba(255,255,255,0.58);
+  border-left: var(--arrow-size) solid transparent;
+  border-right: var(--arrow-size) solid transparent;
+  border-top: calc(var(--arrow-size) * 1.25) solid rgba(255,255,255,0.58);
   transform: translateY(1px);
   transition: transform 0.16s ease;
 }
@@ -92,9 +124,10 @@ body {
 
 .divider {
   width: 1px;
-  height: 42%;
+  height: var(--divider-h);
   flex: 0 0 1px;
   background: rgba(255,255,255,0.10);
+  margin-right: var(--divider-mx);
 }
 
 /* =========================
@@ -103,7 +136,7 @@ body {
 .search-form {
   flex: 1;
   min-width: 0;
-  height: 44px;
+  height: 100%;
 
   display: flex;
   align-items: center;
@@ -112,7 +145,7 @@ body {
 .search-input {
   flex: 1;
   min-width: 0;
-  height: 44px;
+  height: 100%;
 
   border: 0;
   outline: 0;
@@ -121,10 +154,10 @@ body {
   color: rgba(255,255,255,0.92);
   caret-color: rgba(255,255,255,0.92);
 
-  padding: 0 8px 0 12px;
+  padding: 0 calc(var(--bar-h) * 0.15) 0 calc(var(--bar-h) * 0.12);
 
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--input-font);
   font-weight: 500;
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
@@ -138,9 +171,9 @@ body {
    ========================= */
 .search-button {
   appearance: none;
-  width: 56px;
-  height: 44px;
-  flex: 0 0 56px;
+  width: var(--right-w);
+  height: 100%;
+  flex: 0 0 var(--right-w);
 
   border: 0;
   outline: 0;
@@ -153,15 +186,18 @@ body {
   justify-content: center;
 
   cursor: pointer;
+
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
 }
 
 .search-button:hover {
-  background: rgba(255,255,255,0.025);
+  background: rgba(255,255,255,0.03);
 }
 
 .search-icon {
-  width: 25px;
-  height: 25px;
+  width: var(--search-icon-size);
+  height: var(--search-icon-size);
   fill: none;
   stroke: rgba(255,255,255,0.82);
   stroke-width: 2.2;
@@ -174,22 +210,22 @@ body {
    ========================= */
 .engine-menu {
   position: absolute;
-  top: 50px;
-  left: 4px;
+  top: var(--menu-top);
+  left: var(--menu-left);
 
-  width: 136px;
-  padding: 6px;
+  width: var(--menu-w);
+  padding: var(--menu-pad);
 
-  border-radius: 14px;
+  border-radius: var(--menu-radius);
 
-  background: rgba(30, 35, 50, 0.36);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(30, 35, 50, 0.32);
+  backdrop-filter: blur(calc(var(--bar-h) * 0.40));
+  -webkit-backdrop-filter: blur(calc(var(--bar-h) * 0.40));
 
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.15);
 
   box-shadow:
-    0 10px 30px rgba(0,0,0,0.20),
+    0 10px 30px rgba(0,0,0,0.18),
     inset 0 1px 0 rgba(255,255,255,0.05);
 
   opacity: 0;
@@ -214,24 +250,24 @@ body {
 
 .engine-item {
   width: 100%;
-  height: 38px;
+  height: var(--menu-item-h);
 
   border: 0;
   outline: 0;
-  border-radius: 10px;
+  border-radius: calc(var(--bar-h) * 0.22);
 
   background: transparent;
   color: rgba(255,255,255,0.92);
 
-  padding: 0 10px;
+  padding: 0 calc(var(--bar-h) * 0.22);
 
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(var(--bar-h) * 0.18);
 
   text-align: left;
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--menu-font);
 
   cursor: pointer;
   transition: background 0.12s ease;
@@ -246,16 +282,16 @@ body {
 }
 
 .menu-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: var(--menu-icon);
+  height: var(--menu-icon);
+  flex: 0 0 var(--menu-icon);
   display: block;
   object-fit: contain;
 }
 
 .engine-check {
   margin-left: auto;
-  font-size: 12px;
+  font-size: calc(var(--bar-h) * 0.26);
   color: rgba(255,255,255,0.54);
   opacity: 0;
 }
@@ -269,7 +305,6 @@ body {
 <body>
 
 <div class="search-bar">
-
   <button
     id="engineButton"
     class="engine-button"
@@ -300,22 +335,29 @@ body {
       </svg>
     </button>
   </form>
-
 </div>
 
 <div id="engineMenu" class="engine-menu"></div>
 
 <script>
-const STORAGE_KEY = "tabliss_search_engine_v5";
+/* ========= 关键：让内部尺寸随 iframe 高度自动缩放 ========= */
+function updateScale() {
+  const h = Math.max(window.innerHeight, 40);
+  document.documentElement.style.setProperty("--bar-h", h + "px");
+}
+updateScale();
+window.addEventListener("resize", updateScale);
 
-/* 百度图标：改成 JS 动态编码，避免 data URI 被解析坏 */
+/* ========= 搜索引擎 ========= */
+const STORAGE_KEY = "tabliss_search_engine_v6";
+
 function svgToDataUrl(svg) {
   return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
 
 const BAIDU_ICON = svgToDataUrl(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <path fill="#2932E1" d="M9.154 0C7.71 0 6.54 1.658 6.54 3.707c0 2.051 1.171 3.71 2.615 3.71 1.446 0 2.614-1.659 2.614-3.71C11.768 1.658 10.6 0 9.154 0zm7.025.594C14.86.58 13.347 2.589 13.2 3.927c-.187 1.745.25 3.487 2.179 3.735 1.933.25 3.175-1.806 3.422-3.364.252-1.555-.995-3.364-2.362-3.674a1.218 1.218 0 0 0-.261-.03zM3.582 5.535a2.811 2.811 0 0 0-.156.008c-2.118.19-2.428 3.24-2.428 3.24-.287 1.41.686 4.425 3.297 3.864 2.617-.561 2.262-3.68 2.183-4.362-.125-1.018-1.292-2.773-2.896-2.75zm16.534 1.753c-2.308 0-2.617 2.119-2.617 3.616 0 1.43.121 3.425 2.988 3.362 2.867-.063 2.553-3.238 2.553-3.988 0-.745-.62-2.99-2.924-2.99zm-8.264 2.478c-1.424.014-2.708.925-3.323 1.947-1.118 1.868-2.863 3.05-3.112 3.363-.25.309-3.61 2.116-2.864 5.42.746 3.301 3.365 3.237 3.365 3.237s1.93.19 4.171-.31c2.24-.495 4.17.123 4.17.123s5.233 1.748 6.665-1.616c1.43-3.364-.808-5.109-.808-5.109s-2.99-2.306-4.736-4.798c-1.072-1.665-2.348-2.268-3.528-2.257z"/>
+  <path fill="#2E42E8" d="M9.154 0C7.71 0 6.54 1.658 6.54 3.707c0 2.051 1.171 3.71 2.615 3.71 1.446 0 2.614-1.659 2.614-3.71C11.768 1.658 10.6 0 9.154 0zm7.025.594C14.86.58 13.347 2.589 13.2 3.927c-.187 1.745.25 3.487 2.179 3.735 1.933.25 3.175-1.806 3.422-3.364.252-1.555-.995-3.364-2.362-3.674a1.218 1.218 0 0 0-.261-.03zM3.582 5.535a2.811 2.811 0 0 0-.156.008c-2.118.19-2.428 3.24-2.428 3.24-.287 1.41.686 4.425 3.297 3.864 2.617-.561 2.262-3.68 2.183-4.362-.125-1.018-1.292-2.773-2.896-2.75zm16.534 1.753c-2.308 0-2.617 2.119-2.617 3.616 0 1.43.121 3.425 2.988 3.362 2.867-.063 2.553-3.238 2.553-3.988 0-.745-.62-2.99-2.924-2.99zm-8.264 2.478c-1.424.014-2.708.925-3.323 1.947-1.118 1.868-2.863 3.05-3.112 3.363-.25.309-3.61 2.116-2.864 5.42.746 3.301 3.365 3.237 3.365 3.237s1.93.19 4.171-.31c2.24-.495 4.17.123 4.17.123s5.233 1.748 6.665-1.616c1.43-3.364-.808-5.109-.808-5.109s-2.99-2.306-4.736-4.798c-1.072-1.665-2.348-2.268-3.528-2.257z"/>
 </svg>
 `);
 
@@ -327,7 +369,6 @@ const engines = {
       return "https://www.google.com/search?q=" + encodeURIComponent(query);
     }
   },
-
   baidu: {
     name: "百度",
     icon: BAIDU_ICON,
@@ -335,7 +376,6 @@ const engines = {
       return "https://www.baidu.com/s?wd=" + encodeURIComponent(query);
     }
   },
-
   bing: {
     name: "Bing",
     icon: "https://www.bing.com/favicon.ico",
@@ -354,10 +394,7 @@ const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 
 let currentEngine = localStorage.getItem(STORAGE_KEY);
-
-if (!engines[currentEngine]) {
-  currentEngine = "google";
-}
+if (!engines[currentEngine]) currentEngine = "google";
 
 function buildMenu() {
   engineMenu.innerHTML = "";
@@ -368,10 +405,7 @@ function buildMenu() {
 
     item.type = "button";
     item.className = "engine-item";
-
-    if (key === currentEngine) {
-      item.classList.add("active");
-    }
+    if (key === currentEngine) item.classList.add("active");
 
     item.innerHTML = `
       <img class="menu-icon" src="${engine.icon}" alt="">
@@ -409,18 +443,12 @@ function toggleMenu() {
 
 function applyEngine(key, focus = false) {
   currentEngine = key;
-
   const engine = engines[key];
   engineIcon.src = engine.icon;
   engineIcon.alt = engine.name;
-
   localStorage.setItem(STORAGE_KEY, key);
-
   buildMenu();
-
-  if (focus) {
-    searchInput.focus();
-  }
+  if (focus) searchInput.focus();
 }
 
 engineButton.addEventListener("click", event => {
@@ -438,23 +466,14 @@ document.addEventListener("click", event => {
 });
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape") {
-    closeMenu();
-  }
+  if (event.key === "Escape") closeMenu();
 });
 
 function cycleEngine(direction) {
   const index = engineOrder.indexOf(currentEngine);
   let next = index + direction;
-
-  if (next >= engineOrder.length) {
-    next = 0;
-  }
-
-  if (next < 0) {
-    next = engineOrder.length - 1;
-  }
-
+  if (next >= engineOrder.length) next = 0;
+  if (next < 0) next = engineOrder.length - 1;
   applyEngine(engineOrder[next]);
 }
 
@@ -468,17 +487,10 @@ searchInput.addEventListener("keydown", event => {
 
 searchForm.addEventListener("submit", event => {
   event.preventDefault();
-
   const query = searchInput.value.trim();
   if (!query) return;
-
   const url = engines[currentEngine].url(query);
-
-  window.open(
-    url,
-    "_blank",
-    "noopener,noreferrer"
-  );
+  window.open(url, "_blank", "noopener,noreferrer");
 });
 
 applyEngine(currentEngine);
