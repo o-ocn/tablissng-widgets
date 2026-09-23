@@ -11,6 +11,11 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 html,
 body {
   margin: 0;
@@ -46,7 +51,7 @@ body {
   height: 100%;
 
   display: grid;
-  grid-template-columns: 100px 1fr;
+  grid-template-columns: 106px 1fr;
 
   gap: 16px;
 
@@ -58,23 +63,96 @@ body {
 
 /* ========================================
    左侧分组
-   完全透明，不再有单独蒙版
+   大字号 + 独立滚动区域
    ======================================== */
+
+.sidebar-shell {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  padding: 17px 0;
+  overflow: hidden;
+}
 
 .sidebar {
   height: 100%;
+  min-height: 0;
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 
-  gap: 2px;
+  gap: 3px;
 
-  padding: 6px 3px;
+  padding: 2px 3px;
 
   background: transparent;
   border: 0;
   box-shadow: none;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-scroll {
+  position: absolute;
+  left: 50%;
+  z-index: 12;
+
+  width: 42px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+
+  transform: translateX(-50%);
+
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.64);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  transition: color 0.16s ease, opacity 0.16s ease;
+}
+
+.sidebar-scroll:hover {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.sidebar-scroll-up {
+  top: 0;
+}
+
+.sidebar-scroll-down {
+  bottom: 0;
+}
+
+.sidebar-scroll svg {
+  width: 18px;
+  height: 12px;
+  display: block;
+}
+
+.sidebar-scroll path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 
@@ -84,23 +162,26 @@ body {
 
 .nav-item {
   width: 100%;
-  height: 22px;
+  height: 27px;
+  flex: 0 0 27px;
 
   appearance: none;
 
   border: 0;
   outline: 0;
 
-  padding: 0 8px;
+  padding: 0 9px;
 
   background: transparent;
+
+  border-radius: 11px;
 
   color:
     rgba(
       255,
       255,
       255,
-      0.46
+      0.60
     );
 
   font-family:
@@ -112,7 +193,7 @@ body {
     "Microsoft YaHei",
     sans-serif;
 
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
 
   letter-spacing: 0.1px;
@@ -128,7 +209,12 @@ body {
 
   transition:
     color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
     transform 0.16s ease;
+
+  border: 1px solid transparent;
 }
 
 
@@ -153,6 +239,23 @@ body {
     );
 
   font-weight: 600;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0.075)
+    );
+
+  border-color:
+    rgba(255, 255, 255, 0.16);
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
 }
 
 
@@ -493,27 +596,34 @@ body {
 .context-menu {
   position: fixed;
   z-index: 300;
-  min-width: 168px;
-  padding: 6px;
-  border-radius: 14px;
-  background: rgba(30, 32, 40, 0.82);
-  backdrop-filter: blur(22px) saturate(145%);
-  -webkit-backdrop-filter: blur(22px) saturate(145%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+  width: 154px;
+  padding: 5px;
+  border-radius: 12px;
+  background: rgba(38, 39, 46, 0.91);
+  backdrop-filter: blur(14px) saturate(125%);
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .context-menu button {
   width: 100%;
-  height: 34px;
-  padding: 0 11px;
+  height: 30px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
   color: rgba(255, 255, 255, 0.92);
   font: inherit;
-  font-size: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
   text-align: left;
+
+  text-shadow:
+    0 1px 3px
+    rgba(0, 0, 0, 0.42);
   cursor: pointer;
 }
 
@@ -533,51 +643,54 @@ body {
   align-items: center;
   justify-content: center;
   padding: 14px;
-  background: rgba(5, 8, 14, 0.28);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(5, 8, 14, 0.20);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .modal-card {
-  width: min(350px, 100%);
-  padding: 17px;
-  border-radius: 20px;
-  background: rgba(31, 34, 43, 0.86);
-  backdrop-filter: blur(24px) saturate(145%);
-  -webkit-backdrop-filter: blur(24px) saturate(145%);
-  border: 1px solid rgba(255, 255, 255, 0.17);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  width: min(320px, 100%);
+  padding: 16px;
+  border-radius: 17px;
+  background: rgba(30, 32, 39, 0.965);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .modal-title {
-  margin: 0 0 13px;
-  font-size: 16px;
-  font-weight: 650;
+  margin: 0 0 12px;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
 }
 
 .field {
   display: block;
-  margin-top: 10px;
+  margin-top: 9px;
 }
 
 .field span {
   display: block;
-  margin: 0 0 5px 2px;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 10px;
+  margin: 0 0 5px 1px;
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 10.5px;
+  font-weight: 500;
 }
 
 .field input {
   width: 100%;
-  height: 36px;
-  padding: 0 11px;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 11px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   outline: 0;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.075);
   color: #fff;
   font: inherit;
-  font-size: 12px;
+  font-size: 11.5px;
   user-select: text;
 }
 
@@ -589,18 +702,19 @@ body {
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 15px;
+  gap: 7px;
+  margin-top: 13px;
 }
 
 .modal-actions button {
-  height: 32px;
-  padding: 0 15px;
+  height: 30px;
+  padding: 0 14px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 9px;
   color: #fff;
   font: inherit;
-  font-size: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -613,10 +727,10 @@ body {
 }
 
 .form-error {
-  min-height: 14px;
-  margin-top: 7px;
+  min-height: 12px;
+  margin-top: 6px;
   color: #ff9b96;
-  font-size: 10px;
+  font-size: 9.5px;
 }
 
 .toast {
@@ -646,10 +760,40 @@ body {
 
 <div class="app">
 
-  <nav
-    class="sidebar"
-    id="sidebar"
-  ></nav>
+  <div class="sidebar-shell">
+
+    <button
+      class="sidebar-scroll sidebar-scroll-up"
+      id="sidebarScrollUp"
+      type="button"
+      aria-label="向上显示更多分组"
+      hidden
+    >
+      <svg viewBox="0 0 18 12" aria-hidden="true">
+        <path d="M4 8.2 9 3.8l5 4.4"></path>
+        <path d="M4 11 9 6.6l5 4.4"></path>
+      </svg>
+    </button>
+
+    <nav
+      class="sidebar"
+      id="sidebar"
+      aria-label="快捷方式分组"
+    ></nav>
+
+    <button
+      class="sidebar-scroll sidebar-scroll-down"
+      id="sidebarScrollDown"
+      type="button"
+      aria-label="向下显示更多分组"
+    >
+      <svg viewBox="0 0 18 12" aria-hidden="true">
+        <path d="m4 1 5 4.4L14 1"></path>
+        <path d="m4 3.8 5 4.4 5-4.4"></path>
+      </svg>
+    </button>
+
+  </div>
 
   <main
     class="content"
@@ -2119,6 +2263,18 @@ const sidebar =
   );
 
 
+const sidebarScrollUp =
+  document.getElementById(
+    "sidebarScrollUp"
+  );
+
+
+const sidebarScrollDown =
+  document.getElementById(
+    "sidebarScrollDown"
+  );
+
+
 const content =
   document.getElementById(
     "content"
@@ -3351,6 +3507,10 @@ function activateGroup(
 
 function updateNav() {
 
+  let activeItem =
+    null;
+
+
   document
     .querySelectorAll(
       ".nav-item"
@@ -3365,10 +3525,140 @@ function updateNav() {
           currentId
         );
 
+
+        if (
+          item.dataset.group
+          ===
+          currentId
+        ) {
+
+          activeItem =
+            item;
+
+        }
+
       }
     );
 
+
+  if (activeItem) {
+
+    activeItem.scrollIntoView({
+
+      block: "nearest",
+      behavior: "smooth"
+
+    });
+
+  }
+
+
+  requestAnimationFrame(
+    updateSidebarScrollControls
+  );
+
 }
+
+
+/* ========================================
+   左侧分组滚动提示
+   ======================================== */
+
+function updateSidebarScrollControls() {
+
+  const maxScroll =
+    Math.max(
+      0,
+      sidebar.scrollHeight
+      -
+      sidebar.clientHeight
+    );
+
+
+  sidebarScrollUp.hidden =
+    sidebar.scrollTop <= 1;
+
+
+  sidebarScrollDown.hidden =
+    sidebar.scrollTop >=
+    maxScroll - 1;
+
+}
+
+
+function scrollSidebar(direction) {
+
+  sidebar.scrollTop =
+    sidebar.scrollTop
+    +
+    direction
+    *
+    90;
+
+
+  requestAnimationFrame(
+    updateSidebarScrollControls
+  );
+
+}
+
+
+sidebarScrollUp.addEventListener(
+  "click",
+  () => {
+
+    scrollSidebar(-1);
+
+  }
+);
+
+
+sidebarScrollDown.addEventListener(
+  "click",
+  () => {
+
+    scrollSidebar(1);
+
+  }
+);
+
+
+sidebar.addEventListener(
+  "scroll",
+  updateSidebarScrollControls,
+  {
+    passive: true
+  }
+);
+
+
+sidebar.addEventListener(
+  "wheel",
+  event => {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+
+    sidebar.scrollTop +=
+      normaliseWheel(
+        event
+      );
+
+
+    updateSidebarScrollControls();
+
+  },
+  {
+    passive: false
+  }
+);
+
+
+window.addEventListener(
+  "resize",
+  updateSidebarScrollControls
+);
 
 
 /* ========================================
