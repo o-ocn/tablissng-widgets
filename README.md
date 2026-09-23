@@ -13,13 +13,13 @@
 搜索框嵌入地址使用：
 
 ```text
-https://o-ocn.github.io/vps-widget/search.html?v=12
+https://o-ocn.github.io/tablissng-widgets/search.html?v=12
 ```
 
 快捷方式嵌入地址建议使用：
 
 ```text
-https://o-ocn.github.io/vps-widget/shortcuts.html?v=10
+https://o-ocn.github.io/tablissng-widgets/shortcuts.html?v=10
 ```
 
 快捷方式支持：右键图标上传本地图片、填写 HTTPS 图片直链、恢复自动图标；右键空白区域可把新快捷方式添加到当前分类。自定义内容保存在浏览器本地。
