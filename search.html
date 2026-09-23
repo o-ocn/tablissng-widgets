@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Search</title>
 
 <style>
@@ -15,309 +15,761 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
+
+  overflow: hidden;
+
   background: transparent;
-  font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+
   color: #fff;
 }
 
+
+/* ==================================================
+   自动缩放基准
+   520px 宽度时，高度 = 52px
+   也就是 10 : 1
+   ================================================== */
+
 :root {
-  --bar-h: 44px;
-  --radius: calc(var(--bar-h) * 0.48);
-  --left-w: calc(var(--bar-h) * 1.28);
-  --right-w: calc(var(--bar-h) * 1.18);
-  --icon-size: calc(var(--bar-h) * 0.42);
-  --search-icon-size: calc(var(--bar-h) * 0.50);
-  --arrow-size: calc(var(--bar-h) * 0.11);
-  --divider-h: calc(var(--bar-h) * 0.42);
-  --divider-mx: calc(var(--bar-h) * 0.08);
-  --input-font: calc(var(--bar-h) * 0.30);
-  --menu-top: calc(var(--bar-h) + 8px);
-  --menu-left: 4px;
-  --menu-w: calc(var(--bar-h) * 3.15);
-  --menu-pad: calc(var(--bar-h) * 0.14);
-  --menu-radius: calc(var(--bar-h) * 0.30);
-  --menu-item-h: calc(var(--bar-h) * 0.86);
-  --menu-icon: calc(var(--bar-h) * 0.38);
-  --menu-font: calc(var(--bar-h) * 0.31);
+
+  --bar-h:
+    clamp(
+      40px,
+      10vw,
+      64px
+    );
+
+  --radius:
+    calc(
+      var(--bar-h) * 0.50
+    );
+
+  --left-w:
+    calc(
+      var(--bar-h) * 1.20
+    );
+
+  --right-w:
+    calc(
+      var(--bar-h) * 1.15
+    );
+
+  --engine-icon:
+    calc(
+      var(--bar-h) * 0.40
+    );
+
+  --search-icon:
+    calc(
+      var(--bar-h) * 0.48
+    );
+
+  --arrow:
+    calc(
+      var(--bar-h) * 0.075
+    );
+
+  --menu-top:
+    calc(
+      var(--bar-h) + 7px
+    );
+
+  --menu-width:
+    calc(
+      var(--bar-h) * 3
+    );
+
+  --menu-icon:
+    calc(
+      var(--bar-h) * 0.36
+    );
+
+  --menu-item-h:
+    calc(
+      var(--bar-h) * 0.80
+    );
+
+  --menu-font:
+    calc(
+      var(--bar-h) * 0.29
+    );
 }
+
 
 body {
   position: relative;
 }
 
-/* =========================
+
+/* ==================================================
    主搜索栏
-   ========================= */
+   ================================================== */
+
 .search-bar {
+
   position: absolute;
-  inset: 0;
+
+  top: 0;
+  left: 0;
+
   width: 100%;
-  height: 100%;
+  height: var(--bar-h);
+
   display: flex;
   align-items: center;
 
-  border-radius: var(--radius);
+  background: transparent;
 
-  background: rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(calc(var(--bar-h) * 0.38));
-  -webkit-backdrop-filter: blur(calc(var(--bar-h) * 0.38));
-
-  border: 1px solid rgba(255, 255, 255, 0.16);
-
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-radius:
+    var(--radius);
 }
 
-/* =========================
-   左侧引擎按钮
-   ========================= */
+
+/* ==================================================
+   左侧搜索引擎按钮
+   ================================================== */
+
 .engine-button {
+
   appearance: none;
+
   width: var(--left-w);
-  height: 100%;
-  flex: 0 0 var(--left-w);
+  height: var(--bar-h);
+
+  flex:
+    0 0 var(--left-w);
 
   border: 0;
   outline: 0;
-  background: transparent;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: calc(var(--bar-h) * 0.12);
+  background:
+    transparent;
 
   padding: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap:
+    calc(
+      var(--bar-h) * 0.11
+    );
+
   cursor: pointer;
 
-  border-top-left-radius: var(--radius);
-  border-bottom-left-radius: var(--radius);
+  border-radius:
+    var(--radius)
+    0
+    0
+    var(--radius);
 }
+
 
 .engine-button:hover {
-  background: rgba(255, 255, 255, 0.03);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.03
+    );
+
 }
+
+
+/* 当前搜索引擎图标 */
 
 .engine-icon {
-  width: var(--icon-size);
-  height: var(--icon-size);
+
+  width:
+    var(--engine-icon);
+
+  height:
+    var(--engine-icon);
+
   display: block;
-  object-fit: contain;
+
+  object-fit:
+    contain;
+
   flex: 0 0 auto;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+
+  filter:
+    drop-shadow(
+      0 1px 2px
+      rgba(
+        0,
+        0,
+        0,
+        0.18
+      )
+    );
+
 }
+
+
+/* 小倒三角 */
 
 .engine-arrow {
+
   width: 0;
   height: 0;
-  border-left: var(--arrow-size) solid transparent;
-  border-right: var(--arrow-size) solid transparent;
-  border-top: calc(var(--arrow-size) * 1.25) solid rgba(255,255,255,0.58);
-  transform: translateY(1px);
-  transition: transform 0.16s ease;
+
+  border-left:
+    var(--arrow)
+    solid transparent;
+
+  border-right:
+    var(--arrow)
+    solid transparent;
+
+  border-top:
+    calc(
+      var(--arrow) * 1.3
+    )
+    solid
+    rgba(
+      255,
+      255,
+      255,
+      0.58
+    );
+
+  transform:
+    translateY(1px);
+
+  transition:
+    transform
+    0.15s ease;
+
 }
 
-.engine-button.open .engine-arrow {
-  transform: translateY(1px) rotate(180deg);
+
+.engine-button.open
+.engine-arrow {
+
+  transform:
+    translateY(1px)
+    rotate(180deg);
+
 }
+
+
+/* 分隔线 */
 
 .divider {
+
   width: 1px;
-  height: var(--divider-h);
+
+  height:
+    calc(
+      var(--bar-h) * 0.42
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.10
+    );
+
   flex: 0 0 1px;
-  background: rgba(255,255,255,0.10);
-  margin-right: var(--divider-mx);
+
 }
 
-/* =========================
-   表单
-   ========================= */
+
+/* ==================================================
+   输入区域
+   ================================================== */
+
 .search-form {
+
   flex: 1;
+
   min-width: 0;
-  height: 100%;
+
+  height:
+    var(--bar-h);
 
   display: flex;
+
   align-items: center;
+
 }
+
 
 .search-input {
+
   flex: 1;
+
   min-width: 0;
-  height: 100%;
+
+  height:
+    var(--bar-h);
 
   border: 0;
+
   outline: 0;
-  background: transparent;
 
-  color: rgba(255,255,255,0.92);
-  caret-color: rgba(255,255,255,0.92);
+  background:
+    transparent;
 
-  padding: 0 calc(var(--bar-h) * 0.15) 0 calc(var(--bar-h) * 0.12);
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.93
+    );
 
-  font-family: inherit;
-  font-size: var(--input-font);
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  caret-color:
+    rgba(
+      255,
+      255,
+      255,
+      0.93
+    );
+
+  padding:
+
+    0
+
+    calc(
+      var(--bar-h) * 0.13
+    )
+
+    0
+
+    calc(
+      var(--bar-h) * 0.20
+    );
+
+  font-family:
+    inherit;
+
+  font-size:
+    calc(
+      var(--bar-h) * 0.30
+    );
+
+  font-weight:
+    500;
+
 }
+
 
 .search-input::placeholder {
-  color: transparent;
+
+  color:
+    transparent;
+
 }
 
-/* =========================
+
+/* ==================================================
    右侧搜索按钮
-   ========================= */
+   ================================================== */
+
 .search-button {
+
   appearance: none;
-  width: var(--right-w);
-  height: 100%;
-  flex: 0 0 var(--right-w);
+
+  width:
+    var(--right-w);
+
+  height:
+    var(--bar-h);
+
+  flex:
+    0 0 var(--right-w);
 
   border: 0;
+
   outline: 0;
+
   padding: 0;
 
-  background: transparent;
+  background:
+    transparent;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
   cursor: pointer;
 
-  border-top-right-radius: var(--radius);
-  border-bottom-right-radius: var(--radius);
+  border-radius:
+
+    0
+
+    var(--radius)
+
+    var(--radius)
+
+    0;
+
 }
+
 
 .search-button:hover {
-  background: rgba(255,255,255,0.03);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.03
+    );
+
 }
+
 
 .search-icon {
-  width: var(--search-icon-size);
-  height: var(--search-icon-size);
+
+  width:
+    var(--search-icon);
+
+  height:
+    var(--search-icon);
+
   fill: none;
-  stroke: rgba(255,255,255,0.82);
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+
+  stroke:
+    rgba(
+      255,
+      255,
+      255,
+      0.82
+    );
+
+  stroke-width:
+    2.2;
+
+  stroke-linecap:
+    round;
+
+  stroke-linejoin:
+    round;
+
 }
 
-/* =========================
-   下拉菜单（磨砂透明）
-   ========================= */
+
+/* ==================================================
+   磨砂下拉菜单
+   ================================================== */
+
 .engine-menu {
+
   position: absolute;
-  top: var(--menu-top);
-  left: var(--menu-left);
 
-  width: var(--menu-w);
-  padding: var(--menu-pad);
+  top:
+    var(--menu-top);
 
-  border-radius: var(--menu-radius);
+  left:
+    calc(
+      var(--bar-h) * 0.08
+    );
 
-  background: rgba(30, 35, 50, 0.32);
-  backdrop-filter: blur(calc(var(--bar-h) * 0.40));
-  -webkit-backdrop-filter: blur(calc(var(--bar-h) * 0.40));
+  width:
+    var(--menu-width);
 
-  border: 1px solid rgba(255,255,255,0.15);
+  padding:
+    calc(
+      var(--bar-h) * 0.12
+    );
+
+  border-radius:
+    calc(
+      var(--bar-h) * 0.27
+    );
+
+  background:
+    rgba(
+      28,
+      33,
+      47,
+      0.34
+    );
+
+  backdrop-filter:
+    blur(
+      calc(
+        var(--bar-h) * 0.36
+      )
+    );
+
+  -webkit-backdrop-filter:
+    blur(
+      calc(
+        var(--bar-h) * 0.36
+      )
+    );
+
+  border:
+
+    1px solid
+
+    rgba(
+      255,
+      255,
+      255,
+      0.15
+    );
 
   box-shadow:
-    0 10px 30px rgba(0,0,0,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.05);
+
+    0 10px 30px
+    rgba(
+      0,
+      0,
+      0,
+      0.18
+    ),
+
+    inset 0 1px 0
+    rgba(
+      255,
+      255,
+      255,
+      0.05
+    );
 
   opacity: 0;
-  visibility: hidden;
 
-  transform: translateY(-6px) scale(0.985);
-  transform-origin: top left;
+  visibility:
+    hidden;
+
+  transform:
+    translateY(-5px)
+    scale(0.985);
+
+  transform-origin:
+    top left;
 
   transition:
-    opacity 0.14s ease,
-    transform 0.14s ease,
-    visibility 0.14s;
+
+    opacity
+    0.14s ease,
+
+    transform
+    0.14s ease,
+
+    visibility
+    0.14s;
 
   z-index: 100;
+
 }
+
 
 .engine-menu.open {
+
   opacity: 1;
-  visibility: visible;
-  transform: translateY(0) scale(1);
+
+  visibility:
+    visible;
+
+  transform:
+    translateY(0)
+    scale(1);
+
 }
+
+
+/* ==================================================
+   下拉选项
+   ================================================== */
 
 .engine-item {
+
   width: 100%;
-  height: var(--menu-item-h);
+
+  height:
+    var(--menu-item-h);
 
   border: 0;
+
   outline: 0;
-  border-radius: calc(var(--bar-h) * 0.22);
 
-  background: transparent;
-  color: rgba(255,255,255,0.92);
+  border-radius:
+    calc(
+      var(--bar-h) * 0.20
+    );
 
-  padding: 0 calc(var(--bar-h) * 0.22);
+  background:
+    transparent;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.92
+    );
+
+  padding:
+
+    0
+
+    calc(
+      var(--bar-h) * 0.20
+    );
 
   display: flex;
+
   align-items: center;
-  gap: calc(var(--bar-h) * 0.18);
 
-  text-align: left;
-  font-family: inherit;
-  font-size: var(--menu-font);
+  gap:
+    calc(
+      var(--bar-h) * 0.18
+    );
 
-  cursor: pointer;
-  transition: background 0.12s ease;
+  font-family:
+    inherit;
+
+  font-size:
+    var(--menu-font);
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+
+  transition:
+    background
+    0.12s ease;
+
 }
+
 
 .engine-item:hover {
-  background: rgba(255,255,255,0.08);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
 }
+
 
 .engine-item.active {
-  background: rgba(255,255,255,0.09);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.09
+    );
+
 }
+
 
 .menu-icon {
-  width: var(--menu-icon);
-  height: var(--menu-icon);
-  flex: 0 0 var(--menu-icon);
+
+  width:
+    var(--menu-icon);
+
+  height:
+    var(--menu-icon);
+
+  flex:
+    0 0 var(--menu-icon);
+
   display: block;
-  object-fit: contain;
+
+  object-fit:
+    contain;
+
 }
+
 
 .engine-check {
-  margin-left: auto;
-  font-size: calc(var(--bar-h) * 0.26);
-  color: rgba(255,255,255,0.54);
+
+  margin-left:
+    auto;
+
+  font-size:
+    calc(
+      var(--bar-h) * 0.25
+    );
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.55
+    );
+
   opacity: 0;
+
 }
 
-.engine-item.active .engine-check {
+
+.engine-item.active
+.engine-check {
+
   opacity: 1;
+
 }
+
 </style>
 </head>
 
+
 <body>
 
+
 <div class="search-bar">
+
   <button
     id="engineButton"
     class="engine-button"
     type="button"
     title="选择搜索引擎"
   >
-    <img id="engineIcon" class="engine-icon" alt="" />
-    <span class="engine-arrow"></span>
+
+    <img
+      id="engineIcon"
+      class="engine-icon"
+      alt=""
+    >
+
+    <span
+      class="engine-arrow"
+    ></span>
+
   </button>
 
-  <div class="divider"></div>
 
-  <form id="searchForm" class="search-form" autocomplete="off">
+  <div
+    class="divider"
+  ></div>
+
+
+  <form
+    id="searchForm"
+    class="search-form"
+    autocomplete="off"
+  >
+
     <input
       id="searchInput"
       class="search-input"
@@ -326,174 +778,574 @@ body {
       spellcheck="false"
       placeholder=""
       autofocus
-    />
+    >
 
-    <button class="search-button" type="submit" title="搜索">
-      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="11" cy="11" r="7"></circle>
-        <path d="M20 20L16.65 16.65"></path>
+
+    <button
+      class="search-button"
+      type="submit"
+      title="搜索"
+    >
+
+      <svg
+        class="search-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+
+        <circle
+          cx="11"
+          cy="11"
+          r="7"
+        ></circle>
+
+        <path
+          d="M20 20L16.65 16.65"
+        ></path>
+
       </svg>
+
     </button>
+
   </form>
+
 </div>
 
-<div id="engineMenu" class="engine-menu"></div>
+
+<div
+  id="engineMenu"
+  class="engine-menu"
+></div>
+
 
 <script>
-/* ========= 关键：让内部尺寸随 iframe 高度自动缩放 ========= */
-function updateScale() {
-  const h = Math.max(window.innerHeight, 40);
-  document.documentElement.style.setProperty("--bar-h", h + "px");
-}
-updateScale();
-window.addEventListener("resize", updateScale);
 
-/* ========= 搜索引擎 ========= */
-const STORAGE_KEY = "tabliss_search_engine_v6";
+const STORAGE_KEY =
+  "tabliss_search_engine_v7";
+
+
+/* ==================================================
+   百度透明 SVG
+   ================================================== */
 
 function svgToDataUrl(svg) {
-  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+
+  return (
+    "data:image/svg+xml;charset=UTF-8,"
+    +
+    encodeURIComponent(svg)
+  );
+
 }
 
-const BAIDU_ICON = svgToDataUrl(`
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <path fill="#2E42E8" d="M9.154 0C7.71 0 6.54 1.658 6.54 3.707c0 2.051 1.171 3.71 2.615 3.71 1.446 0 2.614-1.659 2.614-3.71C11.768 1.658 10.6 0 9.154 0zm7.025.594C14.86.58 13.347 2.589 13.2 3.927c-.187 1.745.25 3.487 2.179 3.735 1.933.25 3.175-1.806 3.422-3.364.252-1.555-.995-3.364-2.362-3.674a1.218 1.218 0 0 0-.261-.03zM3.582 5.535a2.811 2.811 0 0 0-.156.008c-2.118.19-2.428 3.24-2.428 3.24-.287 1.41.686 4.425 3.297 3.864 2.617-.561 2.262-3.68 2.183-4.362-.125-1.018-1.292-2.773-2.896-2.75zm16.534 1.753c-2.308 0-2.617 2.119-2.617 3.616 0 1.43.121 3.425 2.988 3.362 2.867-.063 2.553-3.238 2.553-3.988 0-.745-.62-2.99-2.924-2.99zm-8.264 2.478c-1.424.014-2.708.925-3.323 1.947-1.118 1.868-2.863 3.05-3.112 3.363-.25.309-3.61 2.116-2.864 5.42.746 3.301 3.365 3.237 3.365 3.237s1.93.19 4.171-.31c2.24-.495 4.17.123 4.17.123s5.233 1.748 6.665-1.616c1.43-3.364-.808-5.109-.808-5.109s-2.99-2.306-4.736-4.798c-1.072-1.665-2.348-2.268-3.528-2.257z"/>
+
+const BAIDU_ICON =
+  svgToDataUrl(`
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+>
+
+<path
+  fill="#2E42E8"
+  d="M9.154 0C7.71 0 6.54 1.658 6.54 3.707c0 2.051 1.171 3.71 2.615 3.71 1.446 0 2.614-1.659 2.614-3.71C11.768 1.658 10.6 0 9.154 0zm7.025.594C14.86.58 13.347 2.589 13.2 3.927c-.187 1.745.25 3.487 2.179 3.735 1.933.25 3.175-1.806 3.422-3.364.252-1.555-.995-3.364-2.362-3.674a1.218 1.218 0 0 0-.261-.03zM3.582 5.535a2.811 2.811 0 0 0-.156.008c-2.118.19-2.428 3.24-2.428 3.24-.287 1.41.686 4.425 3.297 3.864 2.617-.561 2.262-3.68 2.183-4.362-.125-1.018-1.292-2.773-2.896-2.75zm16.534 1.753c-2.308 0-2.617 2.119-2.617 3.616 0 1.43.121 3.425 2.988 3.362 2.867-.063 2.553-3.238 2.553-3.988 0-.745-.62-2.99-2.924-2.99zm-8.264 2.478c-1.424.014-2.708.925-3.323 1.947-1.118 1.868-2.863 3.05-3.112 3.363-.25.309-3.61 2.116-2.864 5.42.746 3.301 3.365 3.237 3.365 3.237s1.93.19 4.171-.31c2.24-.495 4.17.123 4.17.123s5.233 1.748 6.665-1.616c1.43-3.364-.808-5.109-.808-5.109s-2.99-2.306-4.736-4.798c-1.072-1.665-2.348-2.268-3.528-2.257z"
+/>
+
 </svg>
+
 `);
 
+
+/* ==================================================
+   搜索引擎
+   ================================================== */
+
 const engines = {
+
   google: {
-    name: "Google",
-    icon: "https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png",
+
+    name:
+      "Google",
+
+    icon:
+      "https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png",
+
     url(query) {
-      return "https://www.google.com/search?q=" + encodeURIComponent(query);
+
+      return (
+        "https://www.google.com/search?q="
+        +
+        encodeURIComponent(query)
+      );
+
     }
+
   },
+
+
   baidu: {
-    name: "百度",
-    icon: BAIDU_ICON,
+
+    name:
+      "百度",
+
+    icon:
+      BAIDU_ICON,
+
     url(query) {
-      return "https://www.baidu.com/s?wd=" + encodeURIComponent(query);
+
+      return (
+        "https://www.baidu.com/s?wd="
+        +
+        encodeURIComponent(query)
+      );
+
     }
+
   },
+
+
   bing: {
-    name: "Bing",
-    icon: "https://www.bing.com/favicon.ico",
+
+    name:
+      "Bing",
+
+    icon:
+      "https://www.bing.com/favicon.ico",
+
     url(query) {
-      return "https://www.bing.com/search?q=" + encodeURIComponent(query);
+
+      return (
+        "https://www.bing.com/search?q="
+        +
+        encodeURIComponent(query)
+      );
+
     }
+
   }
+
 };
 
-const engineOrder = ["google", "baidu", "bing"];
 
-const engineButton = document.getElementById("engineButton");
-const engineMenu = document.getElementById("engineMenu");
-const engineIcon = document.getElementById("engineIcon");
-const searchInput = document.getElementById("searchInput");
-const searchForm = document.getElementById("searchForm");
+const engineOrder = [
 
-let currentEngine = localStorage.getItem(STORAGE_KEY);
-if (!engines[currentEngine]) currentEngine = "google";
+  "google",
+  "baidu",
+  "bing"
+
+];
+
+
+const engineButton =
+  document.getElementById(
+    "engineButton"
+  );
+
+const engineMenu =
+  document.getElementById(
+    "engineMenu"
+  );
+
+const engineIcon =
+  document.getElementById(
+    "engineIcon"
+  );
+
+const searchInput =
+  document.getElementById(
+    "searchInput"
+  );
+
+const searchForm =
+  document.getElementById(
+    "searchForm"
+  );
+
+
+let currentEngine =
+  localStorage.getItem(
+    STORAGE_KEY
+  );
+
+
+if (
+  !engines[
+    currentEngine
+  ]
+) {
+
+  currentEngine =
+    "google";
+
+}
+
+
+/* ==================================================
+   构建菜单
+   ================================================== */
 
 function buildMenu() {
-  engineMenu.innerHTML = "";
 
-  engineOrder.forEach(key => {
-    const engine = engines[key];
-    const item = document.createElement("button");
+  engineMenu.innerHTML =
+    "";
 
-    item.type = "button";
-    item.className = "engine-item";
-    if (key === currentEngine) item.classList.add("active");
 
-    item.innerHTML = `
-      <img class="menu-icon" src="${engine.icon}" alt="">
-      <span>${engine.name}</span>
-      <span class="engine-check">✓</span>
-    `;
+  engineOrder.forEach(
+    key => {
 
-    item.addEventListener("click", event => {
-      event.stopPropagation();
-      applyEngine(key, true);
-      closeMenu();
-    });
+      const engine =
+        engines[key];
 
-    engineMenu.appendChild(item);
-  });
+
+      const item =
+        document.createElement(
+          "button"
+        );
+
+
+      item.type =
+        "button";
+
+
+      item.className =
+        "engine-item";
+
+
+      if (
+        key === currentEngine
+      ) {
+
+        item.classList.add(
+          "active"
+        );
+
+      }
+
+
+      item.innerHTML = `
+
+        <img
+          class="menu-icon"
+          src="${engine.icon}"
+          alt=""
+        >
+
+        <span>
+          ${engine.name}
+        </span>
+
+        <span
+          class="engine-check"
+        >
+          ✓
+        </span>
+
+      `;
+
+
+      item.addEventListener(
+        "click",
+        event => {
+
+          event.stopPropagation();
+
+
+          applyEngine(
+            key,
+            true
+          );
+
+
+          closeMenu();
+
+        }
+      );
+
+
+      engineMenu.appendChild(
+        item
+      );
+
+    }
+  );
+
 }
+
+
+/* ==================================================
+   菜单开关
+   ================================================== */
 
 function openMenu() {
-  engineMenu.classList.add("open");
-  engineButton.classList.add("open");
+
+  engineMenu.classList.add(
+    "open"
+  );
+
+
+  engineButton.classList.add(
+    "open"
+  );
+
 }
+
 
 function closeMenu() {
-  engineMenu.classList.remove("open");
-  engineButton.classList.remove("open");
+
+  engineMenu.classList.remove(
+    "open"
+  );
+
+
+  engineButton.classList.remove(
+    "open"
+  );
+
 }
+
 
 function toggleMenu() {
-  if (engineMenu.classList.contains("open")) {
-    closeMenu();
-  } else {
-    openMenu();
-  }
-}
 
-function applyEngine(key, focus = false) {
-  currentEngine = key;
-  const engine = engines[key];
-  engineIcon.src = engine.icon;
-  engineIcon.alt = engine.name;
-  localStorage.setItem(STORAGE_KEY, key);
-  buildMenu();
-  if (focus) searchInput.focus();
-}
-
-engineButton.addEventListener("click", event => {
-  event.stopPropagation();
-  toggleMenu();
-});
-
-document.addEventListener("click", event => {
   if (
-    !engineMenu.contains(event.target) &&
-    !engineButton.contains(event.target)
+    engineMenu.classList
+      .contains("open")
   ) {
+
     closeMenu();
+
   }
-});
 
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape") closeMenu();
-});
+  else {
 
-function cycleEngine(direction) {
-  const index = engineOrder.indexOf(currentEngine);
-  let next = index + direction;
-  if (next >= engineOrder.length) next = 0;
-  if (next < 0) next = engineOrder.length - 1;
-  applyEngine(engineOrder[next]);
+    openMenu();
+
+  }
+
 }
 
-searchInput.addEventListener("keydown", event => {
-  if (event.key === "Tab") {
-    event.preventDefault();
-    closeMenu();
-    cycleEngine(event.shiftKey ? -1 : 1);
+
+/* ==================================================
+   切换搜索引擎
+   ================================================== */
+
+function applyEngine(
+  key,
+  focus = false
+) {
+
+  currentEngine =
+    key;
+
+
+  const engine =
+    engines[key];
+
+
+  engineIcon.src =
+    engine.icon;
+
+
+  engineIcon.alt =
+    engine.name;
+
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    key
+  );
+
+
+  buildMenu();
+
+
+  if (focus) {
+
+    searchInput.focus();
+
   }
-});
 
-searchForm.addEventListener("submit", event => {
-  event.preventDefault();
-  const query = searchInput.value.trim();
-  if (!query) return;
-  const url = engines[currentEngine].url(query);
-  window.open(url, "_blank", "noopener,noreferrer");
-});
+}
 
-applyEngine(currentEngine);
+
+/* ==================================================
+   点击下拉按钮
+   ================================================== */
+
+engineButton.addEventListener(
+  "click",
+  event => {
+
+    event.stopPropagation();
+
+
+    toggleMenu();
+
+  }
+);
+
+
+/* 点击菜单外关闭 */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    if (
+      !engineMenu.contains(
+        event.target
+      )
+      &&
+      !engineButton.contains(
+        event.target
+      )
+    ) {
+
+      closeMenu();
+
+    }
+
+  }
+);
+
+
+/* ESC 关闭 */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Escape"
+    ) {
+
+      closeMenu();
+
+    }
+
+  }
+);
+
+
+/* ==================================================
+   Tab 循环
+   ================================================== */
+
+function cycleEngine(
+  direction
+) {
+
+  const index =
+    engineOrder.indexOf(
+      currentEngine
+    );
+
+
+  let next =
+    index + direction;
+
+
+  if (
+    next >=
+    engineOrder.length
+  ) {
+
+    next = 0;
+
+  }
+
+
+  if (
+    next < 0
+  ) {
+
+    next =
+      engineOrder.length - 1;
+
+  }
+
+
+  applyEngine(
+    engineOrder[next]
+  );
+
+}
+
+
+searchInput.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Tab"
+    ) {
+
+      event.preventDefault();
+
+
+      closeMenu();
+
+
+      cycleEngine(
+        event.shiftKey
+          ? -1
+          : 1
+      );
+
+    }
+
+  }
+);
+
+
+/* ==================================================
+   搜索
+   ================================================== */
+
+searchForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+
+    const query =
+      searchInput.value.trim();
+
+
+    if (!query) {
+
+      return;
+
+    }
+
+
+    const url =
+      engines[
+        currentEngine
+      ].url(query);
+
+
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  }
+);
+
+
+/* ==================================================
+   初始化
+   ================================================== */
+
+applyEngine(
+  currentEngine
+);
+
 </script>
 
 </body>
