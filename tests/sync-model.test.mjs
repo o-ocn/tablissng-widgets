@@ -23,6 +23,7 @@ const {
   TRASH_RETENTION_DAYS,
   normaliseV3Document,
   upgradeSitesToV3,
+  upgradeCustomSitesToV3,
   mergeSyncDocuments,
   applyConflictStrategy,
   pruneTrashEntries
@@ -110,6 +111,161 @@ test("upgradeSitesToV3 使用同一时间戳补齐缺失的 updatedAt", () => {
 
   assert.equal(sites[0].updatedAt, at(20));
   assert.equal(sites[1].updatedAt, at(10), "已有时间戳必须保留");
+});
+
+/* ========================================
+   P1 回归：v2 → v3 升级绝不重置用户修改
+
+   v2 已是统一管理的数据结构，
+   预设同样可编辑、可移动、可删除。
+   升级时 customSites 是权威数据，
+   只补 v3 字段，绝不重新并入预设。
+   ======================================== */
+
+const V2_PRESETS = [
+  site("github", "GitHub", "home", ""),
+  site("gmail", "Gmail", "mail", ""),
+  site("bilibili", "哔哩哔哩", "media", "")
+];
+
+test("P1: v2 修改过预设名称，升级后保留新名称", () => {
+  const v2Sites = [
+    site("github", "我的代码仓库", "home", at(30)),
+    site("gmail", "Gmail", "mail", at(30)),
+    site("bilibili", "哔哩哔哩", "media", at(30))
+  ];
+
+  const { sites } = upgradeCustomSitesToV3(2, v2Sites, V2_PRESETS, { timestamp: at(1) });
+
+  assert.equal(sites.length, 3, "不得新增或删除条目");
+  assert.equal(
+    sites.find(s => s.key === "github").label,
+    "我的代码仓库",
+    "用户改名必须保留，不能恢复默认名称"
+  );
+});
+
+test("P1: v2 修改过预设链接，升级后保留新链接", () => {
+  const v2Sites = [
+    site("github", "GitHub", "home", at(30)),
+    site("gmail", "Gmail", "mail", at(30)),
+    site("bilibili", "哔哩哔哩", "media", at(30))
+  ];
+
+  const { sites } = upgradeCustomSitesToV3(2, v2Sites, V2_PRESETS, { timestamp: at(1) });
+  const github = sites.find(s => s.key === "github");
+
+  github.url = "https://github.com/o-ocn";
+
+  const { sites: after } = upgradeCustomSitesToV3(2, sites, V2_PRESETS, { timestamp: at(1) });
+
+  assert.equal(
+    after.find(s => s.key === "github").url,
+    "https://github.com/o-ocn",
+    "用户修改的链接必须保留"
+  );
+});
+
+test("P1: v2 把预设移动到其他分组，升级后保留新分组", () => {
+  const v2Sites = [
+    site("github", "GitHub", "tools", at(30)),
+    site("gmail", "Gmail", "mail", at(30)),
+    site("bilibili", "哔哩哔哩", "media", at(30))
+  ];
+
+  const { sites } = upgradeCustomSitesToV3(2, v2Sites, V2_PRESETS, { timestamp: at(1) });
+
+  assert.equal(
+    sites.find(s => s.key === "github").groupId,
+    "tools",
+    "移动过的分组必须保留，不能回到默认分组"
+  );
+  assert.equal(
+    sites.find(s => s.key === "github").updatedAt,
+    at(30),
+    "已有 updatedAt 必须原样保留"
+  );
+});
+
+test("P1: v2 删除过预设，升级后不得重新出现", () => {
+  const v2Sites = [
+    site("gmail", "Gmail", "mail", at(30)),
+    site("bilibili", "哔哩哔哩", "media", at(30))
+  ];
+
+  const { sites, trash } = upgradeCustomSitesToV3(2, v2Sites, V2_PRESETS, { timestamp: at(1) });
+
+  assert.ok(!sites.some(s => s.key === "github"), "已删除的预设不能复活");
+  assert.equal(sites.length, 2);
+  assert.equal(trash.length, 0, "迁移不产生删除记录");
+});
+
+test("P1: v2 用户修改过的内容升级到 v3 后全部原样保留", () => {
+  const v2Sites = [
+    site("github", "改名+改链接", "tools", at(20)),
+    site("custom-1", "自建站", "home", at(25))
+  ];
+
+  const { sites, groupOrder, trash } = upgradeCustomSitesToV3(2, v2Sites, V2_PRESETS, { timestamp: at(1) });
+
+  const github = sites.find(s => s.key === "github");
+  assert.deepEqual(
+    [github.label, github.url, github.groupId, github.updatedAt],
+    ["改名+改链接", github.url, "tools", at(20)]
+  );
+
+  const custom = sites.find(s => s.key === "custom-1");
+  assert.deepEqual([custom.label, custom.groupId], ["自建站", "home"]);
+
+  assert.ok(!sites.some(s => s.key === "gmail"), "不存在的预设不得补入");
+  assert.ok(!sites.some(s => s.key === "bilibili"), "不存在的预设不得补入");
+  assert.equal(trash.length, 0);
+  assert.deepEqual(groupOrder.tools.items, ["github"]);
+  assert.deepEqual(groupOrder.home.items, ["custom-1"]);
+});
+
+test("P1: v1 升级仍会补入预设，且用户自建的同 key 记录按 v1 语义让位", () => {
+  const v1Sites = [
+    site("github", "GitHub", "home", at(40)),
+    site("custom-1", "自建站", "home", at(40))
+  ];
+
+  const { sites, trash } = upgradeCustomSitesToV3(1, v1Sites, V2_PRESETS, { timestamp: at(1) });
+
+  assert.ok(sites.some(s => s.key === "github"), "v1 需要补入预设");
+  assert.ok(sites.some(s => s.key === "gmail"), "v1 需要补入预设");
+  assert.ok(sites.some(s => s.key === "custom-1"), "用户自建站保留");
+  assert.equal(trash.length, 0);
+});
+
+test("P1: 云端 v2 文档升级同样保留用户的全部修改", () => {
+  const cloudV2 = {
+    version: 2,
+    updatedAt: at(30),
+    customSites: [
+      site("github", "云端改名", "tools", at(30)),
+      site("gmail", "Gmail", "mail", at(30))
+    ],
+    iconOverrides: {}
+  };
+
+  /*
+     与页面 pullCloudSync 相同的升级路径：
+     云端 version=2 → 不并预设，customSites 权威。
+  */
+
+  const { sites, trash } = upgradeCustomSitesToV3(
+    Number(cloudV2.version || 1),
+    cloudV2.customSites,
+    [],
+    { timestamp: cloudV2.updatedAt }
+  );
+
+  assert.equal(sites.find(s => s.key === "github").label, "云端改名");
+  assert.equal(sites.find(s => s.key === "github").groupId, "tools");
+  assert.ok(!sites.some(s => s.key === "bilibili"), "已删除预设不复活");
+  assert.equal(sites.every(s => s.updatedAt), true);
+  assert.equal(trash.length, 0);
 });
 
 test("两台设备修改不同快捷方式：自动合并保留双方", () => {

@@ -3003,87 +3003,45 @@ const defaultManagedSites =
   buildDefaultManagedSites();
 
 
-function migrateLegacySites(
-  entries,
-  sourceIconOverrides = iconOverrides
+/*
+   仅 v1 数据使用：预设重复出现时
+   （preset-<组>-<键>），把旧 sourceKey 上的
+   自定义图标复制到新 key。
+
+   v2 及以上的数据键已统一，
+   绝不能执行这个迁移。
+*/
+
+function migrateLegacyIconOverrides(
+  sourceIconOverrides
 ) {
 
-  const legacySites =
-    normaliseCustomSites(
-      entries
-    );
-
-
-  const merged =
-    defaultManagedSites.map(
-      entry => {
-
-        if (
-          entry.key !==
-            entry.sourceKey
-          &&
-          sourceIconOverrides[
-            entry.sourceKey
-          ]
-          &&
-          !sourceIconOverrides[
-            entry.key
-          ]
-        ) {
-
-          sourceIconOverrides[
-            entry.key
-          ] = sourceIconOverrides[
-            entry.sourceKey
-          ];
-
-        }
-
-
-        const {
-          sourceKey,
-          ...managedEntry
-        } = entry;
-
-
-        return managedEntry;
-
-      }
-    );
-
-
-  const existingKeys =
-    new Set(
-      merged.map(
-        entry => entry.key
-      )
-    );
-
-
-  legacySites.forEach(
+  defaultManagedSites.forEach(
     entry => {
 
       if (
-        !existingKeys.has(
+        entry.key !==
+          entry.sourceKey
+        &&
+        sourceIconOverrides[
+          entry.sourceKey
+        ]
+        &&
+        !sourceIconOverrides[
           entry.key
-        )
+        ]
       ) {
 
-        merged.push(
-          entry
-        );
-
-        existingKeys.add(
+        sourceIconOverrides[
           entry.key
-        );
+        ] = sourceIconOverrides[
+          entry.sourceKey
+        ];
 
       }
 
     }
   );
-
-
-  return merged;
 
 }
 
@@ -3396,33 +3354,38 @@ function dropTrashEntry(
 }
 
 
-if (
+/*
+   升级到版本 3。
+
+   - v1（storedModelVersion < 2）：
+     旧数据只包含用户自建网站，
+     需要并入预设（含 sourceKey 图标迁移）。
+   - v2 → v3：customSites 已经是
+     统一管理的权威数据。用户改名、改链接、
+     移动分组、删除预设的结果全部原样保留，
+     绝不重新并入预设。
+
+   两种情况都只补更新时间、构建排序、
+   建立空回收站，不产生删除记录。
+
+   时间戳优先使用本机最后一次同步时间，
+   让另一台设备上更新的修改在合并时获胜。
+*/
+
+const storedModelVersion =
   Number(
     localStorage.getItem(
       SITE_MODEL_VERSION_KEY
     )
     ||
     0
-  ) < SITE_MODEL_VERSION
+  );
+
+
+if (
+  storedModelVersion <
+    SITE_MODEL_VERSION
 ) {
-
-  customSites =
-    migrateLegacySites(
-      customSites
-    );
-
-
-  /*
-     升级到版本 3：
-     只补更新时间、构建排序、
-     建立空的回收站。
-     绝不会在这里产生删除记录，
-     现有快捷方式不会丢失。
-
-     时间戳优先使用本机最后一次
-     同步时间，让另一台设备上
-     更新的修改在合并时获胜。
-  */
 
   const upgradeStamp =
     readSyncMeta()
@@ -3432,26 +3395,42 @@ if (
       .toISOString();
 
 
-  customSites =
-    customSites.map(
-      entry => ({
+  if (
+    storedModelVersion < 2
+  ) {
 
-        ...entry,
-
-        updatedAt:
-          entry.updatedAt
-          ||
-          upgradeStamp
-
-      })
+    migrateLegacyIconOverrides(
+      iconOverrides
     );
+
+  }
+
+
+  const upgraded =
+    TablissSyncModel.upgradeCustomSitesToV3(
+
+      storedModelVersion,
+
+      customSites,
+
+      storedModelVersion < 2
+        ? defaultManagedSites
+        : [],
+
+      {
+        timestamp:
+          upgradeStamp
+      }
+
+    );
+
+
+  customSites =
+    upgraded.sites;
 
 
   groupOrderState =
-    TablissSyncModel.buildGroupOrderFromSites(
-      customSites,
-      upgradeStamp
-    );
+    upgraded.groupOrder;
 
 
   trashEntries = [];
@@ -5395,12 +5374,26 @@ async function pullCloudSync({
     else {
 
       /*
-         旧版（版本 1 / 2）数据升级：
-         先按原有规则合并预设与旧自定项，
-         再补更新时间、构建排序。
-         回收站为空 —— 现有快捷方式
-         绝不会被误判为已删除。
+         旧版云端数据升级到 v3。
+
+         云端 version=1：customSites 只含用户
+         自建网站，需要并入预设。
+         云端 version=2：customSites 已是统一
+         管理的权威数据 —— 用户改名、改链接、
+         移动分组、删除预设的结果全部原样
+         保留，绝不重新并入预设。
+
+         两种情况都只补更新时间、构建排序，
+         回收站为空，绝不误判删除。
       */
+
+      const cloudStoredVersion =
+        Number(
+          result.version
+          ||
+          1
+        );
+
 
       const nextIconOverrides =
         normaliseIconOverrides(
@@ -5408,19 +5401,38 @@ async function pullCloudSync({
         );
 
 
-      const mergedSites =
-        migrateLegacySites(
-          result.customSites
-          ||
-          [],
+      if (
+        cloudStoredVersion < 2
+      ) {
+
+        migrateLegacyIconOverrides(
           nextIconOverrides
         );
 
+      }
 
-      const stamp =
-        result.updatedAt
-        ||
-        new Date().toISOString();
+
+      const upgraded =
+        TablissSyncModel.upgradeCustomSitesToV3(
+
+          cloudStoredVersion,
+
+          result.customSites
+          ||
+          [],
+
+          cloudStoredVersion < 2
+            ? defaultManagedSites
+            : [],
+
+          {
+            timestamp:
+              result.updatedAt
+              ||
+              new Date().toISOString()
+          }
+
+        );
 
 
       document = {
@@ -5429,30 +5441,18 @@ async function pullCloudSync({
           SITE_MODEL_VERSION,
 
         updatedAt:
-          stamp,
+          result.updatedAt
+          ||
+          new Date().toISOString(),
 
         customSites:
-          mergedSites.map(
-            entry => ({
-
-              ...entry,
-
-              updatedAt:
-                entry.updatedAt
-                ||
-                stamp
-
-            })
-          ),
+          upgraded.sites,
 
         iconOverrides:
           nextIconOverrides,
 
         groupOrder:
-          TablissSyncModel.buildGroupOrderFromSites(
-            mergedSites,
-            stamp
-          ),
+          upgraded.groupOrder,
 
         trash: []
 

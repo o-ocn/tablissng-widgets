@@ -250,8 +250,6 @@
   /* ========================================
      版本 1 / 2 → 版本 3 迁移
 
-     输入的 sites 应当已经过页面侧的
-     migrateLegacySites（合并预设与旧自定项）。
      迁移只补时间戳、构建排序、清空回收站，
      绝不会制造删除记录。
      ======================================== */
@@ -268,6 +266,36 @@
       groupOrder: buildGroupOrderFromSites(stamped, now),
       trash: []
     };
+  }
+
+  /* v1 与 v2 → v3 的统一升级入口。
+
+     - v1（storedVersion < 2）：旧 customSites 只包含
+       用户自建网站，预设需要并入 —— presetSites 优先，
+       用户自建中与预设同 key 的记录按 v1 语义忽略。
+     - v2 → v3：customSites 已是统一管理的权威数据。
+       用户改名、改链接、移动分组、删除预设的结果
+       必须原样保留，绝不重新并入预设，
+       只补 updatedAt、构建排序。
+
+     传入的 presetSites 仅在 v1 路径使用。
+  */
+
+  function upgradeCustomSitesToV3(storedVersion, entries, presetSites, { timestamp } = {}) {
+    const now = normaliseTimestamp(timestamp) || new Date().toISOString();
+    let base = Array.isArray(entries) ? entries : [];
+
+    if (Number(storedVersion) < 2) {
+      const presets = normaliseSiteList(presetSites, now);
+      const presetKeys = new Set(presets.map(site => site.key));
+
+      base = [
+        ...presets,
+        ...normaliseSiteList(base, now).filter(site => !presetKeys.has(site.key))
+      ];
+    }
+
+    return upgradeSitesToV3(base, { timestamp: now });
   }
 
   function buildGroupOrderFromSites(sites, timestamp) {
@@ -613,6 +641,7 @@
     normaliseTrashEntries,
     normaliseV3Document,
     upgradeSitesToV3,
+    upgradeCustomSitesToV3,
     buildGroupOrderFromSites,
     mergeSyncDocuments,
     applyConflictStrategy,
