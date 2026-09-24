@@ -3777,7 +3777,19 @@ function formatDeletedTime(
 
 function renderTrashList() {
 
-  if (!trashEntries.length) {
+  /*
+     精简墓碑（purged）是永久的同步删除标记，
+     不再可恢复，不在界面中显示。
+  */
+
+  const restorable =
+    trashEntries.filter(
+      entry =>
+        !entry.purged
+    );
+
+
+  if (!restorable.length) {
 
     const empty =
       document.createElement(
@@ -3805,7 +3817,7 @@ function renderTrashList() {
 
   trashList.replaceChildren(
 
-    ...trashEntries.map(
+    ...restorable.map(
       entry => {
 
         const row =
@@ -4067,6 +4079,23 @@ function restoreFromTrash(
   }
 
 
+  /*
+     永久删除（purged）的记录不可恢复；
+     正常情况下界面不会提供入口。
+  */
+
+  if (entry.purged) {
+
+    showToast(
+      "该快捷方式已永久删除，无法恢复"
+    );
+
+
+    return;
+
+  }
+
+
   if (
     getCustomSiteEntry(
       key
@@ -4220,9 +4249,41 @@ function purgeFromTrash(
   }
 
 
-  dropTrashEntry(
-    key
-  );
+  /*
+     永久删除后不彻底移除记录，而是
+     转成精简的同步删除标记（purged 墓碑）：
+     只保留 key 与时间戳，不再可恢复，
+     也不携带名称、链接、图标等内容。
+
+     它随同步上传，用于阻止仍保存该网站的
+     离线旧设备在下次合并时把它复活。
+  */
+
+  const purgedAt =
+    new Date().toISOString();
+
+
+  trashEntries = [
+
+    {
+
+      key: entry.key,
+      deletedAt: entry.deletedAt,
+      purged: true,
+      purgedAt
+
+    },
+
+    ...trashEntries.filter(
+      item =>
+        item.key !==
+        entry.key
+    )
+
+  ];
+
+
+  saveTrashEntries();
 
 
   clearStoredIcon(

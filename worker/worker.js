@@ -375,39 +375,68 @@ function validateTrash(value) {
   const seenKeys = new Set();
   const entries = [];
 
-  for (const entry of value.slice(0, 200)) {
+  /*
+     trash 同时容纳两类记录：
+
+     - 普通墓碑：完整站点信息，用户可恢复；
+     - 精简墓碑（purged: true）：永久删除后的
+       同步删除标记，只带 key 与时间戳，
+       不携带任何站点内容（名称/链接/图标），
+       用于防止离线旧设备复活网站。
+
+     总量上限 600（100 条可恢复 + 500 条精简），
+     清理策略由客户端模型负责。
+  */
+
+  for (const entry of value.slice(0, 600)) {
     if (!entry || typeof entry !== "object") {
       continue;
     }
 
     const key = String(entry.key || "").slice(0, 100);
+    const deletedAt = normaliseTimestamp(entry.deletedAt);
+
+    if (!key || !deletedAt || seenKeys.has(key)) {
+      continue;
+    }
+
+    if (entry.purged === true) {
+      const purgedAt = normaliseTimestamp(entry.purgedAt);
+
+      seenKeys.add(key);
+
+      entries.push({
+        key,
+        deletedAt,
+        purged: true,
+        purgedAt: purgedAt || deletedAt
+      });
+
+      continue;
+    }
+
     const label = String(entry.label || "").trim().slice(0, 50);
     const url = String(entry.url || "").trim().slice(0, 2048);
     const groupId = String(entry.groupId || "").slice(0, 50);
     const rawIcon = String(entry.icon || "").trim();
     const icon = /^https:\/\//i.test(rawIcon) ? rawIcon.slice(0, 2048) : "";
-    const deletedAt = normaliseTimestamp(entry.deletedAt);
     const originalGroupId = String(entry.originalGroupId || groupId).slice(0, 50);
     const originalIndex = Number.isFinite(Number(entry.originalIndex))
       ? Math.max(0, Math.min(200, Number(entry.originalIndex)))
       : 0;
 
-    if (!key || !label || !groupId || !/^https?:\/\//i.test(url) || !deletedAt) {
-      continue;
-    }
-
-    if (seenKeys.has(key)) {
+    if (!label || !groupId || !/^https?:\/\//i.test(url)) {
       continue;
     }
 
     seenKeys.add(key);
 
-    entries.push({ key, label, url, groupId, icon, deletedAt, originalGroupId, originalIndex });
+    entries.push({ key, label, url, groupId, icon, deletedAt, originalGroupId, originalIndex, purged: false });
   }
 
   entries.sort((left, right) => right.deletedAt.localeCompare(left.deletedAt));
 
-  return entries.slice(0, 100);
+  return entries.slice(0, 600);
 }
 
 function clientError(message) {

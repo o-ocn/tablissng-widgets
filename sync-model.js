@@ -181,11 +181,28 @@
     }
 
     const key = clampString(entry.key, TRASH_FIELD_LIMITS.key);
+    const deletedAt = normaliseTimestamp(entry.deletedAt);
+    const purged = entry.purged === true;
+    const purgedAt = normaliseTimestamp(entry.purgedAt);
+
+    if (!key || !deletedAt) {
+      return null;
+    }
+
+    /*
+       精简墓碑（purged）：只保留 key 与时间戳，
+       不携带名称、链接、分组、图标等任何站点内容，
+       不可恢复，仅用于同步冲突判断。
+    */
+
+    if (purged) {
+      return { key, deletedAt, purged: true, purgedAt: purgedAt || deletedAt };
+    }
+
     const label = clampString(entry.label, TRASH_FIELD_LIMITS.label).trim();
     const url = clampString(entry.url, TRASH_FIELD_LIMITS.url).trim();
     const groupId = clampString(entry.groupId, TRASH_FIELD_LIMITS.groupId);
     const icon = normaliseSiteIcon(entry.icon);
-    const deletedAt = normaliseTimestamp(entry.deletedAt);
     const originalGroupId = clampString(
       entry.originalGroupId ?? entry.groupId,
       TRASH_FIELD_LIMITS.groupId
@@ -194,14 +211,14 @@
       ? Math.max(0, Math.min(TRASH_FIELD_LIMITS.originalIndex, Number(entry.originalIndex)))
       : 0;
 
-    if (!key || !label || !groupId || !/^https?:\/\//i.test(url) || !deletedAt) {
+    if (!label || !groupId || !/^https?:\/\//i.test(url)) {
       return null;
     }
 
-    return { key, label, url, groupId, icon, deletedAt, originalGroupId, originalIndex };
+    return { key, label, url, groupId, icon, deletedAt, originalGroupId, originalIndex, purged: false };
   }
 
-  function normaliseTrashEntries(value) {
+  function normaliseTrashEntries(value, now = Date.now()) {
     if (!Array.isArray(value)) {
       return [];
     }
@@ -209,7 +226,7 @@
     const seenKeys = new Set();
     const entries = [];
 
-    for (const entry of value.slice(0, 400)) {
+    for (const entry of value.slice(0, 1000)) {
       const safeEntry = normaliseTrashEntry(entry);
 
       if (!safeEntry || seenKeys.has(safeEntry.key)) {
@@ -220,13 +237,25 @@
       entries.push(safeEntry);
     }
 
-    return pruneTrashEntries(entries, Date.now());
+    return pruneTrashEntries(entries, now);
   }
 
-  /* 回收站清理规则（对用户可见，必须与文档一致）：
+  /* 回收站保留规则（对用户可见，必须与文档一致）：
+
+     普通墓碑（可恢复）：
      1. 同一个 key 只保留删除时间最新的一条。
      2. 按删除时间从新到旧保留最近 100 条。
-     3. 早于 30 天的记录直接丢弃。 */
+     3. 早于 30 天的记录直接丢弃。
+
+     精简墓碑（purged，永久删除后的同步删除标记，
+     不可恢复，用于防止离线旧设备把网站复活）：
+     1. 只保存 key 与时间戳，不保存名称、链接、图标。
+     2. 按永久删除时间从新到旧保留最近 500 条。
+     3. 早于 180 天的记录直接丢弃
+        （远长于普通墓碑，覆盖合理的离线窗口）。 */
+
+  const PURGED_MAX_ENTRIES = 500;
+  const PURGED_RETENTION_DAYS = 180;
 
   function pruneTrashEntries(entries, now = Date.now()) {
     const byKey = new Map();
@@ -234,17 +263,44 @@
     for (const entry of entries) {
       const existing = byKey.get(entry.key);
 
-      if (!existing || entry.deletedAt > existing.deletedAt) {
+      if (
+        !existing
+        || (existing.purged === false && entry.purged === true)
+        || (
+          existing.purged === entry.purged
+          && entry.deletedAt > existing.deletedAt
+        )
+      ) {
         byKey.set(entry.key, entry);
       }
     }
 
-    const cutoff = new Date(now - TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const plainCutoff = new Date(now - TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const purgedCutoff = new Date(now - PURGED_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    return [...byKey.values()]
-      .filter(entry => entry.deletedAt >= cutoff)
-      .sort((left, right) => right.deletedAt.localeCompare(left.deletedAt))
-      .slice(0, TRASH_MAX_ENTRIES);
+    const plain = [];
+    const purged = [];
+
+    for (const entry of byKey.values()) {
+      if (entry.purged) {
+        if ((entry.purgedAt || entry.deletedAt) >= purgedCutoff) {
+          purged.push(entry);
+        }
+      }
+
+      else if (entry.deletedAt >= plainCutoff) {
+        plain.push(entry);
+      }
+    }
+
+    return [
+      ...plain
+        .sort((left, right) => right.deletedAt.localeCompare(left.deletedAt))
+        .slice(0, TRASH_MAX_ENTRIES),
+      ...purged
+        .sort((left, right) => (right.purgedAt || right.deletedAt).localeCompare(left.purgedAt || left.deletedAt))
+        .slice(0, PURGED_MAX_ENTRIES)
+    ];
   }
 
   /* ========================================
@@ -334,7 +390,7 @@
         customSites: normaliseSiteList(doc.customSites, fallback),
         iconOverrides: normaliseIconOverrides(doc.iconOverrides),
         groupOrder: normaliseGroupOrder(doc.groupOrder, fallback),
-        trash: normaliseTrashEntries(doc.trash)
+        trash: normaliseTrashEntries(doc.trash, now)
       };
     }
 
@@ -437,6 +493,17 @@
           continue;
         }
 
+        /*
+           永久删除的精简墓碑（purged）代表用户
+           明确的"永远不要这个网站"意图：
+           无论另一台设备上的副本多新，一律不复活。
+        */
+
+        if (tombstone.purged) {
+          mergedTrash.push({ ...tombstone });
+          continue;
+        }
+
         if (live.updatedAt > tombstone.deletedAt) {
           mergedSites.push({ ...live });
           siteWinner.set(key, side);
@@ -458,9 +525,31 @@
         continue;
       }
 
-      const localDeleted = localDead?.deletedAt || "";
-      const cloudDeleted = cloudDead?.deletedAt || "";
-      const tombstone = localDeleted >= cloudDeleted ? localDead : cloudDead;
+      /*
+         两侧都有墓碑时：purged 永远压过普通墓碑
+         （永久删除的意图不可被普通删除覆盖），
+         同类之间取删除时间新的一方；
+         只有一侧有墓碑时直接保留。
+      */
+
+      if (localDead && cloudDead) {
+        if (localDead.purged !== cloudDead.purged) {
+          mergedTrash.push({ ...(localDead.purged ? localDead : cloudDead) });
+          continue;
+        }
+
+        const localDeleted = localDead.deletedAt || "";
+        const cloudDeleted = cloudDead.deletedAt || "";
+        const tombstone = localDeleted >= cloudDeleted ? localDead : cloudDead;
+
+        if (tombstone) {
+          mergedTrash.push({ ...tombstone });
+        }
+
+        continue;
+      }
+
+      const tombstone = localDead || cloudDead;
 
       if (tombstone) {
         mergedTrash.push({ ...tombstone });
@@ -672,6 +761,8 @@
     SITE_MODEL_VERSION,
     TRASH_MAX_ENTRIES,
     TRASH_RETENTION_DAYS,
+    PURGED_MAX_ENTRIES,
+    PURGED_RETENTION_DAYS,
     normaliseSiteList,
     normaliseIconOverrides,
     normaliseGroupOrder,

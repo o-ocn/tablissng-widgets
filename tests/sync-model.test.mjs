@@ -646,3 +646,215 @@ test("P2: 双方都有覆盖且本机站点胜出时取本机，反之取云端"
   const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
   assert.equal(merged.iconOverrides.a, "https://icons.example.com/local.png");
 });
+
+/* ========================================
+   P3 回归：永久删除后不得被离线旧设备复活
+   ======================================== */
+
+test("P3: 设备A永久删除 + 设备B保留旧网站并修改其他网站，合并后不复活", () => {
+  /*
+     设备 A：删除了 key "removed" 并永久删除
+     （trash 中只留精简 purged 墓碑）
+     设备 B（云端）：仍保存 "removed" 的旧副本，
+     同时修改了另一个网站 "kept"
+  */
+
+  const local = doc({
+    sites: [site("kept", "kept-本机改名", "tools", at(1))],
+    order: { tools: { items: ["kept"], updatedAt: at(1) } },
+    trash: [
+      {
+        key: "removed",
+        deletedAt: at(2),
+        purged: true,
+        purgedAt: at(2)
+      }
+    ]
+  });
+
+  const cloud = doc({
+    sites: [
+      site("removed", "被永久删除的网站", "home", at(50)),
+      site("kept", "kept", "tools", at(30))
+    ],
+    order: { home: { items: ["removed"], updatedAt: at(50) }, tools: { items: ["kept"], updatedAt: at(30) } },
+    trash: []
+  });
+
+  const { document: merged, conflicts } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+  assert.deepEqual(conflicts, []);
+  assert.ok(!merged.customSites.some(s => s.key === "removed"), "被永久删除的网站不得复活");
+  assert.equal(merged.customSites.find(s => s.key === "kept").label, "kept-本机改名", "设备B对其他网站的修改仍保留");
+
+  const marker = merged.trash.find(entry => entry.key === "removed");
+  assert.ok(marker, "purged 墓碑必须保留在合并结果中");
+  assert.equal(marker.purged, true);
+  assert.equal(marker.label, undefined, "精简墓碑不携带站点内容");
+  assert.equal(marker.url, undefined, "精简墓碑不携带站点内容");
+  assert.equal(marker.icon, undefined, "精简墓碑不携带图标");
+});
+
+test("P3: 即便站点副本比永久删除时间更新，也不复活", () => {
+  const local = doc({
+    sites: [],
+    order: {},
+    trash: [
+      { key: "x", deletedAt: at(60), purged: true, purgedAt: at(60) }
+    ]
+  });
+
+  const cloud = doc({
+    sites: [site("x", "X-旧设备上被编辑过", "home", at(5))],
+    order: { home: { items: ["x"], updatedAt: at(5) } },
+    trash: []
+  });
+
+  const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+  assert.ok(!merged.customSites.some(s => s.key === "x"), "purged 墓碑无条件压制同名站点");
+  assert.ok(merged.trash.some(entry => entry.key === "x" && entry.purged));
+});
+
+test("P3: purged 墓碑压过普通墓碑；同类取时间新者", () => {
+  const local = doc({
+    sites: [],
+    order: {},
+    trash: [
+      { key: "y", label: "Y", url: "https://y.example.com/", groupId: "home", icon: "", deletedAt: at(1), originalGroupId: "home", originalIndex: 0 }
+    ]
+  });
+
+  const cloud = doc({
+    sites: [],
+    order: {},
+    trash: [
+      { key: "y", deletedAt: at(50), purged: true, purgedAt: at(50) }
+    ]
+  });
+
+  const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+  const marker = merged.trash.find(entry => entry.key === "y");
+  assert.equal(marker.purged, true, "永久删除的意图不可被普通删除覆盖");
+});
+
+test("P3: 精简墓碑不参与回收站 UI 的容量与过期规则", () => {
+  // 100 条普通墓碑 + 5 条 purged：普通按 100 条截断，purged 全部保留
+  const trash = [];
+
+  for (let index = 0; index < TRASH_MAX_ENTRIES + 10; index += 1) {
+    trash.push(
+      dead(`p${index}`, `P${index}`, "home", new Date(BASE - index * 60_000).toISOString())
+    );
+  }
+
+  for (let index = 0; index < 5; index += 1) {
+    trash.push({
+      key: `purged${index}`,
+      deletedAt: new Date(BASE - index * 60_000).toISOString(),
+      purged: true,
+      purgedAt: new Date(BASE - index * 60_000).toISOString()
+    });
+  }
+
+  const pruned = TablissSyncModel.pruneTrashEntries(trash, BASE);
+
+  assert.equal(pruned.filter(entry => !entry.purged).length, TRASH_MAX_ENTRIES);
+  assert.equal(pruned.filter(entry => entry.purged).length, 5);
+});
+
+test("P3: 精简墓碑 180 天后清理，不无限增长", () => {
+  const trash = [
+    { key: "fresh", deletedAt: at(100), purged: true, purgedAt: at(100) },
+    { key: "expired", deletedAt: new Date(BASE - (181) * 24 * 60 * 60 * 1000).toISOString(), purged: true, purgedAt: new Date(BASE - (181) * 24 * 60 * 60 * 1000).toISOString() }
+  ];
+
+  const pruned = TablissSyncModel.pruneTrashEntries(trash, BASE);
+
+  assert.deepEqual(pruned.map(entry => entry.key), ["fresh"]);
+});
+
+/* ========================================
+   P4 回归：确定性调用链中的时间统一使用传入的 now
+   ======================================== */
+
+test("P4: 系统时间到达远未来时，传入固定 now 的结果不变", () => {
+  const entries = [
+    dead("fresh", "新删除", "home", at(60)),
+    dead("boundary", "临界记录", "home", new Date(BASE - 29 * 24 * 60 * 60 * 1000).toISOString())
+  ];
+
+  // 模拟系统时钟已走到 2027 年（远超 30 天清理窗口）
+  const realNow = Date.now;
+  Date.now = () => BASE + 400 * 24 * 60 * 60 * 1000;
+
+  try {
+    const prunedWithNow = TablissSyncModel.pruneTrashEntries(entries, BASE);
+
+    assert.deepEqual(
+      prunedWithNow.map(entry => entry.key).sort(),
+      ["boundary", "fresh"],
+      "传入 now 时不得使用真实系统时间"
+    );
+
+    const normalised = TablissSyncModel.normaliseTrashEntries(entries, BASE);
+
+    assert.deepEqual(
+      normalised.map(entry => entry.key).sort(),
+      ["boundary", "fresh"],
+      "normaliseTrashEntries 必须透传 now"
+    );
+
+    const documentNormalised = normaliseV3Document(
+      doc({ sites: [site("a", "A", "home", at(1))], order: { home: { items: ["a"], updatedAt: at(1) } }, trash: entries }),
+      { now: BASE }
+    );
+
+    assert.deepEqual(
+      documentNormalised.trash.map(entry => entry.key).sort(),
+      ["boundary", "fresh"],
+      "normaliseV3Document 必须把 now 传到回收站清理"
+    );
+
+    const merged = mergeSyncDocuments(
+      doc({ sites: [], order: {}, trash: entries }),
+      doc({ sites: [], order: {}, trash: [] }),
+      { now: BASE }
+    );
+
+    assert.deepEqual(
+      merged.document.trash.map(entry => entry.key).sort(),
+      ["boundary", "fresh"],
+      "mergeSyncDocuments 必须把 now 传到回收站清理"
+    );
+  }
+
+  finally {
+    Date.now = realNow;
+  }
+});
+
+test("P4: 模拟远未来系统时间下，合并的回收站清理仍以传入 now 为准", () => {
+  const trash = [];
+
+  for (let index = 0; index < 3; index += 1) {
+    trash.push(dead(`k${index}`, `K${index}`, "home", new Date(BASE - index * 60_000).toISOString()));
+  }
+
+  const local = doc({ sites: [site("a", "A", "home", at(30))], order: { home: { items: ["a"], updatedAt: at(30) } } });
+  const cloud = doc({ sites: [], order: {}, trash });
+
+  const realNow = Date.now;
+  Date.now = () => BASE + 400 * 24 * 60 * 60 * 1000;
+
+  try {
+    const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+    assert.equal(merged.trash.length, 3, "按传入 now 计算，三条墓碑都未过期");
+  }
+
+  finally {
+    Date.now = realNow;
+  }
+});
