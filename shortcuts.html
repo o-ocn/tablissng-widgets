@@ -658,6 +658,12 @@ body {
   background: rgba(255, 255, 255, 0.095);
 }
 
+.context-menu-separator {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(255, 255, 255, 0.11);
+}
+
 #blankMenu {
   padding: 4px;
   border-radius: 18px;
@@ -716,7 +722,8 @@ body {
   font-weight: 500;
 }
 
-.field input {
+.field input,
+.field select {
   width: 100%;
   height: 34px;
   padding: 0 10px;
@@ -730,7 +737,27 @@ body {
   user-select: text;
 }
 
-.field input:focus {
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 30px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.72) 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 14px,
+    calc(100% - 10px) 14px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field select option {
+  color: #fff;
+  background: #242730;
+}
+
+.field input:focus,
+.field select:focus {
   border-color: rgba(10, 132, 255, 0.72);
   box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.14);
 }
@@ -828,6 +855,22 @@ body {
   white-space: nowrap;
 }
 
+.toast-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast-action button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #66b5ff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
 </style>
 </head>
 
@@ -884,6 +927,13 @@ body {
   id="shortcutMenu"
   hidden
 >
+  <button type="button" data-action="edit-shortcut" data-custom-only>
+    编辑快捷方式
+  </button>
+  <button type="button" data-action="move-shortcut" data-custom-only>
+    移动到其他分组
+  </button>
+  <div class="context-menu-separator" data-custom-only></div>
   <button type="button" data-action="upload-icon">
     本地上传图标
   </button>
@@ -892,6 +942,10 @@ body {
   </button>
   <button type="button" data-action="reset-icon">
     恢复自动图标
+  </button>
+  <div class="context-menu-separator" data-custom-only></div>
+  <button class="danger" type="button" data-action="delete-shortcut" data-custom-only>
+    删除快捷方式
   </button>
 </div>
 
@@ -950,6 +1004,55 @@ body {
     </label>
 
     <div class="form-error" id="addFormError"></div>
+
+    <div class="modal-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        取消
+      </button>
+      <button class="button-primary" type="submit">
+        保存
+      </button>
+    </div>
+  </form>
+</div>
+
+
+<div
+  class="modal-overlay"
+  id="editModal"
+  hidden
+>
+  <form class="modal-card" id="editForm">
+    <h2 class="modal-title" id="editModalTitle">编辑快捷方式</h2>
+
+    <label class="field">
+      <span>名称</span>
+      <input
+        id="editShortcutNameInput"
+        type="text"
+        maxlength="24"
+        autocomplete="off"
+        required
+      >
+    </label>
+
+    <label class="field">
+      <span>网站链接</span>
+      <input
+        id="editShortcutUrlInput"
+        type="text"
+        inputmode="url"
+        autocomplete="off"
+        required
+      >
+    </label>
+
+    <label class="field">
+      <span>所在分组</span>
+      <select id="editShortcutGroupInput" required></select>
+    </label>
+
+    <div class="form-error" id="editFormError"></div>
 
     <div class="modal-actions">
       <button class="button-secondary" type="button" data-close-modal>
@@ -2532,6 +2635,48 @@ const addFormError =
   );
 
 
+const editModal =
+  document.getElementById(
+    "editModal"
+  );
+
+
+const editForm =
+  document.getElementById(
+    "editForm"
+  );
+
+
+const editModalTitle =
+  document.getElementById(
+    "editModalTitle"
+  );
+
+
+const editShortcutNameInput =
+  document.getElementById(
+    "editShortcutNameInput"
+  );
+
+
+const editShortcutUrlInput =
+  document.getElementById(
+    "editShortcutUrlInput"
+  );
+
+
+const editShortcutGroupInput =
+  document.getElementById(
+    "editShortcutGroupInput"
+  );
+
+
+const editFormError =
+  document.getElementById(
+    "editFormError"
+  );
+
+
 const iconUrlModal =
   document.getElementById(
     "iconUrlModal"
@@ -2612,6 +2757,14 @@ let pendingIconKey =
   "";
 
 
+let pendingEditKey =
+  "";
+
+
+let pendingDeletedShortcut =
+  null;
+
+
 let toastTimer =
   null;
 
@@ -2675,6 +2828,31 @@ function hideContextMenus() {
 
   blankMenu.hidden =
     true;
+
+}
+
+
+function updateShortcutMenu(key) {
+
+  const isCustom =
+    customSites.some(
+      entry =>
+        entry.key === key
+    );
+
+
+  shortcutMenu
+    .querySelectorAll(
+      "[data-custom-only]"
+    )
+    .forEach(
+      item => {
+
+        item.hidden =
+          !isCustom;
+
+      }
+    );
 
 }
 
@@ -2830,8 +3008,16 @@ function showToast(message) {
   );
 
 
-  toast.textContent =
-    message;
+  toast.classList.remove(
+    "toast-action"
+  );
+
+
+  toast.replaceChildren(
+    document.createTextNode(
+      message
+    )
+  );
 
 
   toast.hidden =
@@ -2847,6 +3033,103 @@ function showToast(message) {
 
       },
       1800
+    );
+
+}
+
+
+function showActionToast({
+
+  message,
+  actionLabel,
+  onAction,
+  duration = 5000,
+  onExpire
+
+}) {
+
+  clearTimeout(
+    toastTimer
+  );
+
+
+  toast.classList.add(
+    "toast-action"
+  );
+
+
+  const messageNode =
+    document.createElement(
+      "span"
+    );
+
+
+  messageNode.textContent =
+    message;
+
+
+  const actionButton =
+    document.createElement(
+      "button"
+    );
+
+
+  actionButton.type =
+    "button";
+
+
+  actionButton.textContent =
+    actionLabel;
+
+
+  actionButton.addEventListener(
+    "click",
+    () => {
+
+      clearTimeout(
+        toastTimer
+      );
+
+
+      toast.hidden =
+        true;
+
+
+      onAction();
+
+    },
+    {
+      once: true
+    }
+  );
+
+
+  toast.replaceChildren(
+    messageNode,
+    actionButton
+  );
+
+
+  toast.hidden =
+    false;
+
+
+  toastTimer =
+    setTimeout(
+      () => {
+
+        toast.hidden =
+          true;
+
+
+        if (onExpire) {
+
+          onExpire();
+
+        }
+
+      },
+      duration
     );
 
 }
@@ -3308,7 +3591,9 @@ async function pullCloudSync({
 }
 
 
-function scheduleCloudSync() {
+function scheduleCloudSync(
+  delay = 650
+) {
 
   clearTimeout(
     syncTimer
@@ -3329,13 +3614,15 @@ function scheduleCloudSync() {
         pushCloudSync();
 
       },
-      650
+      delay
     );
 
 }
 
 
-function markSyncDirty() {
+function markSyncDirty(
+  delay = 650
+) {
 
   syncRevision += 1;
 
@@ -3348,7 +3635,9 @@ function markSyncDirty() {
   });
 
 
-  scheduleCloudSync();
+  scheduleCloudSync(
+    delay
+  );
 
 }
 
@@ -3506,6 +3795,333 @@ function refreshShortcutGroups() {
 
 
   updateNav();
+
+}
+
+
+function getCustomSiteEntry(key) {
+
+  return customSites.find(
+    entry =>
+      entry.key === key
+  );
+
+}
+
+
+function populateEditGroupOptions(
+  selectedGroupId,
+  shortcutKey
+) {
+
+  editShortcutGroupInput
+    .replaceChildren();
+
+
+  groups.forEach(
+    group => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      const alreadyHere =
+        group.items.includes(
+          shortcutKey
+        );
+
+
+      const isFull =
+        group.items.length >= 12
+        &&
+        !alreadyHere;
+
+
+      option.value =
+        group.id;
+
+
+      option.textContent =
+        isFull
+          ? `${group.label}（已满）`
+          : group.label;
+
+
+      option.disabled =
+        isFull;
+
+
+      option.selected =
+        group.id ===
+        selectedGroupId;
+
+
+      editShortcutGroupInput
+        .appendChild(
+          option
+        );
+
+    }
+  );
+
+}
+
+
+function openShortcutEditor(
+  key,
+  mode = "edit"
+) {
+
+  const entry =
+    getCustomSiteEntry(
+      key
+    );
+
+
+  if (!entry) {
+
+    showToast(
+      "只有自己添加的快捷方式可以编辑"
+    );
+
+
+    return;
+
+  }
+
+
+  pendingEditKey =
+    key;
+
+
+  editModalTitle.textContent =
+    mode === "move"
+      ? "移动快捷方式"
+      : "编辑快捷方式";
+
+
+  editShortcutNameInput.value =
+    entry.label;
+
+
+  editShortcutUrlInput.value =
+    entry.url;
+
+
+  populateEditGroupOptions(
+    entry.groupId,
+    key
+  );
+
+
+  editFormError.textContent =
+    "";
+
+
+  openModal(
+    editModal,
+    mode === "move"
+      ? editShortcutGroupInput
+      : editShortcutNameInput
+  );
+
+}
+
+
+function undoDeletedShortcut() {
+
+  const pending =
+    pendingDeletedShortcut;
+
+
+  if (!pending) {
+    return;
+  }
+
+
+  pendingDeletedShortcut =
+    null;
+
+
+  customSites.splice(
+    Math.min(
+      pending.index,
+      customSites.length
+    ),
+    0,
+    pending.entry
+  );
+
+
+  if (pending.hadIconOverride) {
+
+    iconOverrides[
+      pending.entry.key
+    ] = pending.iconOverride;
+
+  }
+
+
+  saveCustomSites();
+  saveIconOverrides();
+
+
+  applyCustomSitesToRuntime(
+    customSites
+  );
+
+
+  markSyncDirty();
+
+
+  refreshShortcutGroups();
+
+
+  showToast(
+    "已恢复快捷方式"
+  );
+
+}
+
+
+function deleteCustomShortcut(key) {
+
+  const index =
+    customSites.findIndex(
+      entry =>
+        entry.key === key
+    );
+
+
+  if (index < 0) {
+
+    showToast(
+      "内置快捷方式不能删除"
+    );
+
+
+    return;
+
+  }
+
+
+  const entry = {
+    ...customSites[index]
+  };
+
+
+  const hadIconOverride =
+    Object.prototype
+      .hasOwnProperty.call(
+        iconOverrides,
+        key
+      );
+
+
+  const iconOverride =
+    iconOverrides[key];
+
+
+  customSites.splice(
+    index,
+    1
+  );
+
+
+  if (hadIconOverride) {
+
+    delete iconOverrides[key];
+
+  }
+
+
+  if (
+    !saveCustomSites()
+    ||
+    !saveIconOverrides()
+  ) {
+
+    customSites.splice(
+      index,
+      0,
+      entry
+    );
+
+
+    if (hadIconOverride) {
+
+      iconOverrides[key] =
+        iconOverride;
+
+    }
+
+
+    saveCustomSites();
+    saveIconOverrides();
+
+
+    showToast(
+      "删除失败：本地存储空间不足"
+    );
+
+
+    return;
+
+  }
+
+
+  clearStoredIcon(
+    key
+  );
+
+
+  applyCustomSitesToRuntime(
+    customSites
+  );
+
+
+  refreshShortcutGroups();
+
+
+  pendingDeletedShortcut = {
+
+    entry,
+    index,
+    hadIconOverride,
+    iconOverride
+
+  };
+
+
+  markSyncDirty(
+    5400
+  );
+
+
+  showActionToast({
+
+    message:
+      `已删除「${entry.label}」`,
+
+    actionLabel:
+      "撤销",
+
+    onAction:
+      undoDeletedShortcut,
+
+    duration:
+      5000,
+
+    onExpire: () => {
+
+      pendingDeletedShortcut =
+        null;
+
+    }
+
+  });
 
 }
 
@@ -3896,6 +4512,11 @@ function createShortcut(
 
       selectedShortcutKey =
         key;
+
+
+      updateShortcutMenu(
+        key
+      );
 
 
       openContextMenu(
@@ -4640,6 +5261,32 @@ shortcutMenu.addEventListener(
 
     if (
       action ===
+      "edit-shortcut"
+    ) {
+
+      openShortcutEditor(
+        key,
+        "edit"
+      );
+
+    }
+
+
+    if (
+      action ===
+      "move-shortcut"
+    ) {
+
+      openShortcutEditor(
+        key,
+        "move"
+      );
+
+    }
+
+
+    if (
+      action ===
       "upload-icon"
     ) {
 
@@ -4695,6 +5342,18 @@ shortcutMenu.addEventListener(
     ) {
 
       resetIconOverride(
+        key
+      );
+
+    }
+
+
+    if (
+      action ===
+      "delete-shortcut"
+    ) {
+
+      deleteCustomShortcut(
         key
       );
 
@@ -4783,6 +5442,179 @@ blankMenu.addEventListener(
         syncModal,
         syncTokenInput
       );
+
+    }
+
+  }
+);
+
+
+editForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+
+    editFormError.textContent =
+      "";
+
+
+    try {
+
+      const index =
+        customSites.findIndex(
+          entry =>
+            entry.key ===
+            pendingEditKey
+        );
+
+
+      if (index < 0) {
+
+        throw new Error(
+          "没有找到要编辑的快捷方式"
+        );
+
+      }
+
+
+      const previous = {
+        ...customSites[index]
+      };
+
+
+      const label =
+        editShortcutNameInput.value
+          .trim();
+
+
+      if (!label) {
+
+        throw new Error(
+          "请填写名称"
+        );
+
+      }
+
+
+      const url =
+        normaliseShortcutUrl(
+          editShortcutUrlInput.value
+        );
+
+
+      const group =
+        groups.find(
+          item =>
+            item.id ===
+            editShortcutGroupInput.value
+        );
+
+
+      if (!group) {
+
+        throw new Error(
+          "请选择有效分组"
+        );
+
+      }
+
+
+      if (
+        previous.groupId !==
+          group.id
+        &&
+        group.items.length >= 12
+      ) {
+
+        throw new Error(
+          "目标分组已满，最多可放 12 个快捷方式"
+        );
+
+      }
+
+
+      customSites[index] = {
+
+        ...previous,
+        label,
+        url,
+        groupId: group.id
+
+      };
+
+
+      if (!saveCustomSites()) {
+
+        customSites[index] =
+          previous;
+
+
+        throw new Error(
+          "保存失败：本地存储空间不足"
+        );
+
+      }
+
+
+      clearStoredIcon(
+        previous.key
+      );
+
+
+      applyCustomSitesToRuntime(
+        customSites
+      );
+
+
+      if (
+        previous.groupId !==
+        group.id
+      ) {
+
+        currentId =
+          group.id;
+
+
+        localStorage.setItem(
+          GROUP_STORAGE_KEY,
+          currentId
+        );
+
+      }
+
+
+      markSyncDirty();
+
+
+      closeModal(
+        editModal
+      );
+
+
+      refreshShortcutGroups();
+
+
+      showToast(
+        previous.groupId !== group.id
+          ? `已移动到「${group.label}」`
+          : "快捷方式已保存"
+      );
+
+
+      pendingEditKey =
+        "";
+
+    }
+
+
+    catch (error) {
+
+      editFormError.textContent =
+        error.message
+        ||
+        "无法保存快捷方式";
 
     }
 
@@ -5285,7 +6117,7 @@ document
   );
 
 
-[addModal, iconUrlModal, syncModal]
+[addModal, editModal, iconUrlModal, syncModal]
   .forEach(
     modal => {
 
@@ -5397,6 +6229,8 @@ document.addEventListener(
 
     if (
       !addModal.hidden
+      ||
+      !editModal.hidden
       ||
       !iconUrlModal.hidden
       ||
