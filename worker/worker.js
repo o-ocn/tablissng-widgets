@@ -222,7 +222,10 @@ function validateSyncDocument(value) {
   }
 
   const document = {
-    version: 2,
+    version:
+      Number(value.modelVersion || 1) >= 2
+        ? 2
+        : 1,
     updatedAt: new Date().toISOString(),
     customSites,
     iconOverrides,

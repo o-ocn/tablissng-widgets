@@ -24,7 +24,7 @@ https://o-ocn.github.io/tablissng-widgets/search.html?v=13
 快捷方式嵌入地址建议使用：
 
 ```text
-https://o-ocn.github.io/tablissng-widgets/shortcuts.html?v=15
+https://o-ocn.github.io/tablissng-widgets/shortcuts.html?v=16
 ```
 
 所有快捷方式采用统一数据结构，均支持编辑名称和网址、移动分组、删除并撤销；右键图标还可上传本地图片、填写 HTTPS 图片直链或恢复自动图标。右键空白区域可新增快捷方式并管理端到端加密的 GitHub 云端同步。
