@@ -46,34 +46,58 @@ function sleep(ms) {
   const state = registration.active?.state || "none";
   log(`${state === "activated" ? "PASS" : "FAIL"} Service Worker 已注册并激活(state=${state})`, state === "activated" ? "pass" : "fail");
 
-  /* 2. 顶层页面受控 */
+  /* 2. 顶层页面受控:首次安装后 controller 可能为 null,正常提示并结束该项 */
   const controlled = !!navigator.serviceWorker.controller;
-  log(`${controlled ? "PASS" : "WARN"} 顶层页面 controller=${controlled}(首次安装后重开一次即受控)`, controlled ? "pass" : "info");
 
-  /* 3. iframe(nested client)受控证据:通过 SHELL_STATS 拿 frameType */
-  const stats = await new Promise(resolve => {
-    const channel = new MessageChannel();
-    channel.port1.onmessage = event => resolve(event.data);
-    navigator.serviceWorker.controller.postMessage({ type: "SHELL_STATS" }, [channel.port2]);
-    setTimeout(() => resolve(null), 4000);
-  });
-
-  if (stats) {
-    log(`INFO 受控 clients:${JSON.stringify(stats.clients)}`);
-    const nested = stats.clients.some(client => client.frameType === "nested");
-    log(`${nested ? "PASS" : "INFO"} 存在 frameType=nested 的受控 iframe(TablissNG 嵌入场景的直接证据)`, nested ? "pass" : "info");
-    log(`INFO 外壳缓存键:${JSON.stringify(stats.keys)}`);
+  if (!controlled) {
+    log("INFO 顶层 controller=null:SW 刚安装、本页尚未受控。重开一次本页(或新开标签页)后再运行本自检即可看到 controller=true。", "info");
   } else {
-    log("WARN 未收到 SHELL_STATS 回包(缓存为空或 SW 为旧版本)", "info");
+    log("PASS 顶层页面受控(controller=true)", "pass");
+
+    /* 3. iframe(nested client)受控证据:
+       与 SW 的通信统一使用 postMessage + message 事件
+       (SW 侧以 event.source.postMessage 回复)。 */
+
+    const stats = await new Promise(resolve => {
+      const onMessage = event => {
+        if (event.data?.type === "SHELL_STATS") {
+          navigator.serviceWorker.removeEventListener("message", onMessage);
+          resolve(event.data);
+        }
+      };
+
+      navigator.serviceWorker.addEventListener("message", onMessage);
+      navigator.serviceWorker.controller.postMessage({ type: "SHELL_STATS" });
+      setTimeout(() => {
+        navigator.serviceWorker.removeEventListener("message", onMessage);
+        resolve(null);
+      }, 4000);
+    });
+
+    if (stats) {
+      log(`INFO 受控 clients:${JSON.stringify(stats.clients)}`);
+      const nested = stats.clients.some(client => client.frameType === "nested");
+      log(`${nested ? "PASS" : "INFO"} 存在 frameType=nested 的受控 iframe(嵌在 TablissNG 里的直接证据;值为 info 表示当前没有 iframe 打开本仓库页面)`, nested ? "pass" : "info");
+      log(`INFO 外壳缓存键:${JSON.stringify(stats.keys)}`);
+    } else {
+      log("WARN 4 秒内未收到 SHELL_STATS 回包(检查 SW 版本是否为本 PR 的 sw.js)", "info");
+    }
+
+    /* 4. 缓存命中判定:再次 fetch 本页,响应带 x-shell-stored-at 即为 SW 缓存命中 */
+    const self = await fetch(location.pathname + location.search, { cache: "no-store" });
+    const stamped = self.headers.get("x-shell-stored-at");
+    log(`${stamped ? "PASS" : "INFO"} 自身 HTML 响应 x-shell-stored-at=${stamped || "无(本次为网络直取;SW 缓存填充后此头出现)"}`, stamped ? "pass" : "info");
   }
 
-  /* 4. 缓存命中判定:再次 fetch 本页,响应带 x-shell-stored-at 即为 SW 缓存命中 */
-  const self = await fetch(location.pathname + location.search, { cache: "no-store" });
-  const stamped = self.headers.get("x-shell-stored-at");
-  log(`${stamped ? "PASS" : "INFO"} 自身 HTML 响应 x-shell-stored-at=${stamped || "无(本次为网络直取;SW 缓存填充后此头出现)"}`, stamped ? "pass" : "info");
+  /* 5. 重要说明 */
+  log("注意:单独打开本页不能替代 TablissNG 内的真实验收。", "fail");
+  log("完整验收还须在 TablissNG 的新标签页(三个组件 iframe 实际嵌入环境)中确认:", "info");
+  log("1) 三个 iframe 均受控且从缓存加载(F12 → Application → Service Workers / Cache Storage 可见 tablissng-shell-v2);", "info");
+  log("2) 断网(DevTools → Network → Offline)重开新标签页,三个 iframe 仍能显示,shortcuts 页面功能完整(HTML + sync-model.js 成对来自缓存);", "info");
+  log("3) VPS 卡片显示“（缓存 HH:MM）”而不是把旧数据当实时。", "info");
 
-  /* 5. 断网模拟提示 */
-  log("INFO 断网/弱网验证:DevTools → Network → Offline 后重开本页,页面应从缓存加载且第 4 项出现 x-shell-stored-at", "info");
+  /* 6. 断网模拟提示 */
+  log("INFO 弱网验证:DevTools → Network → Slow 3G 后重开,iframe 应在 2.5 秒内显示缓存内容。", "info");
 
   log("自检完成。把本页截图与控制台输出附回 PR 即可。", "pass");
 })();

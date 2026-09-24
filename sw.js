@@ -62,6 +62,27 @@ const SHELL_HARD_AGE = 30 * 24 * 60 * 60 * 1000;
 const SHELL_NETWORK_TIMEOUT = 2500;
 const SHELL_KEEP_VERSIONS = 3;
 
+/*
+   依赖同源 JS 的页面:回退到旧版本 HTML 时,
+   必须确认配套版本(sync-model.js?v=N)的 JS 也在缓存
+   且未超过 30 天,否则不成对、不回退。
+   (当前项目里只有 shortcuts.html 引用 sync-model.js;
+   search / index 无此依赖。)
+*/
+
+const JS_DEPENDENT_PAGE = "shortcuts.html";
+
+/*
+   记录"当前实际提供给页面的 HTML 版本"(回退发生时写入):
+   页面随后请求 sync-model.js 时 referrer 仍带新版本参数,
+   必须改用被实际回退到的版本来定位配套 JS,
+   否则离线整页跑不起来。
+   键 = 归一化 HTML 路径,值 = 版本号(如 "v17")。
+   成功从网络取得新版本时移除。
+*/
+
+const servedFallback = new Map();
+
 self.addEventListener("install", event => {
   event.waitUntil(self.skipWaiting());
 });
@@ -160,11 +181,19 @@ async function shellStrategy(request, event) {
   const url = new URL(request.url);
   const cache = await caches.open(SHELL_CACHE);
 
-  /* 脚本:跟随所属 HTML 的版本(referrer 携带 ?v=) */
+  /* 脚本:跟随所属 HTML 的版本(referrer 携带 ?v=)。
+     若该 HTML 曾被回退到旧版本(servedFallback),
+     JS 必须使用被实际提供的旧版本,离线整页才能运行。 */
   const isScript = request.destination === "script" || /\.js$/.test(url.pathname);
 
   if (isScript) {
-    const version = referrerVersion(request);
+    let version = referrerVersion(request);
+    const referrerPath = referrerPathOf(request);
+
+    if (referrerPath && servedFallback.has(referrerPath)) {
+      version = servedFallback.get(referrerPath);
+    }
+
     const key = new URL(
       normalisePath(url.pathname) + (version ? `?v=${version}` : url.search),
       url.origin
@@ -175,28 +204,42 @@ async function shellStrategy(request, event) {
   return shellReadThrough(request, event, cache, cacheKeyFor(url), { isScript: false });
 }
 
+/* referrer 指向的 HTML 归一化路径(无法解析时返回 "") */
+
+function referrerPathOf(request) {
+  try {
+    if (!request.referrer || request.referrer === "about:client") {
+      return "";
+    }
+
+    return normalisePath(new URL(request.referrer).pathname);
+  } catch (error) {
+    return "";
+  }
+}
+
 async function shellReadThrough(request, event, cache, key, { isScript }) {
   const url = new URL(request.url);
   const path = normalisePath(url.pathname);
 
-  const cached = await cache.match(key);
-  const storedAt = cached
+  let cached = await cache.match(key);
+  let storedAt = cached
     ? Number(cached.headers.get("x-shell-stored-at") || 0)
     : 0;
-  const age = Date.now() - storedAt;
 
   /*
-     超过 30 天：删除条目，不再作为回退。
+     超过 30 天：条目直接作废（等同无缓存）。
      网络失败时宁可加载失败，也不运行
      可能不兼容当前同步协议的古老页面。
   */
 
-  if (cached && age > SHELL_HARD_AGE) {
+  if (cached && Date.now() - storedAt > SHELL_HARD_AGE) {
     await cache.delete(key);
-    return networkOnly(request);
+    cached = null;
+    storedAt = 0;
   }
 
-  const fresh = cached && age < SHELL_FRESH_AGE;
+  const fresh = cached && Date.now() - storedAt < SHELL_FRESH_AGE;
 
   /*
      24 小时内：缓存优先（快路径）。
@@ -209,46 +252,67 @@ async function shellReadThrough(request, event, cache, key, { isScript }) {
   }
 
   /*
-     无缓存或已过期（24h~30d）：网络优先。
-     顺序逻辑，超时 2.5s 后按序回退：
-     同版本缓存 → 成对旧版本（仅 HTML）→ 放弃。
+     无缓存或已过期（24h~30d）：走网络。
+     只发一次请求：
+     - 存在可用回退（同版本缓存 / 成对旧版本）时，
+       2.5s 超时中止本次请求并回退（不产生第二次下载）;
+     - 没有回退时，不做超时中止、也不重试，
+       让这唯一的请求自然完成（慢就慢，避免双重请求）。
   */
 
-  try {
-    const response = await fetchWithTimeout(request, SHELL_NETWORK_TIMEOUT);
+  const paired = !isScript
+    ? await newestPairedVersion(cache, path, key, Date.now())
+    : null;
+  const hasFallback = !!cached || !!paired;
 
-    if (response && response.ok) {
-      await cache.put(key, stampResponse(response));
-      await pruneOldVersions(cache, path);
-      return response;
-    }
+  let response = null;
+
+  try {
+    response = await fetchWithTimeout(
+      request,
+      hasFallback ? SHELL_NETWORK_TIMEOUT : 0
+    );
   } catch (error) {
-    /* 超时或网络失败:走缓存回退 */
+    /* 超时中止或网络失败:response 保持 null,走下方回退 */
   }
+
+  if (response && response.ok) {
+    await cache.put(key, stampResponse(response));
+    await pruneOldVersions(cache, path);
+    servedFallback.delete(path);
+    return response;
+  }
+
+  /* 网络失败或已中止：按序回退 */
 
   if (cached) {
     return cached;
   }
 
-  /* HTML 导航且同路径存在旧版本条目:
-     返回最近的一个"成对旧版本"(旧 HTML 配旧 JS,
-     各自在自己的 ?v= 键下,不会混用)。 */
-  if (!isScript) {
-    const older = await newestOtherVersion(cache, path, key);
-
-    if (older) {
-      return older;
+  if (paired) {
+    /* 回退的旧 HTML 与其配套 JS 在各自 ?v= 键下成对存在,
+       记录实际提供的版本,页面随后请求 JS 时配套使用。 */
+    if (paired.version) {
+      servedFallback.set(path, paired.version);
     }
+
+    return paired.response;
   }
 
-  /* 脚本没有对应版本缓存时:不做跨版本回退,
-     交给 networkOnly(网络失败返回 504)。 */
-  return networkOnly(request);
+  /* 没有任何缓存回退:如果请求已被超时中止,
+     也要给出明确失败,不再发起第二次下载。 */
+  return new Response("Shell cache unavailable", { status: 504 });
 }
 
-function fetchWithTimeout(request, ms) {
+/* 单次网络请求;timeoutMs > 0 时超时中止,否则不设超时(仅这一次请求) */
+
+function fetchWithTimeout(request, timeoutMs) {
+  if (!timeoutMs || timeoutMs <= 0) {
+    return fetch(request);
+  }
+
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   return fetch(request, { signal: controller.signal }).finally(() => {
     clearTimeout(timer);
@@ -269,17 +333,30 @@ async function networkOnly(request) {
   return new Response("Shell cache expired", { status: 504 });
 }
 
-/* 同一路径下,除当前键外最新的一条旧版本缓存 */
+/*
+   在同一路径的历史版本里找"成对可用"的最新回退:
 
-async function newestOtherVersion(cache, path, excludeKey) {
+   - 条目本身不得超过 30 天;
+   - 若该页面依赖同源 JS(JS_DEPENDENT_PAGE),
+     配套版本(sync-model.js?v=N)必须也在缓存中
+     且同样未超过 30 天 —— 缺一即不成对、不回退,
+     避免只回退 HTML 却让页面脚本加载失败。
+   - 不依赖 JS 的页面(search / index)无需配套。
+*/
+
+async function newestPairedVersion(cache, path, excludeKey, now) {
   const keys = await cache.keys();
   const candidates = [];
 
   for (const key of keys) {
-    const requestUrl = shellKeyToString(key);
-    const url = new URL(requestUrl, self.location.origin);
+    const keyUrl = shellKeyToString(key);
+    const url = new URL(keyUrl, self.location.origin);
 
     if (normalisePath(url.pathname) !== path) {
+      continue;
+    }
+
+    if (cacheKeyFor(url) === excludeKey) {
       continue;
     }
 
@@ -289,15 +366,43 @@ async function newestOtherVersion(cache, path, excludeKey) {
       continue;
     }
 
+    const storedAt = Number(response.headers.get("x-shell-stored-at") || 0);
+
+    if (!storedAt || now - storedAt > SHELL_HARD_AGE) {
+      /* 超过 30 天的历史版本顺手删除,与当前键的过期语义一致 */
+      await cache.delete(url);
+      continue; /* 超过 30 天的旧版本不成对 */
+    }
+
+    const file = url.pathname.split("/").pop();
+
+    if (file === JS_DEPENDENT_PAGE) {
+      const version = versionOf(url);
+
+      if (!version) {
+        continue; /* 无版本参数无法定位配套 JS */
+      }
+
+      const directory = normalisePath(url.pathname).replace(/[^/]*$/, "");
+      const jsKey = new URL(`${directory}sync-model.js?v=${version}`, self.location.origin).href;
+      const js = await cache.match(jsKey);
+      const jsStoredAt = js ? Number(js.headers.get("x-shell-stored-at") || 0) : 0;
+
+      if (!js || !jsStoredAt || now - jsStoredAt > SHELL_HARD_AGE) {
+        continue; /* 缺配套 JS 或配套 JS 过旧:不成对 */
+      }
+    }
+
     candidates.push({
-      storedAt: Number(response.headers.get("x-shell-stored-at") || 0),
+      storedAt,
+      version: versionOf(url),
       response
     });
   }
 
   candidates.sort((left, right) => right.storedAt - left.storedAt);
 
-  return candidates.length ? candidates[0].response : null;
+  return candidates[0] || null;
 }
 
 /* 同一路径只保留最近 3 个版本 */

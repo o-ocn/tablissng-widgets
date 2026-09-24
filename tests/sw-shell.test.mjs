@@ -291,12 +291,21 @@ test("sw: 新版本导航网络失败 → 回退成对的旧版本", async () =>
 
   const sw = loadServiceWorker({
     fetchImpl: async request => {
+      const url = new URL(request.url);
+
       if (fail) {
         return Promise.reject(new Error("network down"));
       }
 
-      const url = new URL(request.url);
-      return makeResponse(`<html>${url.search}</html>`);
+      if (url.pathname.endsWith("shortcuts.html")) {
+        return makeResponse(`<html>${url.search}</html>`);
+      }
+
+      if (url.pathname.endsWith("sync-model.js")) {
+        return makeResponse("const V18 = true;");
+      }
+
+      return makeResponse("other");
     }
   });
 
@@ -312,11 +321,80 @@ test("sw: 新版本导航网络失败 → 回退成对的旧版本", async () =>
   const ok = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=18`));
   assert.equal(await ok.text(), "<html>?v=18</html>");
 
-  // 网络开始失败;v19 导航失败 → 回退最近旧版本(v18,成对可用)
+  // 真实页面会继续请求配套 JS → v18 成对(HTML + JS 都在缓存)
+  const v18js = await dispatchFetch(
+    sw,
+    fakeRequest(`${SCOPE}sync-model.js`, {
+      destination: "script",
+      referrer: `${SCOPE}shortcuts.html?v=18`
+    })
+  );
+  assert.equal(await v18js.text(), "const V18 = true;");
+  assert.ok(shellStore.get(`${SCOPE}sync-model.js?v=18`));
+
+  // 网络开始失败;v19 导航失败 → 回退最近旧版本(v18,HTML+JS 成对可用)
   fail = true;
 
   const fallback = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=19`));
   assert.equal(await fallback.text(), "<html>?v=18</html>", "网络失败时回退最近的成功版本,成对可用");
+
+  // 页面的 sync-model.js 请求(referrer v=19,实际被提供的是 v18)
+  // → 通过 servedFallback 配到 v18 的 JS,离线整页可运行
+  const offlineJs = await dispatchFetch(
+    sw,
+    fakeRequest(`${SCOPE}sync-model.js`, {
+      destination: "script",
+      referrer: `${SCOPE}shortcuts.html?v=19`
+    })
+  );
+  assert.equal(await offlineJs.text(), "const V18 = true;", "离线时脚本按实际提供的 HTML 版本配对");
+});
+
+test("sw: 只有旧 HTML、没有配套 JS → 不回退旧 HTML(504)", async () => {
+  let fail = false;
+
+  const sw = loadServiceWorker({
+    fetchImpl: async request => {
+      if (fail) {
+        return Promise.reject(new Error("network down"));
+      }
+
+      const url = new URL(request.url);
+      return makeResponse(`<html>${url.search}</html>`);
+    }
+  });
+
+  const shellStore = sw.cachesMap.get("tablissng-shell-v2");
+
+  // 只缓存了 v17 的 HTML,没有配套的 sync-model.js?v=17
+  const staleTs = String(Date.now() - 25 * 24 * 60 * 60 * 1000);
+  shellStore.set(`${SCOPE}shortcuts.html?v=17`, makeResponse("<html>v17 html</html>", { headers: { "x-shell-stored-at": staleTs } }));
+
+  // v18 导航成功 → v18 HTML 入缓存(但页面未请求 JS,v18 JS 不存在)
+  await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=18`));
+
+  // 网络失败;v19 导航:v19 缺失、v18 缺 JS、v17 缺 JS —— 全部不成对
+  fail = true;
+
+  const fallback = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=19`));
+  assert.equal(fallback.status, 504, "没有配套 JS 的旧 HTML 不能作为回退,避免页面脚本加载失败");
+});
+
+test("sw: 旧版本超过 30 天 → 不作为回退(504)", async () => {
+  const sw = loadServiceWorker({
+    fetchImpl: () => Promise.reject(new Error("network down"))
+  });
+
+  const shellStore = sw.cachesMap.get("tablissng-shell-v2");
+
+  // v17 成对缓存,但整对都超过 30 天
+  const ancientTs = String(Date.now() - 31 * 24 * 60 * 60 * 1000);
+  shellStore.set(`${SCOPE}shortcuts.html?v=17`, makeResponse("<html>v17 html</html>", { headers: { "x-shell-stored-at": ancientTs } }));
+  shellStore.set(`${SCOPE}sync-model.js?v=17`, makeResponse("const V17 = true;", { headers: { "x-shell-stored-at": ancientTs } }));
+
+  const fallback = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=19`));
+  assert.equal(fallback.status, 504, "超过 30 天的旧版本不成对回退");
+  assert.ok(!shellStore.has(`${SCOPE}shortcuts.html?v=17`), "超过 30 天的条目被删除");
 });
 
 test("sw: 24h~30d 陈旧条目 → 网络超时后回退同版本缓存", async () => {
@@ -336,6 +414,63 @@ test("sw: 24h~30d 陈旧条目 → 网络超时后回退同版本缓存", async 
   const response = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=17`));
 
   assert.equal(await response.text(), SHELL_HTML, "24h~30d 之间网络超时必须回退同版本缓存");
+});
+
+test("sw: 无缓存 + 网络挂起 → 只发一次请求,不重试不双重下载", async () => {
+  let fetchCount = 0;
+  let releaseNetwork;
+
+  const networkPromise = new Promise(resolve => {
+    releaseNetwork = resolve;
+  });
+
+  const sw = loadServiceWorker({
+    fetchImpl: () => {
+      fetchCount += 1;
+      return networkPromise;
+    }
+  });
+
+  const event = makeFetchEvent(fakeRequest(`${SCOPE}shortcuts.html?v=18`));
+  sw.dispatch("fetch", event);
+
+  // 等待超过原 2.5s 超时窗口:无回退时不得中止、不得发起第二次请求
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  assert.equal(fetchCount, 1, "慢网络上只允许一次请求(不中止后重下)");
+
+  // 网络最终成功 → 响应照常交付(单请求语义)
+  releaseNetwork(makeResponse(SHELL_HTML));
+  const response = await event.responded;
+
+  assert.equal(await response.text(), SHELL_HTML);
+  assert.equal(fetchCount, 1, "成功后总请求数仍为 1");
+});
+
+test("sw: 陈旧缓存 + 网络超时中止 → 只发一次请求,回退缓存", async () => {
+  let fetchCount = 0;
+
+  const sw = loadServiceWorker({
+    fetchImpl: (request, init) => {
+      fetchCount += 1;
+      return new Promise((resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new Error("AbortError")));
+      });
+    }
+  });
+
+  const staleAge = Date.now() - 25 * 24 * 60 * 60 * 1000; // 25 天
+  const shellStore = sw.cachesMap.get("tablissng-shell-v2");
+  shellStore.set(
+    `${SCOPE}shortcuts.html?v=17`,
+    makeResponse(SHELL_HTML, { headers: { "x-shell-stored-at": String(staleAge) } })
+  );
+
+  // 有同版本缓存回退 → 2.5s 超时中止(1 次请求),回退缓存,不二次下载
+  const response = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=17`));
+
+  assert.equal(await response.text(), SHELL_HTML, "超时后回退缓存");
+  assert.equal(fetchCount, 1, "超时中止后不发起第二次网络请求");
 });
 
 test("sw: 超过 30 天的条目被删除,网络失败时不再回退(504)", async () => {
