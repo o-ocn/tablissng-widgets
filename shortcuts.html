@@ -660,11 +660,11 @@ body {
 
 #blankMenu {
   padding: 4px;
-  border-radius: 999px;
+  border-radius: 18px;
 }
 
 #blankMenu button {
-  border-radius: 999px;
+  border-radius: 12px;
 }
 
 .context-menu .danger {
@@ -760,6 +760,46 @@ body {
 
 .button-primary {
   background: #0A84FF;
+}
+
+.modal-note {
+  margin: -4px 0 10px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.sync-status {
+  min-height: 16px;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.sync-actions {
+  flex-wrap: wrap;
+}
+
+.sync-actions .button-secondary,
+.sync-actions .button-primary {
+  padding: 0 11px;
+}
+
+.sync-disable {
+  display: block;
+  margin: 10px auto 0;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font: inherit;
+  font-size: 9.5px;
+  cursor: pointer;
+}
+
+.sync-disable:hover {
+  color: #ff9b96;
 }
 
 .form-error {
@@ -864,6 +904,9 @@ body {
   <button type="button" data-action="add-shortcut">
     添加快捷方式
   </button>
+  <button type="button" data-action="sync-settings">
+    云端同步
+  </button>
 </div>
 
 
@@ -954,6 +997,51 @@ body {
 </div>
 
 
+<div
+  class="modal-overlay"
+  id="syncModal"
+  hidden
+>
+  <form class="modal-card" id="syncForm">
+    <h2 class="modal-title">云端同步</h2>
+
+    <p class="modal-note">
+      同步新增快捷方式和自定义图标。同步口令只保存在当前浏览器，不会写入公开网页。
+    </p>
+
+    <label class="field">
+      <span>同步口令</span>
+      <input
+        id="syncTokenInput"
+        type="password"
+        autocomplete="off"
+        placeholder="输入同步口令"
+        required
+      >
+    </label>
+
+    <div class="sync-status" id="syncStatus"></div>
+    <div class="form-error" id="syncFormError"></div>
+
+    <div class="modal-actions sync-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        取消
+      </button>
+      <button class="button-secondary" type="button" id="syncPullButton">
+        从云端恢复
+      </button>
+      <button class="button-primary" type="submit">
+        保存并上传本机
+      </button>
+    </div>
+
+    <button class="sync-disable" type="button" id="syncDisableButton">
+      仅在本机停用同步
+    </button>
+  </form>
+</div>
+
+
 <div class="toast" id="toast" hidden></div>
 
 
@@ -998,6 +1086,18 @@ const ICON_CACHE_STORAGE_KEY =
 
 const CUSTOM_SITES_STORAGE_KEY =
   "tabliss-shortcuts-custom-sites-v1";
+
+
+const SYNC_TOKEN_STORAGE_KEY =
+  "tabliss-shortcuts-sync-token-v1";
+
+
+const SYNC_META_STORAGE_KEY =
+  "tabliss-shortcuts-sync-meta-v1";
+
+
+const SYNC_ENDPOINT =
+  "https://tablissng-sync.o-ous.workers.dev/sync";
 
 
 /* ========================================
@@ -2232,60 +2332,127 @@ const groups = [
    合并用户新增的快捷方式
    ======================================== */
 
-customSites =
-  customSites.filter(
-    entry =>
-      entry
-      &&
-      typeof entry.key === "string"
-      &&
-      typeof entry.label === "string"
-      &&
-      typeof entry.url === "string"
-      &&
-      typeof entry.groupId === "string"
+let appliedCustomSiteKeys =
+  new Set();
+
+
+function normaliseCustomSites(
+  entries
+) {
+
+  if (!Array.isArray(entries)) {
+
+    return [];
+
+  }
+
+
+  return entries
+    .filter(
+      entry =>
+        entry
+        &&
+        typeof entry.key === "string"
+        &&
+        entry.key.startsWith("custom-")
+        &&
+        typeof entry.label === "string"
+        &&
+        typeof entry.url === "string"
+        &&
+        /^https?:\/\//i.test(entry.url)
+        &&
+        typeof entry.groupId === "string"
+    )
+    .slice(0, 200)
+    .map(
+      entry => ({
+
+        key: entry.key.slice(0, 100),
+        label: entry.label.trim().slice(0, 50),
+        url: entry.url.slice(0, 2048),
+        groupId: entry.groupId.slice(0, 50)
+
+      })
+    );
+
+}
+
+
+function applyCustomSitesToRuntime(
+  entries
+) {
+
+  groups.forEach(
+    group => {
+
+      group.items =
+        group.items.filter(
+          key =>
+            !appliedCustomSiteKeys.has(key)
+        );
+
+    }
   );
 
 
-customSites.forEach(
-  entry => {
+  appliedCustomSiteKeys.forEach(
+    key => {
 
-    const group =
-      groups.find(
-        item =>
-          item.id ===
-          entry.groupId
-      )
-      ||
-      groups[0];
-
-
-    sites[entry.key] = {
-
-      label:
-        entry.label,
-
-      url:
-        entry.url,
-
-      icon: ""
-
-    };
-
-
-    if (
-      !group.items.includes(
-        entry.key
-      )
-    ) {
-
-      group.items.push(
-        entry.key
-      );
+      delete sites[key];
 
     }
+  );
 
-  }
+
+  customSites =
+    normaliseCustomSites(entries);
+
+
+  appliedCustomSiteKeys =
+    new Set(
+      customSites.map(
+        entry => entry.key
+      )
+    );
+
+
+  customSites.forEach(
+    entry => {
+
+      const group =
+        groups.find(
+          item =>
+            item.id ===
+            entry.groupId
+        )
+        ||
+        groups[0];
+
+
+      sites[entry.key] = {
+
+        label: entry.label,
+        url: entry.url,
+        icon: ""
+
+      };
+
+
+      if (!group.items.includes(entry.key)) {
+
+        group.items.push(entry.key);
+
+      }
+
+    }
+  );
+
+}
+
+
+applyCustomSitesToRuntime(
+  customSites
 );
 
 
@@ -2389,6 +2556,48 @@ const iconUrlFormError =
   );
 
 
+const syncModal =
+  document.getElementById(
+    "syncModal"
+  );
+
+
+const syncForm =
+  document.getElementById(
+    "syncForm"
+  );
+
+
+const syncTokenInput =
+  document.getElementById(
+    "syncTokenInput"
+  );
+
+
+const syncStatus =
+  document.getElementById(
+    "syncStatus"
+  );
+
+
+const syncFormError =
+  document.getElementById(
+    "syncFormError"
+  );
+
+
+const syncPullButton =
+  document.getElementById(
+    "syncPullButton"
+  );
+
+
+const syncDisableButton =
+  document.getElementById(
+    "syncDisableButton"
+  );
+
+
 const toast =
   document.getElementById(
     "toast"
@@ -2405,6 +2614,18 @@ let pendingIconKey =
 
 let toastTimer =
   null;
+
+
+let syncTimer =
+  null;
+
+
+let syncInFlight =
+  false;
+
+
+let syncRevision =
+  0;
 
 
 /* ========================================
@@ -2631,6 +2852,540 @@ function showToast(message) {
 }
 
 
+/* ========================================
+   GitHub 安全同步
+
+   同步口令只保存在当前浏览器。
+   GitHub 中保存的是 Worker 加密后的数据。
+   ======================================== */
+
+function getSyncToken() {
+
+  return (
+    localStorage.getItem(
+      SYNC_TOKEN_STORAGE_KEY
+    )
+    ||
+    ""
+  ).trim();
+
+}
+
+
+function setSyncToken(token) {
+
+  localStorage.setItem(
+    SYNC_TOKEN_STORAGE_KEY,
+    token.trim()
+  );
+
+}
+
+
+function readSyncMeta() {
+
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(
+        SYNC_META_STORAGE_KEY
+      )
+      ||
+      "{}"
+    );
+
+  }
+
+  catch {
+
+    return {};
+
+  }
+
+}
+
+
+function writeSyncMeta(value) {
+
+  localStorage.setItem(
+    SYNC_META_STORAGE_KEY,
+    JSON.stringify(value)
+  );
+
+}
+
+
+function updateSyncStatus(message) {
+
+  syncStatus.textContent =
+    message;
+
+}
+
+
+function normaliseIconOverrides(
+  value
+) {
+
+  if (
+    !value
+    ||
+    typeof value !== "object"
+    ||
+    Array.isArray(value)
+  ) {
+
+    return {};
+
+  }
+
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(
+        ([key, icon]) =>
+          typeof key === "string"
+          &&
+          typeof icon === "string"
+          &&
+          (
+            icon.startsWith("data:image/")
+            ||
+            /^https:\/\//i.test(icon)
+          )
+      )
+      .slice(0, 300)
+  );
+
+}
+
+
+function currentSyncDocument() {
+
+  return {
+
+    customSites:
+      normaliseCustomSites(
+        customSites
+      ),
+
+    iconOverrides:
+      normaliseIconOverrides(
+        iconOverrides
+      )
+
+  };
+
+}
+
+
+async function syncFetch(
+  method,
+  token,
+  body
+) {
+
+  const response =
+    await fetch(
+      SYNC_ENDPOINT,
+      {
+        method,
+        headers: {
+
+          Authorization:
+            `Bearer ${token}`,
+
+          ...(body
+            ? {
+                "Content-Type":
+                  "application/json"
+              }
+            : {})
+
+        },
+        cache: "no-store",
+        body:
+          body
+            ? JSON.stringify(body)
+            : undefined
+      }
+    );
+
+
+  let result = {};
+
+
+  try {
+
+    result =
+      await response.json();
+
+  }
+
+  catch {
+
+    result = {};
+
+  }
+
+
+  if (!response.ok) {
+
+    const message =
+      response.status === 401
+        ? "同步口令不正确"
+        : result.error
+          ||
+          "云端同步暂时不可用";
+
+
+    throw new Error(message);
+
+  }
+
+
+  return result;
+
+}
+
+
+async function pushCloudSync({
+
+  token = getSyncToken(),
+  notify = false
+
+} = {}) {
+
+  if (!token) {
+
+    return false;
+
+  }
+
+
+  if (syncInFlight) {
+
+    scheduleCloudSync();
+    return false;
+
+  }
+
+
+  syncInFlight =
+    true;
+
+
+  const startedRevision =
+    syncRevision;
+
+
+  updateSyncStatus(
+    "正在上传加密数据…"
+  );
+
+
+  try {
+
+    const result =
+      await syncFetch(
+        "PUT",
+        token,
+        currentSyncDocument()
+      );
+
+
+    const changedDuringUpload =
+      syncRevision !==
+      startedRevision;
+
+
+    writeSyncMeta({
+
+      dirty:
+        changedDuringUpload,
+
+      lastSyncedAt:
+        result.updatedAt
+        ||
+        new Date().toISOString()
+
+    });
+
+
+    updateSyncStatus(
+      "已安全同步到 GitHub"
+    );
+
+
+    if (notify) {
+
+      showToast(
+        "已安全同步到 GitHub"
+      );
+
+    }
+
+
+    if (changedDuringUpload) {
+
+      scheduleCloudSync();
+
+    }
+
+
+    return true;
+
+  }
+
+  catch (error) {
+
+    writeSyncMeta({
+
+      ...readSyncMeta(),
+      dirty: true
+
+    });
+
+
+    updateSyncStatus(
+      error.message
+      ||
+      "同步失败"
+    );
+
+
+    if (notify) {
+
+      throw error;
+
+    }
+
+
+    console.warn(
+      "Unable to sync shortcuts",
+      error
+    );
+
+
+    return false;
+
+  }
+
+  finally {
+
+    syncInFlight =
+      false;
+
+  }
+
+}
+
+
+async function pullCloudSync({
+
+  token = getSyncToken(),
+  notify = false
+
+} = {}) {
+
+  if (!token) {
+
+    return false;
+
+  }
+
+
+  updateSyncStatus(
+    "正在读取云端数据…"
+  );
+
+
+  try {
+
+    const result =
+      await syncFetch(
+        "GET",
+        token
+      );
+
+
+    const nextCustomSites =
+      normaliseCustomSites(
+        result.customSites
+      );
+
+
+    const nextIconOverrides =
+      normaliseIconOverrides(
+        result.iconOverrides
+      );
+
+
+    customSites =
+      nextCustomSites;
+
+
+    iconOverrides =
+      nextIconOverrides;
+
+
+    if (
+      !saveCustomSites()
+      ||
+      !saveIconOverrides()
+    ) {
+
+      throw new Error(
+        "本地存储空间不足"
+      );
+
+    }
+
+
+    applyCustomSitesToRuntime(
+      customSites
+    );
+
+
+    refreshShortcutGroups();
+
+
+    writeSyncMeta({
+
+      dirty: false,
+      lastSyncedAt:
+        result.updatedAt
+        ||
+        new Date().toISOString()
+
+    });
+
+
+    updateSyncStatus(
+      "已从云端恢复"
+    );
+
+
+    if (notify) {
+
+      showToast(
+        "已从云端恢复快捷方式"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+  catch (error) {
+
+    updateSyncStatus(
+      error.message
+      ||
+      "读取云端数据失败"
+    );
+
+
+    if (notify) {
+
+      throw error;
+
+    }
+
+
+    console.warn(
+      "Unable to restore shortcuts",
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+function scheduleCloudSync() {
+
+  clearTimeout(
+    syncTimer
+  );
+
+
+  if (!getSyncToken()) {
+
+    return;
+
+  }
+
+
+  syncTimer =
+    setTimeout(
+      () => {
+
+        pushCloudSync();
+
+      },
+      650
+    );
+
+}
+
+
+function markSyncDirty() {
+
+  syncRevision += 1;
+
+
+  writeSyncMeta({
+
+    ...readSyncMeta(),
+    dirty: true
+
+  });
+
+
+  scheduleCloudSync();
+
+}
+
+
+async function initialiseCloudSync() {
+
+  if (!getSyncToken()) {
+
+    updateSyncStatus(
+      "尚未在本机启用同步"
+    );
+
+
+    return;
+
+  }
+
+
+  const meta =
+    readSyncMeta();
+
+
+  if (meta.dirty) {
+
+    await pushCloudSync();
+
+  }
+
+  else {
+
+    await pullCloudSync();
+
+  }
+
+}
+
+
 function closeModal(modal) {
 
   modal.hidden =
@@ -2799,6 +3554,9 @@ function applyIconOverride(
   }
 
 
+  markSyncDirty();
+
+
   refreshShortcutGroups();
 
 
@@ -2830,6 +3588,9 @@ function resetIconOverride(key) {
 
 
   saveIconOverrides();
+
+
+  markSyncDirty();
 
 
   refreshShortcutGroups();
@@ -3949,7 +4710,7 @@ blankMenu.addEventListener(
 
     const button =
       event.target.closest(
-        "button[data-action='add-shortcut']"
+        "button[data-action]"
       );
 
 
@@ -3960,21 +4721,228 @@ blankMenu.addEventListener(
     }
 
 
-    shortcutNameInput.value =
+    const action =
+      button.dataset.action;
+
+
+    hideContextMenus();
+
+
+    if (
+      action ===
+      "add-shortcut"
+    ) {
+
+      shortcutNameInput.value =
+        "";
+
+
+      shortcutUrlInput.value =
+        "";
+
+
+      addFormError.textContent =
+        "";
+
+
+      openModal(
+        addModal,
+        shortcutNameInput
+      );
+
+    }
+
+
+    if (
+      action ===
+      "sync-settings"
+    ) {
+
+      syncTokenInput.value =
+        getSyncToken();
+
+
+      syncFormError.textContent =
+        "";
+
+
+      const meta =
+        readSyncMeta();
+
+
+      updateSyncStatus(
+        getSyncToken()
+          ? meta.dirty
+            ? "本机有等待上传的更改"
+            : "本机已启用自动同步"
+          : "尚未在本机启用同步"
+      );
+
+
+      openModal(
+        syncModal,
+        syncTokenInput
+      );
+
+    }
+
+  }
+);
+
+
+syncForm.addEventListener(
+  "submit",
+  async event => {
+
+    event.preventDefault();
+
+
+    syncFormError.textContent =
       "";
 
 
-    shortcutUrlInput.value =
+    const token =
+      syncTokenInput.value.trim();
+
+
+    if (!token) {
+
+      syncFormError.textContent =
+        "请填写同步口令";
+
+
+      return;
+
+    }
+
+
+    try {
+
+      const success =
+        await pushCloudSync({
+
+          token,
+          notify: true
+
+        });
+
+
+      if (success) {
+
+        setSyncToken(token);
+
+
+        closeModal(
+          syncModal
+        );
+
+      }
+
+    }
+
+    catch (error) {
+
+      syncFormError.textContent =
+        error.message
+        ||
+        "无法启用同步";
+
+    }
+
+  }
+);
+
+
+syncPullButton.addEventListener(
+  "click",
+  async () => {
+
+    syncFormError.textContent =
       "";
 
 
-    addFormError.textContent =
+    const token =
+      syncTokenInput.value.trim();
+
+
+    if (!token) {
+
+      syncFormError.textContent =
+        "请填写同步口令";
+
+
+      return;
+
+    }
+
+
+    try {
+
+      const success =
+        await pullCloudSync({
+
+          token,
+          notify: true
+
+        });
+
+
+      if (success) {
+
+        setSyncToken(token);
+
+
+        closeModal(
+          syncModal
+        );
+
+      }
+
+    }
+
+    catch (error) {
+
+      syncFormError.textContent =
+        error.message
+        ||
+        "无法从云端恢复";
+
+    }
+
+  }
+);
+
+
+syncDisableButton.addEventListener(
+  "click",
+  () => {
+
+    clearTimeout(
+      syncTimer
+    );
+
+
+    localStorage.removeItem(
+      SYNC_TOKEN_STORAGE_KEY
+    );
+
+
+    localStorage.removeItem(
+      SYNC_META_STORAGE_KEY
+    );
+
+
+    syncTokenInput.value =
       "";
 
 
-    openModal(
-      addModal,
-      shortcutNameInput
+    closeModal(
+      syncModal
+    );
+
+
+    showToast(
+      "已在本机停用同步，云端数据仍保留"
     );
 
   }
@@ -4223,6 +5191,9 @@ addForm.addEventListener(
       }
 
 
+      markSyncDirty();
+
+
       sites[key] = {
 
         label,
@@ -4314,7 +5285,7 @@ document
   );
 
 
-[addModal, iconUrlModal]
+[addModal, iconUrlModal, syncModal]
   .forEach(
     modal => {
 
@@ -4428,6 +5399,8 @@ document.addEventListener(
       !addModal.hidden
       ||
       !iconUrlModal.hidden
+      ||
+      !syncModal.hidden
     ) {
 
       return;
@@ -4547,6 +5520,11 @@ document.addEventListener(
       );
 
 
+      closeModal(
+        syncModal
+      );
+
+
       pendingIconKey =
         "";
 
@@ -4560,6 +5538,8 @@ document.addEventListener(
       !addModal.hidden
       ||
       !iconUrlModal.hidden
+      ||
+      !syncModal.hidden
       ||
       /^(INPUT|TEXTAREA)$/.test(
         document.activeElement.tagName
@@ -4621,6 +5601,8 @@ if (initial) {
 updateNav();
 
 warmPersistentIconCache();
+
+initialiseCloudSync();
 
 </script>
 

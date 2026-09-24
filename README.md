@@ -24,7 +24,7 @@ https://o-ocn.github.io/tablissng-widgets/search.html?v=13
 快捷方式嵌入地址建议使用：
 
 ```text
-https://o-ocn.github.io/tablissng-widgets/shortcuts.html?v=11
+https://o-ocn.github.io/tablissng-widgets/shortcuts.html?v=12
 ```
 
 快捷方式支持：右键图标上传本地图片、填写 HTTPS 图片直链、恢复自动图标；右键空白区域可把新快捷方式添加到当前分类。自定义内容保存在浏览器本地。
