@@ -554,3 +554,95 @@ test("双向同时新增同名 key 的不同内容按时间合并", () => {
   assert.deepEqual(conflicts, []);
   assert.equal(merged.customSites[0].label, "本机版");
 });
+
+/* ========================================
+   P2 回归：图标覆盖的删除必须参与合并
+   ======================================== */
+
+test("P2: 设备A恢复自动图标 + 设备B修改其他网站，409 合并后旧图标不复活", () => {
+  /*
+     设备 A：恢复自动图标（删除 override 并更新站点时间）
+     设备 B（云端）：同时改了别的网站，仍带着 A 的旧图标
+  */
+
+  const local = doc({
+    sites: [
+      site("a", "A", "home", at(1)),
+      site("b", "B-本机改名", "tools", at(2))
+    ],
+    overrides: {},
+    order: { home: { items: ["a"], updatedAt: at(1) }, tools: { items: ["b"], updatedAt: at(2) } }
+  });
+
+  const cloud = doc({
+    sites: [
+      site("a", "A", "home", at(20)),
+      site("b", "B", "tools", at(30))
+    ],
+    overrides: { a: "data:image/webp;base64,OLDDATA" },
+    order: { home: { items: ["a"], updatedAt: at(20) }, tools: { items: ["b"], updatedAt: at(30) } }
+  });
+
+  const { document: merged, conflicts } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+  assert.deepEqual(conflicts, []);
+  assert.ok(!Object.prototype.hasOwnProperty.call(merged.iconOverrides, "a"), "恢复自动图标的意图必须同步，旧图标不能复活");
+  assert.equal(merged.customSites.find(s => s.key === "b").label, "B-本机改名", "设备B对其他网站的修改仍保留");
+});
+
+test("P2: 云端胜出时对称规则 —— 云端删除覆盖同样生效", () => {
+  const local = doc({
+    sites: [site("a", "A", "home", at(20))],
+    overrides: { a: "https://icons.example.com/old.png" },
+    order: { home: { items: ["a"], updatedAt: at(20) } }
+  });
+
+  const cloud = doc({
+    sites: [site("a", "A-云端改名", "home", at(1))],
+    overrides: {},
+    order: { home: { items: ["a"], updatedAt: at(1) } }
+  });
+
+  const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+  assert.equal(merged.customSites.find(s => s.key === "a").label, "A-云端改名");
+  assert.ok(!Object.prototype.hasOwnProperty.call(merged.iconOverrides, "a"), "云端胜出且云端无覆盖时，本机旧覆盖被删除");
+});
+
+test("P2: 删除带本地图标的网站后，不残留孤立 data URL", () => {
+  const local = doc({
+    sites: [],
+    overrides: {},
+    order: { home: { items: [], updatedAt: at(1) } },
+    trash: [dead("a", "A", "home", at(1))]
+  });
+
+  const cloud = doc({
+    sites: [site("a", "A", "home", at(40))],
+    overrides: { a: "data:image/png;base64,BIGDATAURL", other: "https://icons.example.com/keep.png" },
+    order: { home: { items: ["a"], updatedAt: at(40) } }
+  });
+
+  const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
+
+  assert.equal(merged.customSites.length, 0, "墓碑时间更新，网站保持删除");
+  assert.ok(!Object.prototype.hasOwnProperty.call(merged.iconOverrides, "a"), "已删除网站的图标覆盖必须清理");
+  assert.equal(merged.iconOverrides.other, "https://icons.example.com/keep.png", "其他网站的覆盖不受影响");
+});
+
+test("P2: 双方都有覆盖且本机站点胜出时取本机，反之取云端", () => {
+  const local = doc({
+    sites: [site("a", "A-本机", "home", at(1))],
+    overrides: { a: "https://icons.example.com/local.png" },
+    order: { home: { items: ["a"], updatedAt: at(1) } }
+  });
+
+  const cloud = doc({
+    sites: [site("a", "A", "home", at(9))],
+    overrides: { a: "https://icons.example.com/cloud.png" },
+    order: { home: { items: ["a"], updatedAt: at(9) } }
+  });
+
+  const { document: merged } = mergeSyncDocuments(local, cloud, { now: BASE });
+  assert.equal(merged.iconOverrides.a, "https://icons.example.com/local.png");
+});

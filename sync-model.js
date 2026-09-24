@@ -537,29 +537,66 @@
       group.items = group.items.filter(key => mergedSiteIds.has(key));
     }
 
-    /* 图标覆盖：跟随对应网站的胜者；
-       没有对应网站时，本机有未同步更改则本机优先。 */
+    /* 图标覆盖：跟随对应网站的胜者。
 
-    const mergedIconOverrides = {
-      ...cloud.iconOverrides
-    };
+       覆盖的"存在"与"删除"都参与合并：
 
-    for (const [key, icon] of Object.entries(local.iconOverrides)) {
+       - 对应网站本机胜出：本机有就用本机，
+         本机没有（恢复自动图标）就删除云端旧覆盖；
+       - 云端胜出：对称，采用相同规则；
+       - 对应网站已不存在（被删除）：
+         不残留任何图标覆盖，
+         尤其是较大的本地 data URL。
+    */
+
+    const allIconKeys = new Set([
+      ...Object.keys(local.iconOverrides),
+      ...Object.keys(cloud.iconOverrides)
+    ]);
+
+    const mergedIconOverrides = {};
+
+    for (const key of allIconKeys) {
+      /*
+         对应网站已不存在时：
+         只有确认被删除（存在墓碑）才清理覆盖，
+         防止残留较大的本地 data URL；
+         无站点也无墓碑的孤儿覆盖保持原样。
+      */
+
+      if (
+        !mergedSiteIds.has(key)
+        && (
+          localTrash.has(key)
+          || cloudTrash.has(key)
+        )
+      ) {
+        continue;
+      }
+
+      const hasLocal = Object.prototype.hasOwnProperty.call(local.iconOverrides, key);
+      const hasCloud = Object.prototype.hasOwnProperty.call(cloud.iconOverrides, key);
+      const localIcon = hasLocal ? local.iconOverrides[key] : undefined;
+      const cloudIcon = hasCloud ? cloud.iconOverrides[key] : undefined;
       const winner = siteWinner.get(key);
-      const cloudIcon = Object.prototype.hasOwnProperty.call(cloud.iconOverrides, key)
-        ? cloud.iconOverrides[key]
-        : undefined;
 
-      if (cloudIcon === undefined) {
-        mergedIconOverrides[key] = icon;
-        continue;
+      let chosen;
+
+      if (winner === "local") {
+        chosen = hasLocal ? localIcon : undefined;
       }
 
-      if (cloudIcon === icon) {
-        continue;
+      else if (winner === "cloud") {
+        chosen = hasCloud ? cloudIcon : undefined;
       }
 
-      mergedIconOverrides[key] = winner === "local" ? icon : cloudIcon;
+      else {
+        chosen = hasLocal ? localIcon : cloudIcon;
+      }
+
+      if (chosen !== undefined) {
+        mergedIconOverrides[key] = chosen;
+      }
     }
 
     const trashById = new Map();
