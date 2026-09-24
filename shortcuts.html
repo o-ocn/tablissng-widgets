@@ -566,6 +566,53 @@ body {
 
 
 /* ========================================
+   拖动排序
+
+   拖动中的卡片轻微透明，
+   放置位置用一根细的蓝色圆条提示，
+   不加大面积卡片、不加阴影。
+   ======================================== */
+
+.shortcut {
+  position: relative;
+}
+
+.shortcut.dragging {
+  opacity: 0.4;
+}
+
+.shortcut.drop-before::before,
+.shortcut.drop-after::after {
+  content: "";
+
+  position: absolute;
+
+  top: 16%;
+  bottom: 16%;
+
+  width: 3px;
+
+  border-radius: 3px;
+
+  background:
+    rgba(
+      10,
+      132,
+      255,
+      0.9
+    );
+}
+
+.shortcut.drop-before::before {
+  left: 0;
+}
+
+.shortcut.drop-after::after {
+  right: 0;
+}
+
+
+/* ========================================
    快捷方式名称
    ======================================== */
 
@@ -3603,6 +3650,42 @@ let syncRevision =
 
 
 /* ========================================
+   拖动排序状态
+
+   浏览器不支持 HTML5 拖动时，
+   所有拖动相关逻辑都不启用，
+   点击与右键保持原样。
+   ======================================== */
+
+const dragReorderSupported =
+  typeof DragEvent !== "undefined"
+  && "draggable" in
+    document.createElement(
+      "span"
+    );
+
+
+let dragShortcutKey =
+  "";
+
+
+let dragSourceGroupId =
+  "";
+
+
+let dragJustEnded =
+  false;
+
+
+let dropIndicatorElement =
+  null;
+
+
+let dropIndicatorSide =
+  "";
+
+
+/* ========================================
    当前分组 ID
    用 ID 保存比 index 更稳定
    ======================================== */
@@ -6086,6 +6169,97 @@ function createShortcut(
   );
 
 
+  /*
+     拖动排序（同一分组内）。
+
+     拖动由 dragstart/dragover/drop 驱动，
+     全程不会触发点击跳转；
+     拖动结束后的一瞬间，
+     兜底拦截一次 click。
+  */
+
+  if (dragReorderSupported) {
+
+    link.draggable =
+      true;
+
+
+    link.addEventListener(
+      "dragstart",
+      event => {
+
+        dragShortcutKey =
+          key;
+
+
+        dragSourceGroupId =
+          link.closest(".group-grid")?.dataset.group
+          ||
+          "";
+
+
+        if (event.dataTransfer) {
+
+          event.dataTransfer.effectAllowed =
+            "move";
+
+
+          event.dataTransfer.setData(
+            "text/plain",
+            key
+          );
+
+        }
+
+
+        link.classList.add(
+          "dragging"
+        );
+
+      }
+    );
+
+
+    link.addEventListener(
+      "dragend",
+      () => {
+
+        dragJustEnded =
+          true;
+
+
+        link.classList.remove(
+          "dragging"
+        );
+
+
+        clearDropIndicator();
+
+
+        dragShortcutKey =
+          "";
+
+
+        dragSourceGroupId =
+          "";
+
+
+        setTimeout(
+          () => {
+
+            dragJustEnded =
+              false;
+
+          },
+          0
+        );
+
+      }
+    );
+
+  }
+
+
   const shell =
     document.createElement(
       "div"
@@ -6358,6 +6532,401 @@ function buildAllGroups() {
       );
 
     }
+  );
+
+}
+
+
+/*
+   只重建一个分组的网格，
+   拖动结束后按新的稳定键顺序
+   重新渲染，图标走内存缓存，
+   不会闪烁。
+*/
+
+function rebuildGroupGrid(
+  groupId
+) {
+
+  const grid =
+    groupElements.get(
+      groupId
+    );
+
+
+  const group =
+    groups.find(
+      item =>
+        item.id ===
+        groupId
+    );
+
+
+  if (!grid || !group) {
+
+    return;
+
+  }
+
+
+  grid.replaceChildren();
+
+
+  group.items.forEach(
+    key => {
+
+      const shortcut =
+        createShortcut(
+          key
+        );
+
+
+      if (shortcut) {
+
+        grid.appendChild(
+          shortcut
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ========================================
+   拖动排序事件
+
+   只允许在同一分组内拖动。
+   放置位置提示是目标卡片
+   左/右边缘的一根细蓝条。
+   ======================================== */
+
+function clearDropIndicator() {
+
+  if (dropIndicatorElement) {
+
+    dropIndicatorElement.classList.remove(
+      "drop-before",
+      "drop-after"
+    );
+
+  }
+
+
+  dropIndicatorElement =
+    null;
+
+
+  dropIndicatorSide =
+    "";
+
+}
+
+
+function setDropIndicator(
+  element,
+  side
+) {
+
+  if (
+    dropIndicatorElement ===
+      element
+    &&
+    dropIndicatorSide ===
+      side
+  ) {
+
+    return;
+
+  }
+
+
+  clearDropIndicator();
+
+
+  dropIndicatorElement =
+    element;
+
+
+  dropIndicatorSide =
+    side;
+
+
+  element.classList.add(
+    side === "before"
+      ? "drop-before"
+      : "drop-after"
+  );
+
+}
+
+
+if (dragReorderSupported) {
+
+  content.addEventListener(
+    "dragover",
+    event => {
+
+      if (!dragShortcutKey) {
+
+        return;
+
+      }
+
+
+      const grid =
+        event.target.closest(
+          ".group-grid"
+        );
+
+
+      if (
+        !grid
+        ||
+        grid.dataset.group !==
+          dragSourceGroupId
+      ) {
+
+        clearDropIndicator();
+
+        return;
+
+      }
+
+
+      event.preventDefault();
+
+
+      event.dataTransfer.dropEffect =
+        "move";
+
+
+      const target =
+        event.target.closest(
+          ".shortcut"
+        );
+
+
+      if (
+        !target
+        ||
+        target.dataset.siteKey ===
+          dragShortcutKey
+      ) {
+
+        clearDropIndicator();
+
+        return;
+
+      }
+
+
+      const rect =
+        target.getBoundingClientRect();
+
+
+      setDropIndicator(
+        target,
+        event.clientX >
+          rect.left + rect.width / 2
+          ? "after"
+          : "before"
+      );
+
+    }
+  );
+
+
+  content.addEventListener(
+    "drop",
+    event => {
+
+      if (!dragShortcutKey) {
+
+        return;
+
+      }
+
+
+      const grid =
+        event.target.closest(
+          ".group-grid"
+        );
+
+
+      clearDropIndicator();
+
+
+      if (
+        !grid
+        ||
+        grid.dataset.group !==
+          dragSourceGroupId
+      ) {
+
+        return;
+
+      }
+
+
+      event.preventDefault();
+
+
+      const group =
+        groups.find(
+          item =>
+            item.id ===
+            dragSourceGroupId
+        );
+
+
+      const target =
+        event.target.closest(
+          ".shortcut"
+        );
+
+
+      const key =
+        dragShortcutKey;
+
+
+      if (
+        !group
+        ||
+        !target
+        ||
+        target.dataset.siteKey ===
+          key
+      ) {
+
+        return;
+
+      }
+
+
+      const targetKey =
+        target.dataset.siteKey;
+
+
+      const items =
+        group.items.filter(
+          item =>
+            item !==
+            key
+        );
+
+
+      const targetIndex =
+        items.indexOf(
+          targetKey
+        );
+
+
+      if (targetIndex < 0) {
+
+        return;
+
+      }
+
+
+      const rect =
+        target.getBoundingClientRect();
+
+
+      const insertAfter =
+        event.clientX >
+        rect.left + rect.width / 2;
+
+
+      items.splice(
+        insertAfter
+          ? targetIndex + 1
+          : targetIndex,
+        0,
+        key
+      );
+
+
+      group.items =
+        items;
+
+
+      /*
+         排序按稳定键写入 groupOrder，
+         只更新这一组的排序时间，
+         然后走受保护的自动同步。
+      */
+
+      touchGroupOrder(
+        group.id,
+        true
+      );
+
+
+      markSyncDirty();
+
+
+      rebuildGroupGrid(
+        group.id
+      );
+
+    }
+  );
+
+
+  content.addEventListener(
+    "dragleave",
+    event => {
+
+      const grid =
+        event.target.closest(
+          ".group-grid"
+        );
+
+
+      if (
+        grid
+        &&
+        (
+          !event.relatedTarget
+          ||
+          !grid.contains(
+            event.relatedTarget
+          )
+        )
+      ) {
+
+        clearDropIndicator();
+
+      }
+
+    }
+  );
+
+
+  /*
+     拖动结束后的第一次 click
+     一律拦截，确保不会误触跳转。
+  */
+
+  document.addEventListener(
+    "click",
+    event => {
+
+      if (!dragJustEnded) {
+
+        return;
+
+      }
+
+
+      event.preventDefault();
+      event.stopPropagation();
+
+    },
+    true
   );
 
 }
