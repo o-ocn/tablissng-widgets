@@ -27,7 +27,7 @@ export default {
         {
           ok: true,
           service: "tablissng-sync",
-          version: 2,
+          version: 3,
         },
         200,
         corsHeaders,
@@ -57,6 +57,7 @@ export default {
               updatedAt: "",
               customSites: [],
               iconOverrides: {},
+              revision: "",
             },
             200,
             corsHeaders,
@@ -65,10 +66,18 @@ export default {
 
         const document = await decryptDocument(stored.payload, env);
 
-        return json(document, 200, corsHeaders, {
-          ETag: `\"${stored.sha}\"`,
-          "Cache-Control": "no-store",
-        });
+        return json(
+          {
+            ...document,
+            revision: stored.sha,
+          },
+          200,
+          corsHeaders,
+          {
+            ETag: `\"${stored.sha}\"`,
+            "Cache-Control": "no-store",
+          },
+        );
       }
 
       if (request.method === "PUT" || request.method === "POST") {
@@ -78,7 +87,57 @@ export default {
           return json({ error: "Payload too large" }, 413, corsHeaders);
         }
 
-        const document = validateSyncDocument(await request.json());
+        const incoming = await request.json();
+
+        /*
+           版本 3 及以上的客户端必须携带 expectedRevision
+           （它最后一次读取到的 GitHub 文件 SHA）。
+           写入前重新读取云端当前 SHA，不一致时返回 409，
+           绝不写入，绝不静默覆盖另一台设备的数据。
+
+           版本 1 / 2 的旧页面没有版本概念，
+           继续按旧流程处理，保持完全兼容。
+        */
+
+        const modelVersion = Number(incoming?.modelVersion || 1);
+
+        if (modelVersion >= 3) {
+          if (typeof incoming.expectedRevision !== "string") {
+            return json(
+              { error: "New sync clients must send expectedRevision" },
+              400,
+              corsHeaders,
+            );
+          }
+
+          const outcome = await writeWithOptimisticLock(incoming, env);
+
+          if (outcome.status === 409) {
+            return json(
+              {
+                error: "Sync conflict: cloud was updated by another device",
+                currentRevision: outcome.currentRevision || "",
+              },
+              409,
+              corsHeaders,
+              { "Cache-Control": "no-store" },
+            );
+          }
+
+          return json(
+            {
+              ok: true,
+              updatedAt: outcome.document.updatedAt,
+              sha: outcome.sha,
+              revision: outcome.sha,
+            },
+            200,
+            corsHeaders,
+            { "Cache-Control": "no-store" },
+          );
+        }
+
+        const document = validateSyncDocument(incoming);
         const encrypted = await encryptDocument(document, env);
         const result = await writeEncryptedDocument(encrypted, env);
 
@@ -87,6 +146,7 @@ export default {
             ok: true,
             updatedAt: document.updatedAt,
             sha: result.sha,
+            revision: result.sha,
           },
           200,
           corsHeaders,
@@ -186,25 +246,23 @@ function validateSyncDocument(value) {
     throw clientError("iconOverrides must be an object");
   }
 
+  const modelVersion = Number(value.modelVersion || 1);
+  const version = modelVersion >= 3 ? 3 : modelVersion >= 2 ? 2 : 1;
+
   const customSites = value.customSites.slice(0, 200).map((site) => {
-    if (!site || typeof site !== "object") {
-      throw clientError("Invalid shortcut entry");
-    }
+    const entry = normaliseShortcutEntry(site);
 
-    const key = String(site.key || "").slice(0, 100);
-    const label = String(site.label || "").trim().slice(0, 50);
-    const url = String(site.url || "").trim().slice(0, 2048);
-    const groupId = String(site.groupId || "").slice(0, 50);
-    const rawIcon = String(site.icon || "").trim();
-    const icon = /^https:\/\//i.test(rawIcon)
-      ? rawIcon.slice(0, 2048)
-      : "";
-
-    if (!key || !label || !groupId || !/^https?:\/\//i.test(url)) {
+    if (!entry) {
       throw clientError("Shortcut entry is incomplete");
     }
 
-    return { key, label, url, groupId, icon };
+    if (version < 3) {
+      const legacyEntry = { key: entry.key, label: entry.label, url: entry.url, groupId: entry.groupId, icon: entry.icon };
+
+      return legacyEntry;
+    }
+
+    return entry;
   });
 
   const iconOverrides = {};
@@ -222,20 +280,134 @@ function validateSyncDocument(value) {
   }
 
   const document = {
-    version:
-      Number(value.modelVersion || 1) >= 2
-        ? 2
-        : 1,
+    version,
     updatedAt: new Date().toISOString(),
     customSites,
     iconOverrides,
   };
+
+  /*
+     版本 3 才写入 groupOrder 与 trash。
+     版本 1 / 2 的文档保持原有字段，
+     绝不会被误标成新版。
+  */
+
+  if (version >= 3) {
+    document.groupOrder = validateGroupOrder(value.groupOrder);
+    document.trash = validateTrash(value.trash);
+  }
 
   if (encoder.encode(JSON.stringify(document)).length > 750_000) {
     throw clientError("Sync data is too large");
   }
 
   return document;
+}
+
+function normaliseShortcutEntry(site) {
+  if (!site || typeof site !== "object") {
+    return null;
+  }
+
+  const key = String(site.key || "").slice(0, 100);
+  const label = String(site.label || "").trim().slice(0, 50);
+  const url = String(site.url || "").trim().slice(0, 2048);
+  const groupId = String(site.groupId || "").slice(0, 50);
+  const rawIcon = String(site.icon || "").trim();
+  const icon = /^https:\/\//i.test(rawIcon) ? rawIcon.slice(0, 2048) : "";
+  const updatedAt = normaliseTimestamp(site.updatedAt);
+
+  if (!key || !label || !groupId || !/^https?:\/\//i.test(url)) {
+    return null;
+  }
+
+  return { key, label, url, groupId, icon, updatedAt };
+}
+
+function normaliseTimestamp(value) {
+  const text = typeof value === "string" ? value.slice(0, 40) : "";
+  return text && !Number.isNaN(Date.parse(text)) ? text : "";
+}
+
+function validateGroupOrder(value) {
+  const order = {};
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return order;
+  }
+
+  for (const [groupId, entry] of Object.entries(value).slice(0, 60)) {
+    const safeGroupId = String(groupId).slice(0, 50);
+
+    if (
+      !safeGroupId ||
+      !entry ||
+      typeof entry !== "object" ||
+      !Array.isArray(entry.items)
+    ) {
+      continue;
+    }
+
+    const items = [];
+
+    for (const item of entry.items.slice(0, 60)) {
+      const key = String(item || "").slice(0, 100);
+
+      if (key && !items.includes(key)) {
+        items.push(key);
+      }
+    }
+
+    order[safeGroupId] = {
+      items,
+      updatedAt: normaliseTimestamp(entry.updatedAt),
+    };
+  }
+
+  return order;
+}
+
+function validateTrash(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const seenKeys = new Set();
+  const entries = [];
+
+  for (const entry of value.slice(0, 200)) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+
+    const key = String(entry.key || "").slice(0, 100);
+    const label = String(entry.label || "").trim().slice(0, 50);
+    const url = String(entry.url || "").trim().slice(0, 2048);
+    const groupId = String(entry.groupId || "").slice(0, 50);
+    const rawIcon = String(entry.icon || "").trim();
+    const icon = /^https:\/\//i.test(rawIcon) ? rawIcon.slice(0, 2048) : "";
+    const deletedAt = normaliseTimestamp(entry.deletedAt);
+    const originalGroupId = String(entry.originalGroupId || groupId).slice(0, 50);
+    const originalIndex = Number.isFinite(Number(entry.originalIndex))
+      ? Math.max(0, Math.min(200, Number(entry.originalIndex)))
+      : 0;
+
+    if (!key || !label || !groupId || !/^https?:\/\//i.test(url) || !deletedAt) {
+      continue;
+    }
+
+    if (seenKeys.has(key)) {
+      continue;
+    }
+
+    seenKeys.add(key);
+
+    entries.push({ key, label, url, groupId, icon, deletedAt, originalGroupId, originalIndex });
+  }
+
+  entries.sort((left, right) => right.deletedAt.localeCompare(left.deletedAt));
+
+  return entries.slice(0, 100);
 }
 
 function clientError(message) {
@@ -361,6 +533,60 @@ async function writeEncryptedDocument(payload, env) {
   const result = await response.json();
 
   return { sha: result.content?.sha || "" };
+}
+
+/*
+   版本 3 客户端的受保护写入：
+   写入前重新读取 GitHub 当前 SHA，
+   与客户端声明的 expectedRevision 不一致时
+   返回 409 且不执行任何写入。
+   GitHub 端再次返回 409（读取后被人抢先写入）
+   时也不重试，直接让客户端重新合并。
+*/
+
+async function writeWithOptimisticLock(incoming, env) {
+  const document = validateSyncDocument(incoming);
+  const expectedRevision = String(incoming.expectedRevision || "");
+  const token = await getInstallationToken(env);
+  const current = await readFileMetadata(env, token);
+  const currentRevision = current?.sha || "";
+
+  if (currentRevision !== expectedRevision) {
+    return { status: 409, currentRevision, document };
+  }
+
+  const encrypted = await encryptDocument(document, env);
+  const body = {
+    message: "Sync TablissNG shortcuts",
+    content: toBase64(encoder.encode(`${JSON.stringify(encrypted, null, 2)}\n`)),
+    branch: env.GITHUB_BRANCH || "main",
+  };
+
+  if (currentRevision) {
+    body.sha = currentRevision;
+  }
+
+  const response = await githubFetch(contentUrl(env, false), token, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (response.status === 409) {
+    return { status: 409, currentRevision, document };
+  }
+
+  if (!response.ok) {
+    throw await githubError(response, "Unable to save sync data");
+  }
+
+  const result = await response.json();
+
+  return {
+    status: 200,
+    document,
+    sha: result.content?.sha || "",
+  };
 }
 
 async function readFileMetadata(env, token) {

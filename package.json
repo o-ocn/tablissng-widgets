@@ -2,6 +2,7 @@
   "name": "tablissng-widgets",
   "private": true,
   "scripts": {
+    "test": "node --test",
     "worker:dev": "wrangler dev --config worker/wrangler.toml",
     "worker:deploy": "wrangler deploy --config worker/wrangler.toml"
   },
