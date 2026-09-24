@@ -27,7 +27,7 @@ export default {
         {
           ok: true,
           service: "tablissng-sync",
-          version: 1,
+          version: 2,
         },
         200,
         corsHeaders,
@@ -195,12 +195,16 @@ function validateSyncDocument(value) {
     const label = String(site.label || "").trim().slice(0, 50);
     const url = String(site.url || "").trim().slice(0, 2048);
     const groupId = String(site.groupId || "").slice(0, 50);
+    const rawIcon = String(site.icon || "").trim();
+    const icon = /^https:\/\//i.test(rawIcon)
+      ? rawIcon.slice(0, 2048)
+      : "";
 
     if (!key || !label || !groupId || !/^https?:\/\//i.test(url)) {
       throw clientError("Shortcut entry is incomplete");
     }
 
-    return { key, label, url, groupId };
+    return { key, label, url, groupId, icon };
   });
 
   const iconOverrides = {};
@@ -218,7 +222,7 @@ function validateSyncDocument(value) {
   }
 
   const document = {
-    version: 1,
+    version: 2,
     updatedAt: new Date().toISOString(),
     customSites,
     iconOverrides,

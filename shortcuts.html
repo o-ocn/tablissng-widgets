@@ -1191,6 +1191,14 @@ const CUSTOM_SITES_STORAGE_KEY =
   "tabliss-shortcuts-custom-sites-v1";
 
 
+const SITE_MODEL_VERSION_KEY =
+  "tabliss-shortcuts-site-model-version";
+
+
+const SITE_MODEL_VERSION =
+  2;
+
+
 const SYNC_TOKEN_STORAGE_KEY =
   "tabliss-shortcuts-sync-token-v1";
 
@@ -2432,11 +2440,12 @@ const groups = [
 
 
 /* ========================================
-   合并用户新增的快捷方式
-   ======================================== */
+   统一快捷方式数据
 
-let appliedCustomSiteKeys =
-  new Set();
+   预设只用于第一次初始化。
+   初始化后，所有快捷方式都采用同一种
+   可编辑、可移动、可删除的数据结构。
+   ======================================== */
 
 
 function normaliseCustomSites(
@@ -2450,22 +2459,47 @@ function normaliseCustomSites(
   }
 
 
+  const seenKeys =
+    new Set();
+
+
   return entries
     .filter(
-      entry =>
-        entry
-        &&
-        typeof entry.key === "string"
-        &&
-        entry.key.startsWith("custom-")
-        &&
-        typeof entry.label === "string"
-        &&
-        typeof entry.url === "string"
-        &&
-        /^https?:\/\//i.test(entry.url)
-        &&
-        typeof entry.groupId === "string"
+      entry => {
+
+        if (
+          !entry
+          ||
+          typeof entry.key !== "string"
+          ||
+          !entry.key.trim()
+          ||
+          seenKeys.has(entry.key)
+          ||
+          typeof entry.label !== "string"
+          ||
+          !entry.label.trim()
+          ||
+          typeof entry.url !== "string"
+          ||
+          !/^https?:\/\//i.test(entry.url)
+          ||
+          typeof entry.groupId !== "string"
+        ) {
+
+          return false;
+
+        }
+
+
+        seenKeys.add(
+          entry.key
+        );
+
+
+        return true;
+
+      }
     )
     .slice(0, 200)
     .map(
@@ -2474,10 +2508,163 @@ function normaliseCustomSites(
         key: entry.key.slice(0, 100),
         label: entry.label.trim().slice(0, 50),
         url: entry.url.slice(0, 2048),
-        groupId: entry.groupId.slice(0, 50)
+        groupId: entry.groupId.slice(0, 50),
+        icon:
+          typeof entry.icon === "string"
+          &&
+          /^https:\/\//i.test(entry.icon)
+            ? entry.icon.slice(0, 2048)
+            : ""
 
       })
     );
+
+}
+
+
+function buildDefaultManagedSites() {
+
+  const seenSiteKeys =
+    new Set();
+
+
+  return groups.flatMap(
+    group =>
+      group.items
+        .map(
+          siteKey => {
+
+            const site =
+              sites[siteKey];
+
+
+            if (!site) {
+              return null;
+            }
+
+
+            const key =
+              seenSiteKeys.has(siteKey)
+                ? `preset-${group.id}-${siteKey}`
+                : siteKey;
+
+
+            seenSiteKeys.add(
+              siteKey
+            );
+
+
+            return {
+
+              key,
+              sourceKey: siteKey,
+              label: site.label,
+              url: site.url,
+              groupId: group.id,
+              icon:
+                normaliseIcon(
+                  site.customIcon
+                )
+                ||
+                normaliseIcon(
+                  site.icon
+                )
+
+            };
+
+          }
+        )
+        .filter(Boolean)
+  );
+
+}
+
+
+const defaultManagedSites =
+  buildDefaultManagedSites();
+
+
+function migrateLegacySites(
+  entries,
+  sourceIconOverrides = iconOverrides
+) {
+
+  const legacySites =
+    normaliseCustomSites(
+      entries
+    );
+
+
+  const merged =
+    defaultManagedSites.map(
+      entry => {
+
+        if (
+          entry.key !==
+            entry.sourceKey
+          &&
+          sourceIconOverrides[
+            entry.sourceKey
+          ]
+          &&
+          !sourceIconOverrides[
+            entry.key
+          ]
+        ) {
+
+          sourceIconOverrides[
+            entry.key
+          ] = sourceIconOverrides[
+            entry.sourceKey
+          ];
+
+        }
+
+
+        const {
+          sourceKey,
+          ...managedEntry
+        } = entry;
+
+
+        return managedEntry;
+
+      }
+    );
+
+
+  const existingKeys =
+    new Set(
+      merged.map(
+        entry => entry.key
+      )
+    );
+
+
+  legacySites.forEach(
+    entry => {
+
+      if (
+        !existingKeys.has(
+          entry.key
+        )
+      ) {
+
+        merged.push(
+          entry
+        );
+
+        existingKeys.add(
+          entry.key
+        );
+
+      }
+
+    }
+  );
+
+
+  return merged;
 
 }
 
@@ -2489,17 +2676,13 @@ function applyCustomSitesToRuntime(
   groups.forEach(
     group => {
 
-      group.items =
-        group.items.filter(
-          key =>
-            !appliedCustomSiteKeys.has(key)
-        );
+      group.items = [];
 
     }
   );
 
 
-  appliedCustomSiteKeys.forEach(
+  Object.keys(sites).forEach(
     key => {
 
       delete sites[key];
@@ -2510,14 +2693,6 @@ function applyCustomSitesToRuntime(
 
   customSites =
     normaliseCustomSites(entries);
-
-
-  appliedCustomSiteKeys =
-    new Set(
-      customSites.map(
-        entry => entry.key
-      )
-    );
 
 
   customSites.forEach(
@@ -2537,7 +2712,7 @@ function applyCustomSitesToRuntime(
 
         label: entry.label,
         url: entry.url,
-        icon: ""
+        icon: entry.icon
 
       };
 
@@ -2549,6 +2724,36 @@ function applyCustomSitesToRuntime(
       }
 
     }
+  );
+
+}
+
+
+if (
+  Number(
+    localStorage.getItem(
+      SITE_MODEL_VERSION_KEY
+    )
+    ||
+    0
+  ) < SITE_MODEL_VERSION
+) {
+
+  customSites =
+    migrateLegacySites(
+      customSites
+    );
+
+
+  saveCustomSites();
+  saveIconOverrides();
+
+
+  localStorage.setItem(
+    SITE_MODEL_VERSION_KEY,
+    String(
+      SITE_MODEL_VERSION
+    )
   );
 
 }
@@ -3492,16 +3697,29 @@ async function pullCloudSync({
       );
 
 
-    const nextCustomSites =
-      normaliseCustomSites(
-        result.customSites
-      );
+    const migratedLegacyDocument =
+      Number(
+        result.version
+        ||
+        1
+      ) < SITE_MODEL_VERSION;
 
 
     const nextIconOverrides =
       normaliseIconOverrides(
         result.iconOverrides
       );
+
+
+    const nextCustomSites =
+      migratedLegacyDocument
+        ? migrateLegacySites(
+            result.customSites,
+            nextIconOverrides
+          )
+        : normaliseCustomSites(
+            result.customSites
+          );
 
 
     customSites =
@@ -3525,6 +3743,14 @@ async function pullCloudSync({
     }
 
 
+    localStorage.setItem(
+      SITE_MODEL_VERSION_KEY,
+      String(
+        SITE_MODEL_VERSION
+      )
+    );
+
+
     applyCustomSitesToRuntime(
       customSites
     );
@@ -3535,7 +3761,8 @@ async function pullCloudSync({
 
     writeSyncMeta({
 
-      dirty: false,
+      dirty:
+        migratedLegacyDocument,
       lastSyncedAt:
         result.updatedAt
         ||
@@ -3544,8 +3771,17 @@ async function pullCloudSync({
     });
 
 
+    if (migratedLegacyDocument) {
+
+      markSyncDirty();
+
+    }
+
+
     updateSyncStatus(
-      "已从云端恢复"
+      migratedLegacyDocument
+        ? "已从云端恢复，正在升级同步数据…"
+        : "已从云端恢复"
     );
 
 
@@ -3883,7 +4119,7 @@ function openShortcutEditor(
   if (!entry) {
 
     showToast(
-      "只有自己添加的快捷方式可以编辑"
+      "没有找到要编辑的快捷方式"
     );
 
 
@@ -3998,7 +4234,7 @@ function deleteCustomShortcut(key) {
   if (index < 0) {
 
     showToast(
-      "内置快捷方式不能删除"
+      "没有找到要删除的快捷方式"
     );
 
 
@@ -5540,7 +5776,11 @@ editForm.addEventListener(
         ...previous,
         label,
         url,
-        groupId: group.id
+        groupId: group.id,
+        icon:
+          previous.url === url
+            ? previous.icon
+            : ""
 
       };
 
