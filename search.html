@@ -1347,6 +1347,31 @@ applyEngine(
   currentEngine
 );
 
+
+if (
+  "serviceWorker" in navigator
+  &&
+  location.protocol === "https:"
+) {
+
+  navigator.serviceWorker.register(
+    "./sw.js",
+    {
+      scope: "./",
+      updateViaCache: "none"
+    }
+  )
+  .catch(error => {
+
+    console.warn(
+      "Unable to initialise persistent cache",
+      error
+    );
+
+  });
+
+}
+
 </script>
 
 </body>

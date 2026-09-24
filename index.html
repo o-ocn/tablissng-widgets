@@ -447,6 +447,12 @@ const NODES_API =
 let trafficLimit =
   536870912000;
 
+const VPS_CACHE_KEY =
+  "tabliss-vps-last-success-v1";
+
+let cachedMeta =
+  null;
+
 
 const SEGMENT_COUNT = 28;
 
@@ -658,6 +664,222 @@ function status(type) {
 
 
 /* =========================
+   上一次成功数据
+
+   新标签页先显示本机缓存，
+   网络请求完成后再静默更新。
+   ========================= */
+
+function applyMeta(node) {
+
+  if (!node) {
+    return;
+  }
+
+
+  cachedMeta = {
+
+    name:
+      node.name || "",
+
+    traffic_limit:
+      Number(node.traffic_limit) || 0,
+
+    expired_at:
+      node.expired_at || ""
+
+  };
+
+
+  if (cachedMeta.name) {
+
+    $("serverName")
+      .textContent =
+      cachedMeta.name;
+
+  }
+
+
+  if (cachedMeta.traffic_limit) {
+
+    trafficLimit =
+      cachedMeta.traffic_limit;
+
+  }
+
+
+  if (cachedMeta.expired_at) {
+
+    const d =
+      new Date(
+        cachedMeta.expired_at
+      );
+
+
+    $("expireDate")
+      .textContent =
+      `${
+        d.getMonth() + 1
+      }/${d.getDate()}`;
+
+  }
+
+}
+
+
+function renderLatest(
+  latest,
+  cached = false
+) {
+
+  if (!latest) {
+    return;
+  }
+
+
+  const ramPercent =
+    (
+      latest.ram.used /
+      latest.ram.total
+    ) *
+    100;
+
+
+  $("cpu").textContent =
+    pct(latest.cpu.usage);
+
+
+  $("ram").textContent =
+    pct(ramPercent);
+
+
+  $("up").textContent =
+    speed(latest.network.up);
+
+
+  $("down").textContent =
+    speed(latest.network.down);
+
+
+  const total =
+    latest.network.totalUp
+    +
+    latest.network.totalDown;
+
+
+  const usedGB =
+    gb(total);
+
+
+  const limitGB =
+    gb(trafficLimit);
+
+
+  $("trafficText").textContent =
+    `${usedGB.toFixed(1)} / ${limitGB.toFixed(0)} GB`;
+
+
+  updateTrafficSegments(
+    Math.min(
+      (total / trafficLimit) * 100,
+      100
+    )
+  );
+
+
+  const age =
+    Date.now()
+    -
+    new Date(
+      latest.updated_at
+    ).getTime();
+
+
+  status(
+    cached
+      ? "stale"
+      : age < 90000
+        ? "online"
+        : "stale"
+  );
+
+
+  $("updated").textContent =
+    time(latest.updated_at);
+
+}
+
+
+function restoreCachedSnapshot() {
+
+  try {
+
+    const saved =
+      JSON.parse(
+        localStorage.getItem(
+          VPS_CACHE_KEY
+        )
+        ||
+        "null"
+      );
+
+
+    if (!saved) {
+      return;
+    }
+
+
+    applyMeta(saved.meta);
+    renderLatest(saved.latest, true);
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to restore VPS cache",
+      error
+    );
+
+  }
+
+}
+
+
+function saveCachedSnapshot(latest) {
+
+  try {
+
+    localStorage.setItem(
+      VPS_CACHE_KEY,
+      JSON.stringify({
+
+        savedAt:
+          Date.now(),
+
+        meta:
+          cachedMeta,
+
+        latest
+
+      })
+    );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to save VPS cache",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
    Fetch
    ========================= */
 
@@ -727,38 +949,7 @@ async function loadMeta() {
     }
 
 
-    $("serverName")
-      .textContent =
-      node.name;
-
-
-    if (
-      node.traffic_limit
-    ) {
-
-      trafficLimit =
-        node.traffic_limit;
-
-    }
-
-
-    if (
-      node.expired_at
-    ) {
-
-      const d =
-        new Date(
-          node.expired_at
-        );
-
-
-      $("expireDate")
-        .textContent =
-        `${
-          d.getMonth() + 1
-        }/${d.getDate()}`;
-
-    }
+    applyMeta(node);
 
   }
 
@@ -815,99 +1006,8 @@ async function refresh() {
       ];
 
 
-    const ramPercent =
-      (
-        latest.ram.used /
-        latest.ram.total
-      ) *
-      100;
-
-
-    $("cpu")
-      .textContent =
-      pct(
-        latest.cpu.usage
-      );
-
-
-    $("ram")
-      .textContent =
-      pct(
-        ramPercent
-      );
-
-
-    $("up")
-      .textContent =
-      speed(
-        latest.network.up
-      );
-
-
-    $("down")
-      .textContent =
-      speed(
-        latest.network.down
-      );
-
-
-    const total =
-      latest.network.totalUp
-      +
-      latest.network.totalDown;
-
-
-    const usedGB =
-      gb(total);
-
-
-    const limitGB =
-      gb(
-        trafficLimit
-      );
-
-
-    $("trafficText")
-      .textContent =
-      `${usedGB.toFixed(1)} / ${limitGB.toFixed(0)} GB`;
-
-
-    const percentage =
-      Math.min(
-        (
-          total /
-          trafficLimit
-        ) *
-        100,
-        100
-      );
-
-
-    updateTrafficSegments(
-      percentage
-    );
-
-
-    const age =
-      Date.now()
-      -
-      new Date(
-        latest.updated_at
-      ).getTime();
-
-
-    status(
-      age < 90000
-        ? "online"
-        : "stale"
-    );
-
-
-    $("updated")
-      .textContent =
-      time(
-        latest.updated_at
-      );
+    renderLatest(latest);
+    saveCachedSnapshot(latest);
 
   }
 
@@ -955,9 +1055,36 @@ $("card")
 
 createTrafficSegments();
 
+restoreCachedSnapshot();
+
 refresh();
 
 loadMeta();
+
+
+if (
+  "serviceWorker" in navigator
+  &&
+  location.protocol === "https:"
+) {
+
+  navigator.serviceWorker.register(
+    "./sw.js",
+    {
+      scope: "./",
+      updateViaCache: "none"
+    }
+  )
+  .catch(error => {
+
+    console.warn(
+      "Unable to initialise persistent cache",
+      error
+    );
+
+  });
+
+}
 
 setInterval(
   refresh,

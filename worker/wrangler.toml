@@ -1,0 +1,17 @@
+name = "tablissng-sync"
+main = "worker.js"
+compatibility_date = "2026-09-23"
+
+[vars]
+ALLOWED_ORIGIN = "https://o-ocn.github.io"
+GITHUB_OWNER = "o-ocn"
+GITHUB_REPO = "tablissng-widgets"
+GITHUB_BRANCH = "main"
+GITHUB_DATA_PATH = "data/sync.enc.json"
+
+# Required encrypted secrets (configure in Cloudflare, never commit values):
+# SYNC_SECRET
+# DATA_ENCRYPTION_KEY
+# GITHUB_APP_ID
+# GITHUB_INSTALLATION_ID
+# GITHUB_PRIVATE_KEY

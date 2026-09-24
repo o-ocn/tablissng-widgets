@@ -1,0 +1,12 @@
+{
+  "name": "tablissng-widgets",
+  "private": true,
+  "scripts": {
+    "worker:dev": "wrangler dev --config worker/wrangler.toml",
+    "worker:deploy": "wrangler deploy --config worker/wrangler.toml"
+  },
+  "devDependencies": {
+    "@napi-rs/keyring": "^1.3.0",
+    "wrangler": "^4.137.0"
+  }
+}

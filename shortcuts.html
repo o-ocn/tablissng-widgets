@@ -2458,6 +2458,87 @@ function hideContextMenus() {
 }
 
 
+/* ========================================
+   持久图标缓存
+
+   Service Worker 会保存实际图片响应，
+   后续新标签页直接读取本机缓存。
+   ======================================== */
+
+async function warmPersistentIconCache() {
+
+  if (
+    !("serviceWorker" in navigator)
+    ||
+    location.protocol !== "https:"
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const registration =
+      await navigator.serviceWorker.register(
+        "./sw.js",
+        {
+          scope: "./",
+          updateViaCache: "none"
+        }
+      );
+
+
+    await navigator.serviceWorker.ready;
+
+
+    const urls =
+      [...new Set([
+
+        ...Object.values(
+          storedIconCache
+        )
+          .map(entry => entry?.src),
+
+        ...Object.values(sites)
+          .flatMap(site => [
+
+            normaliseIcon(site.customIcon),
+            normaliseIcon(site.icon),
+            googleFavicon(site.url)
+
+          ])
+
+      ])]
+        .filter(url =>
+          typeof url === "string"
+          &&
+          /^https:\/\//i.test(url)
+        );
+
+
+    registration.active?.postMessage({
+
+      type: "WARM_ICON_CACHE",
+      urls
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to initialise persistent icon cache",
+      error
+    );
+
+  }
+
+}
+
+
 function openContextMenu(
   menu,
   x,
@@ -4538,6 +4619,8 @@ if (initial) {
 
 
 updateNav();
+
+warmPersistentIconCache();
 
 </script>
 
