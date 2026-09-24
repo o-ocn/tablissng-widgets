@@ -566,6 +566,53 @@ body {
 
 
 /* ========================================
+   拖动排序
+
+   拖动中的卡片轻微透明，
+   放置位置用一根细的蓝色圆条提示，
+   不加大面积卡片、不加阴影。
+   ======================================== */
+
+.shortcut {
+  position: relative;
+}
+
+.shortcut.dragging {
+  opacity: 0.4;
+}
+
+.shortcut.drop-before::before,
+.shortcut.drop-after::after {
+  content: "";
+
+  position: absolute;
+
+  top: 16%;
+  bottom: 16%;
+
+  width: 3px;
+
+  border-radius: 3px;
+
+  background:
+    rgba(
+      10,
+      132,
+      255,
+      0.9
+    );
+}
+
+.shortcut.drop-before::before {
+  left: 0;
+}
+
+.shortcut.drop-after::after {
+  right: 0;
+}
+
+
+/* ========================================
    快捷方式名称
    ======================================== */
 
@@ -608,6 +655,12 @@ body {
 
 /* ========================================
    右键菜单与编辑窗口
+
+   菜单文字使用清晰的系统字体栈，
+   去掉发虚的 text-shadow，
+   也不在菜单或其祖先上做
+   缩放 transform（那是缩放场景下
+   文字模糊的根源）。
    ======================================== */
 
 [hidden] {
@@ -617,7 +670,7 @@ body {
 .context-menu {
   position: fixed;
   z-index: 300;
-  width: 154px;
+  width: 168px;
   padding: 5px;
   border-radius: 18px;
   background:
@@ -633,24 +686,29 @@ body {
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "PingFang SC",
+    "Microsoft YaHei",
+    "Segoe UI",
+    sans-serif;
 }
 
 .context-menu button {
   width: 100%;
-  height: 30px;
+  height: 32px;
   padding: 0 10px;
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.92);
-  font: inherit;
-  font-size: 11.5px;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.97);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
   text-align: left;
-
-  text-shadow:
-    0 1px 3px
-    rgba(0, 0, 0, 0.42);
   cursor: pointer;
 }
 
@@ -871,6 +929,140 @@ body {
   cursor: pointer;
 }
 
+.conflict-list {
+  max-height: 108px;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 10.5px;
+  line-height: 1.55;
+  list-style: none;
+}
+
+.conflict-list li + li {
+  margin-top: 4px;
+}
+
+.conflict-actions {
+  justify-content: stretch;
+}
+
+.conflict-actions .button-secondary,
+.conflict-actions .button-primary {
+  flex: 1;
+}
+
+.conflict-confirm {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.conflict-confirm input {
+  flex: 0 0 auto;
+  accent-color: #0A84FF;
+}
+
+.trash-list {
+  max-height: 190px;
+  margin: 0 0 4px;
+  padding: 2px;
+  overflow-y: auto;
+}
+
+.trash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 7px;
+  border-radius: 10px;
+}
+
+.trash-row + .trash-row {
+  margin-top: 2px;
+}
+
+.trash-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.trash-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trash-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.trash-meta {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 9.5px;
+}
+
+.trash-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 5px;
+}
+
+.trash-actions button {
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.trash-restore {
+  background: rgba(10, 132, 255, 0.22);
+  color: #7cbcff;
+}
+
+.trash-restore:hover {
+  background: rgba(10, 132, 255, 0.34);
+}
+
+.trash-purge {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.trash-purge:hover {
+  color: #ff9b96;
+}
+
+.trash-purge.confirming {
+  background: rgba(255, 90, 82, 0.24);
+  color: #ff9b96;
+}
+
+.trash-empty {
+  padding: 14px 0 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10.5px;
+  text-align: center;
+}
+
 </style>
 </head>
 
@@ -957,6 +1149,9 @@ body {
 >
   <button type="button" data-action="add-shortcut">
     添加快捷方式
+  </button>
+  <button type="button" data-action="recent-deleted">
+    最近删除
   </button>
   <button type="button" data-action="sync-settings">
     云端同步
@@ -1148,6 +1343,80 @@ body {
 <div class="toast" id="toast" hidden></div>
 
 
+<div
+  class="modal-overlay"
+  id="conflictModal"
+  hidden
+>
+  <form class="modal-card" id="conflictForm">
+    <h2 class="modal-title">同步冲突</h2>
+
+    <p class="modal-note">
+      云端和本机都有无法自动判定的更改。
+      推荐使用“合并并保留双方更改”，它不会丢弃任何一方的数据。
+    </p>
+
+    <ul class="conflict-list" id="conflictList"></ul>
+
+    <div class="form-error" id="conflictFormError"></div>
+
+    <div class="modal-actions conflict-actions">
+      <button class="button-secondary" type="button" id="conflictCancelButton">
+        取消
+      </button>
+      <button class="button-primary" type="submit">
+        合并并保留双方更改
+      </button>
+    </div>
+
+    <div class="modal-actions conflict-actions">
+      <button class="button-secondary" type="button" id="conflictUseCloudButton">
+        使用云端版本
+      </button>
+      <button
+        class="button-secondary"
+        type="button"
+        id="conflictKeepLocalButton"
+        disabled
+      >
+        保留本机版本
+      </button>
+    </div>
+
+    <label class="conflict-confirm">
+      <input type="checkbox" id="conflictOverwriteConfirm">
+      <span>我确认保留本机版本并覆盖云端数据（不可恢复）</span>
+    </label>
+  </form>
+</div>
+
+
+<div
+  class="modal-overlay"
+  id="trashModal"
+  hidden
+>
+  <div class="modal-card">
+    <h2 class="modal-title">最近删除</h2>
+
+    <p class="modal-note">
+      删除的快捷方式会在这里保留 30 天（最多 100 条），并加密同步到 GitHub。
+      恢复时会尽量回到原来的分组和位置。
+    </p>
+
+    <div class="trash-list" id="trashList"></div>
+
+    <div class="modal-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        关闭
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script src="./sync-model.js"></script>
+
 <script>
 
 /* ========================================
@@ -1195,8 +1464,24 @@ const SITE_MODEL_VERSION_KEY =
   "tabliss-shortcuts-site-model-version";
 
 
+/*
+   版本 3：每条快捷方式带 updatedAt，
+   分组排序独立保存在 groupOrder，
+   删除走 trash 墓碑。
+   版本 1 / 2 的本地与云端数据都会
+   自动升级，不会误判为已删除。
+*/
+
 const SITE_MODEL_VERSION =
-  2;
+  3;
+
+
+const GROUP_ORDER_STORAGE_KEY =
+  "tabliss-shortcuts-group-order-v1";
+
+
+const TRASH_STORAGE_KEY =
+  "tabliss-shortcuts-trash-v1";
 
 
 const SYNC_TOKEN_STORAGE_KEY =
@@ -1295,6 +1580,132 @@ try {
 catch {
 
   customSites = [];
+
+}
+
+
+/*
+   分组排序与回收站是版本 3 的
+   两个新数据块，都在本地保存、
+   也都会加密同步到 GitHub。
+*/
+
+let groupOrderState = {};
+
+
+try {
+
+  const parsed =
+    JSON.parse(
+      localStorage.getItem(
+        GROUP_ORDER_STORAGE_KEY
+      )
+      ||
+      "{}"
+    );
+
+
+  groupOrderState =
+    TablissSyncModel.normaliseGroupOrder(
+      parsed
+    );
+
+}
+
+catch {
+
+  groupOrderState = {};
+
+}
+
+
+let trashEntries = [];
+
+
+try {
+
+  const parsed =
+    JSON.parse(
+      localStorage.getItem(
+        TRASH_STORAGE_KEY
+      )
+      ||
+      "[]"
+    );
+
+
+  trashEntries =
+    TablissSyncModel.normaliseTrashEntries(
+      parsed
+    );
+
+}
+
+catch {
+
+  trashEntries = [];
+
+}
+
+
+function saveGroupOrderState() {
+
+  try {
+
+    localStorage.setItem(
+      GROUP_ORDER_STORAGE_KEY,
+      JSON.stringify(
+        groupOrderState
+      )
+    );
+
+
+    return true;
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to save group order",
+      error
+    );
+
+
+    return false;
+
+  }
+
+}
+
+
+function saveTrashEntries() {
+
+  try {
+
+    localStorage.setItem(
+      TRASH_STORAGE_KEY,
+      JSON.stringify(
+        trashEntries
+      )
+    );
+
+
+    return true;
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "Unable to save deleted shortcuts",
+      error
+    );
+
+
+    return false;
+
+  }
 
 }
 
@@ -2514,6 +2925,14 @@ function normaliseCustomSites(
           &&
           /^https:\/\//i.test(entry.icon)
             ? entry.icon.slice(0, 2048)
+            : "",
+        updatedAt:
+          typeof entry.updatedAt === "string"
+          &&
+          entry.updatedAt
+          &&
+          entry.updatedAt.length <= 40
+            ? entry.updatedAt
             : ""
 
       })
@@ -2584,87 +3003,45 @@ const defaultManagedSites =
   buildDefaultManagedSites();
 
 
-function migrateLegacySites(
-  entries,
-  sourceIconOverrides = iconOverrides
+/*
+   仅 v1 数据使用：预设重复出现时
+   （preset-<组>-<键>），把旧 sourceKey 上的
+   自定义图标复制到新 key。
+
+   v2 及以上的数据键已统一，
+   绝不能执行这个迁移。
+*/
+
+function migrateLegacyIconOverrides(
+  sourceIconOverrides
 ) {
 
-  const legacySites =
-    normaliseCustomSites(
-      entries
-    );
-
-
-  const merged =
-    defaultManagedSites.map(
-      entry => {
-
-        if (
-          entry.key !==
-            entry.sourceKey
-          &&
-          sourceIconOverrides[
-            entry.sourceKey
-          ]
-          &&
-          !sourceIconOverrides[
-            entry.key
-          ]
-        ) {
-
-          sourceIconOverrides[
-            entry.key
-          ] = sourceIconOverrides[
-            entry.sourceKey
-          ];
-
-        }
-
-
-        const {
-          sourceKey,
-          ...managedEntry
-        } = entry;
-
-
-        return managedEntry;
-
-      }
-    );
-
-
-  const existingKeys =
-    new Set(
-      merged.map(
-        entry => entry.key
-      )
-    );
-
-
-  legacySites.forEach(
+  defaultManagedSites.forEach(
     entry => {
 
       if (
-        !existingKeys.has(
+        entry.key !==
+          entry.sourceKey
+        &&
+        sourceIconOverrides[
+          entry.sourceKey
+        ]
+        &&
+        !sourceIconOverrides[
           entry.key
-        )
+        ]
       ) {
 
-        merged.push(
-          entry
-        );
-
-        existingKeys.add(
+        sourceIconOverrides[
           entry.key
-        );
+        ] = sourceIconOverrides[
+          entry.sourceKey
+        ];
 
       }
 
     }
   );
-
-
-  return merged;
 
 }
 
@@ -2726,27 +3103,344 @@ function applyCustomSitesToRuntime(
     }
   );
 
+
+  applyGroupOrderToRuntime();
+
 }
 
 
-if (
+/*
+   把持久化的分组排序应用到运行时。
+   排序里已不存在的 key 会被剔除，
+   排序里缺失的 key 保留在末尾，
+   因此新旧数据混用时也不会丢网站。
+*/
+
+function applyGroupOrderToRuntime() {
+
+  groups.forEach(
+    group => {
+
+      const order =
+        groupOrderState[
+          group.id
+        ];
+
+
+      if (
+        !order
+        ||
+        !Array.isArray(
+          order.items
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      const ordered =
+        order.items.filter(
+          key =>
+            group.items.includes(
+              key
+            )
+        );
+
+
+      group.items.forEach(
+        key => {
+
+          if (
+            !ordered.includes(
+              key
+            )
+          ) {
+
+            ordered.push(
+              key
+            );
+
+          }
+
+        }
+      );
+
+
+      group.items =
+        ordered;
+
+    }
+  );
+
+}
+
+
+/*
+   把某个分组当前的实际顺序
+   写回持久化排序。
+
+   touch = true 只用于真正的
+   排序变化（拖动、增删、移动）。
+   改名、换链接不会触碰排序，
+   也就不会覆盖另一台设备的排序。
+*/
+
+function touchGroupOrder(
+  groupId,
+  touch = true
+) {
+
+  const group =
+    groups.find(
+      item =>
+        item.id ===
+        groupId
+    );
+
+
+  if (!group) {
+
+    return;
+
+  }
+
+
+  const previous =
+    groupOrderState[
+      groupId
+    ];
+
+
+  const unchanged =
+    previous
+    &&
+    previous.items.length ===
+      group.items.length
+    &&
+    previous.items.every(
+      (key, index) =>
+        key ===
+        group.items[index]
+    );
+
+
+  groupOrderState[groupId] = {
+
+    items: [
+      ...group.items
+    ],
+
+    updatedAt:
+      touch
+      &&
+      !unchanged
+        ? new Date().toISOString()
+        : previous?.updatedAt
+          || ""
+
+  };
+
+
+  saveGroupOrderState();
+
+}
+
+
+function touchAllGroupOrders(
+  touch = false
+) {
+
+  groups.forEach(
+    group => {
+
+      touchGroupOrder(
+        group.id,
+        touch
+      );
+
+    }
+  );
+
+}
+
+
+function touchSiteEntry(
+  key
+) {
+
+  const entry =
+    customSites.find(
+      item =>
+        item.key ===
+        key
+    );
+
+
+  if (entry) {
+
+    entry.updatedAt =
+      new Date().toISOString();
+
+  }
+
+
+  return entry;
+
+}
+
+
+function recordDeletedSite(
+  entry,
+  indexInGroup
+) {
+
+  trashEntries = [
+
+    {
+
+      key: entry.key,
+      label: entry.label,
+      url: entry.url,
+      groupId: entry.groupId,
+      icon: entry.icon || "",
+      deletedAt:
+        new Date().toISOString(),
+      originalGroupId:
+        entry.groupId,
+      originalIndex:
+        Math.max(
+          0,
+          indexInGroup
+        ),
+      purged: false
+
+    },
+
+    ...trashEntries.filter(
+      item =>
+        item.key !==
+        entry.key
+    )
+
+  ];
+
+
+  trashEntries =
+    TablissSyncModel.pruneTrashEntries(
+      trashEntries
+    );
+
+
+  saveTrashEntries();
+
+}
+
+
+function dropTrashEntry(
+  key
+) {
+
+  trashEntries =
+    trashEntries.filter(
+      item =>
+        item.key !==
+        key
+    );
+
+
+  saveTrashEntries();
+
+}
+
+
+/*
+   升级到版本 3。
+
+   - v1（storedModelVersion < 2）：
+     旧数据只包含用户自建网站，
+     需要并入预设（含 sourceKey 图标迁移）。
+   - v2 → v3：customSites 已经是
+     统一管理的权威数据。用户改名、改链接、
+     移动分组、删除预设的结果全部原样保留，
+     绝不重新并入预设。
+
+   两种情况都只补更新时间、构建排序、
+   建立空回收站，不产生删除记录。
+
+   时间戳优先使用本机最后一次同步时间，
+   让另一台设备上更新的修改在合并时获胜。
+*/
+
+const storedModelVersion =
   Number(
     localStorage.getItem(
       SITE_MODEL_VERSION_KEY
     )
     ||
     0
-  ) < SITE_MODEL_VERSION
+  );
+
+
+if (
+  storedModelVersion <
+    SITE_MODEL_VERSION
 ) {
 
-  customSites =
-    migrateLegacySites(
-      customSites
+  const upgradeStamp =
+    readSyncMeta()
+      .lastSyncedAt
+    ||
+    new Date()
+      .toISOString();
+
+
+  if (
+    storedModelVersion < 2
+  ) {
+
+    migrateLegacyIconOverrides(
+      iconOverrides
     );
+
+  }
+
+
+  const upgraded =
+    TablissSyncModel.upgradeCustomSitesToV3(
+
+      storedModelVersion,
+
+      customSites,
+
+      storedModelVersion < 2
+        ? defaultManagedSites
+        : [],
+
+      {
+        timestamp:
+          upgradeStamp
+      }
+
+    );
+
+
+  customSites =
+    upgraded.sites;
+
+
+  groupOrderState =
+    upgraded.groupOrder;
+
+
+  trashEntries = [];
 
 
   saveCustomSites();
   saveIconOverrides();
+  saveGroupOrderState();
+  saveTrashEntries();
 
 
   localStorage.setItem(
@@ -2948,6 +3642,666 @@ const syncDisableButton =
   );
 
 
+const conflictModal =
+  document.getElementById(
+    "conflictModal"
+  );
+
+
+const conflictForm =
+  document.getElementById(
+    "conflictForm"
+  );
+
+
+const conflictList =
+  document.getElementById(
+    "conflictList"
+  );
+
+
+const conflictFormError =
+  document.getElementById(
+    "conflictFormError"
+  );
+
+
+const conflictMergeButton =
+  document.getElementById(
+    "conflictMergeButton"
+  );
+
+
+const conflictUseCloudButton =
+  document.getElementById(
+    "conflictUseCloudButton"
+  );
+
+
+const conflictKeepLocalButton =
+  document.getElementById(
+    "conflictKeepLocalButton"
+  );
+
+
+const conflictOverwriteConfirm =
+  document.getElementById(
+    "conflictOverwriteConfirm"
+  );
+
+
+const conflictCancelButton =
+  document.getElementById(
+    "conflictCancelButton"
+  );
+
+
+/*
+   冲突窗口当前等待的用户选择。
+   取消按钮和 Esc 都通过它结束等待。
+*/
+
+let activeConflictResolver =
+  null;
+
+
+conflictCancelButton.addEventListener(
+  "click",
+  () => {
+
+    if (activeConflictResolver) {
+
+      activeConflictResolver(
+        "cancel"
+      );
+
+    }
+
+  }
+);
+
+
+const trashModal =
+  document.getElementById(
+    "trashModal"
+  );
+
+
+const trashList =
+  document.getElementById(
+    "trashList"
+  );
+
+
+function getGroupLabel(
+  groupId
+) {
+
+  return (
+    groups.find(
+      group =>
+        group.id ===
+        groupId
+    )?.label
+    ||
+    groupId
+  );
+
+}
+
+
+function formatDeletedTime(
+  deletedAt
+) {
+
+  const time =
+    new Date(
+      deletedAt
+    );
+
+
+  if (
+    Number.isNaN(
+      time.getTime()
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  return time.toLocaleString();
+
+}
+
+
+function renderTrashList() {
+
+  /*
+     精简墓碑（purged）是永久的同步删除标记，
+     不再可恢复，不在界面中显示。
+  */
+
+  const restorable =
+    trashEntries.filter(
+      entry =>
+        !entry.purged
+    );
+
+
+  if (!restorable.length) {
+
+    const empty =
+      document.createElement(
+        "div"
+      );
+
+
+    empty.className =
+      "trash-empty";
+
+
+    empty.textContent =
+      "回收站是空的";
+
+
+    trashList.replaceChildren(
+      empty
+    );
+
+
+    return;
+
+  }
+
+
+  trashList.replaceChildren(
+
+    ...restorable.map(
+      entry => {
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+
+        row.className =
+          "trash-row";
+
+
+        const info =
+          document.createElement(
+            "div"
+          );
+
+
+        info.className =
+          "trash-info";
+
+
+        const name =
+          document.createElement(
+            "span"
+          );
+
+
+        name.className =
+          "trash-name";
+
+
+        name.textContent =
+          entry.label;
+
+
+        const meta =
+          document.createElement(
+            "span"
+          );
+
+
+        meta.className =
+          "trash-meta";
+
+
+        meta.textContent =
+          `${getGroupLabel(entry.originalGroupId)} · ${formatDeletedTime(entry.deletedAt)} 删除`;
+
+
+        info.appendChild(
+          name
+        );
+
+
+        info.appendChild(
+          meta
+        );
+
+
+        const actions =
+          document.createElement(
+            "div"
+          );
+
+
+        actions.className =
+          "trash-actions";
+
+
+        const restoreButton =
+          document.createElement(
+            "button"
+          );
+
+
+        restoreButton.type =
+          "button";
+
+
+        restoreButton.className =
+          "trash-restore";
+
+
+        restoreButton.textContent =
+          "恢复";
+
+
+        restoreButton.addEventListener(
+          "click",
+          () => {
+
+            restoreFromTrash(
+              entry.key
+            );
+
+
+            renderTrashList();
+
+          }
+        );
+
+
+        const purgeButton =
+          document.createElement(
+            "button"
+          );
+
+
+        purgeButton.type =
+          "button";
+
+
+        purgeButton.className =
+          "trash-purge";
+
+
+        purgeButton.textContent =
+          "永久删除";
+
+
+        /*
+           永久删除的二次确认：
+           第一次点击只切换成
+           “确认永久删除”，
+           4 秒内再次点击才真正删除。
+        */
+
+        purgeButton.addEventListener(
+          "click",
+          () => {
+
+            if (
+              purgeButton.dataset.confirm !==
+              "1"
+            ) {
+
+              purgeButton.dataset.confirm =
+                "1";
+
+
+              purgeButton.classList.add(
+                "confirming"
+              );
+
+
+              purgeButton.textContent =
+                "确认永久删除";
+
+
+              setTimeout(
+                () => {
+
+                  if (
+                    purgeButton.isConnected
+                  ) {
+
+                    purgeButton.dataset.confirm =
+                      "";
+
+
+                    purgeButton.classList.remove(
+                      "confirming"
+                    );
+
+
+                    purgeButton.textContent =
+                      "永久删除";
+
+                  }
+
+                },
+                4000
+              );
+
+
+              return;
+
+            }
+
+
+            purgeFromTrash(
+              entry.key
+            );
+
+
+            renderTrashList();
+
+          }
+        );
+
+
+        actions.appendChild(
+          restoreButton
+        );
+
+
+        actions.appendChild(
+          purgeButton
+        );
+
+
+        row.appendChild(
+          info
+        );
+
+
+        row.appendChild(
+          actions
+        );
+
+
+        return row;
+
+      }
+    )
+
+  );
+
+}
+
+
+function openTrashModal() {
+
+  renderTrashList();
+
+
+  openModal(
+    trashModal,
+    trashList
+  );
+
+}
+
+
+/*
+   从回收站恢复：
+   尽量回到原分组、原位置
+   （originalIndex 是删除时
+   在分组内的下标）。
+*/
+
+function restoreFromTrash(
+  key
+) {
+
+  const entry =
+    trashEntries.find(
+      item =>
+        item.key ===
+        key
+    );
+
+
+  if (!entry) {
+
+    return;
+
+  }
+
+
+  /*
+     永久删除（purged）的记录不可恢复；
+     正常情况下界面不会提供入口。
+  */
+
+  if (entry.purged) {
+
+    showToast(
+      "该快捷方式已永久删除，无法恢复"
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    getCustomSiteEntry(
+      key
+    )
+  ) {
+
+    dropTrashEntry(
+      key
+    );
+
+
+    return;
+
+  }
+
+
+  const targetGroupId =
+    groups.some(
+      group =>
+        group.id ===
+        entry.originalGroupId
+    )
+      ? entry.originalGroupId
+      : groups[0].id;
+
+
+  const restored = {
+
+    key: entry.key,
+    label: entry.label,
+    url: entry.url,
+    groupId: targetGroupId,
+    icon: entry.icon || "",
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+
+  customSites.push(
+    restored
+  );
+
+
+  if (!saveCustomSites()) {
+
+    customSites.pop();
+
+
+    showToast(
+      "恢复失败：本地存储空间不足"
+    );
+
+
+    return;
+
+  }
+
+
+  /*
+     把 key 插回该分组的排序，
+     位置尽量等于删除时的下标。
+  */
+
+  const order =
+    groupOrderState[
+      targetGroupId
+    ]
+    ||
+    {
+
+      items: [],
+      updatedAt: ""
+
+    };
+
+
+  const items =
+    order.items.filter(
+      item =>
+        item !==
+        key
+    );
+
+
+  const insertIndex =
+    Math.min(
+      entry.originalIndex || 0,
+      items.length
+    );
+
+
+  items.splice(
+    insertIndex,
+    0,
+    key
+  );
+
+
+  groupOrderState[targetGroupId] = {
+
+    items,
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+
+  saveGroupOrderState();
+
+
+  dropTrashEntry(
+    key
+  );
+
+
+  applyCustomSitesToRuntime(
+    customSites
+  );
+
+
+  refreshShortcutGroups();
+
+
+  markSyncDirty();
+
+
+  showToast(
+    `已恢复「${entry.label}」`
+  );
+
+}
+
+
+function purgeFromTrash(
+  key
+) {
+
+  const entry =
+    trashEntries.find(
+      item =>
+        item.key ===
+        key
+    );
+
+
+  if (!entry) {
+
+    return;
+
+  }
+
+
+  /*
+     永久删除后不彻底移除记录，而是
+     转成精简的同步删除标记（purged 墓碑）：
+     只保留 key 与时间戳，不再可恢复，
+     也不携带名称、链接、图标等内容。
+
+     它随同步上传，用于阻止仍保存该网站的
+     离线旧设备在下次合并时把它复活。
+  */
+
+  const purgedAt =
+    new Date().toISOString();
+
+
+  trashEntries = [
+
+    {
+
+      key: entry.key,
+      deletedAt: entry.deletedAt,
+      purged: true,
+      purgedAt
+
+    },
+
+    ...trashEntries.filter(
+      item =>
+        item.key !==
+        entry.key
+    )
+
+  ];
+
+
+  saveTrashEntries();
+
+
+  clearStoredIcon(
+    key
+  );
+
+
+  markSyncDirty();
+
+
+  showToast(
+    `已永久删除「${entry.label}」`
+  );
+
+}
+
+
 const toast =
   document.getElementById(
     "toast"
@@ -2984,6 +4338,42 @@ let syncInFlight =
 
 let syncRevision =
   0;
+
+
+/* ========================================
+   拖动排序状态
+
+   浏览器不支持 HTML5 拖动时，
+   所有拖动相关逻辑都不启用，
+   点击与右键保持原样。
+   ======================================== */
+
+const dragReorderSupported =
+  typeof DragEvent !== "undefined"
+  && "draggable" in
+    document.createElement(
+      "span"
+    );
+
+
+let dragShortcutKey =
+  "";
+
+
+let dragSourceGroupId =
+  "";
+
+
+let dragJustEnded =
+  false;
+
+
+let dropIndicatorElement =
+  null;
+
+
+let dropIndicatorSide =
+  "";
 
 
 /* ========================================
@@ -3448,6 +4838,79 @@ function normaliseIconOverrides(
 }
 
 
+/*
+   组装上传用的版本 3 文档。
+   customSites 按当前实际显示顺序输出，
+   这样即使被旧版页面覆盖，
+   顺序也能最大程度保留。
+*/
+
+function orderedCustomSitesForSync() {
+
+  const orderedKeys =
+    groups.flatMap(
+      group =>
+        group.items
+    );
+
+
+  const keyed =
+    new Map(
+      customSites.map(
+        entry =>
+          [
+            entry.key,
+            entry
+          ]
+      )
+    );
+
+
+  const ordered = [];
+
+
+  orderedKeys.forEach(
+    key => {
+
+      const entry =
+        keyed.get(
+          key
+        );
+
+
+      if (entry) {
+
+        ordered.push(
+          entry
+        );
+
+
+        keyed.delete(
+          key
+        );
+
+      }
+
+    }
+  );
+
+
+  keyed.forEach(
+    entry => {
+
+      ordered.push(
+        entry
+      );
+
+    }
+  );
+
+
+  return ordered;
+
+}
+
+
 function currentSyncDocument() {
 
   return {
@@ -3457,13 +4920,43 @@ function currentSyncDocument() {
 
     customSites:
       normaliseCustomSites(
-        customSites
+        orderedCustomSitesForSync()
       ),
 
     iconOverrides:
       normaliseIconOverrides(
         iconOverrides
+      ),
+
+    groupOrder:
+      TablissSyncModel.normaliseGroupOrder(
+        groupOrderState
+      ),
+
+    trash:
+      TablissSyncModel.normaliseTrashEntries(
+        trashEntries
       )
+
+  };
+
+}
+
+
+function buildSyncUploadBody() {
+
+  const meta =
+    readSyncMeta();
+
+
+  return {
+
+    ...currentSyncDocument(),
+
+    expectedRevision:
+      typeof meta.revision === "string"
+        ? meta.revision
+        : ""
 
   };
 
@@ -3525,12 +5018,28 @@ async function syncFetch(
     const message =
       response.status === 401
         ? "同步口令不正确"
-        : result.error
-          ||
-          "云端同步暂时不可用";
+        : response.status === 409
+          ? "云端有其他设备写入的更新"
+          : result.error
+            ||
+            "云端同步暂时不可用";
 
 
-    throw new Error(message);
+    const error =
+      new Error(
+        message
+      );
+
+
+    error.status =
+      response.status;
+
+
+    error.body =
+      result;
+
+
+    throw error;
 
   }
 
@@ -3577,12 +5086,84 @@ async function pushCloudSync({
 
   try {
 
-    const result =
-      await syncFetch(
-        "PUT",
-        token,
-        currentSyncDocument()
-      );
+    let result =
+      null;
+
+
+    /*
+       乐观锁上传：带上 expectedRevision
+       （本机最后一次读取到的云端版本）。
+
+       Worker 发现云端已被其他设备更新时
+       返回 409 且不写入；此时本机重新
+       读取云端、自动合并（必要时弹出
+       冲突窗口），再用最新版本号重试，
+       最多 3 轮。
+    */
+
+    for (
+
+      let attempt = 0;
+      attempt < 3;
+      attempt += 1
+
+    ) {
+
+      try {
+
+        result =
+          await syncFetch(
+            "PUT",
+            token,
+            buildSyncUploadBody()
+          );
+
+
+        break;
+
+      }
+
+      catch (error) {
+
+        if (
+          error.status !== 409
+          ||
+          attempt === 2
+        ) {
+
+          throw error;
+
+        }
+
+
+        const resolved =
+          await reconcileCloudConflict(
+            token
+          );
+
+
+        if (!resolved) {
+
+          writeSyncMeta({
+
+            ...readSyncMeta(),
+            dirty: true
+
+          });
+
+
+          updateSyncStatus(
+            "存在需要处理的同步冲突，已暂停上传"
+          );
+
+
+          return false;
+
+        }
+
+      }
+
+    }
 
 
     const changedDuringUpload =
@@ -3598,7 +5179,16 @@ async function pushCloudSync({
       lastSyncedAt:
         result.updatedAt
         ||
-        new Date().toISOString()
+        new Date().toISOString(),
+
+      revision:
+        result.revision
+        ||
+        result.sha
+        ||
+        readSyncMeta().revision
+        ||
+        ""
 
     });
 
@@ -3672,6 +5262,125 @@ async function pushCloudSync({
 }
 
 
+/*
+   409 之后的合并流程：
+
+   1. 读取云端最新数据与版本号。
+   2. 云端为空 → 直接用本机数据上传。
+   3. 能按稳定键 + 更新时间自动合并
+      → 应用合并结果。
+   4. 无法判定 → 弹出冲突窗口
+      （默认选项是非破坏性的合并）。
+   5. 合并结果写回本机，
+      由调用方带着最新版本号重试上传。
+*/
+
+async function reconcileCloudConflict(token) {
+
+  const cloud =
+    await syncFetch(
+      "GET",
+      token
+    );
+
+
+  const hasCloudDocument =
+    Array.isArray(
+      cloud.customSites
+    );
+
+
+  if (
+    !hasCloudDocument
+    ||
+    !cloud.revision
+  ) {
+
+    updateSyncStatus(
+      "云端还没有数据，将上传本机数据"
+    );
+
+
+    return true;
+
+  }
+
+
+  const local =
+    currentSyncDocument();
+
+
+  const merged =
+    TablissSyncModel.mergeSyncDocuments(
+      local,
+      cloud,
+      {
+        now:
+          Date.now()
+      }
+    );
+
+
+  let document =
+    merged.document;
+
+
+  if (
+    merged.conflicts.length
+  ) {
+
+    const choice =
+      await showSyncConflictModal(
+        merged.conflicts
+      );
+
+
+    if (choice === "cancel") {
+
+      return false;
+
+    }
+
+
+    document =
+      TablissSyncModel.applyConflictStrategy(
+        choice,
+        local,
+        cloud,
+        {
+          now:
+            Date.now()
+        }
+      )
+      .document;
+
+  }
+
+
+  applySyncedDocument(
+    document
+  );
+
+
+  writeSyncMeta({
+
+    ...readSyncMeta(),
+    revision:
+      cloud.revision
+
+  });
+
+
+  updateSyncStatus(
+    "已合并双方更改，正在重新上传…"
+  );
+
+
+  return true;
+
+}
+
+
 async function pullCloudSync({
 
   token = getSyncToken(),
@@ -3700,81 +5409,144 @@ async function pullCloudSync({
       );
 
 
-    const migratedLegacyDocument =
+    const cloudIsV3 =
       Number(
         result.version
         ||
         1
-      ) < SITE_MODEL_VERSION;
+      ) >= SITE_MODEL_VERSION;
 
 
-    const nextIconOverrides =
-      normaliseIconOverrides(
-        result.iconOverrides
-      );
+    let document;
 
 
-    const nextCustomSites =
-      migratedLegacyDocument
-        ? migrateLegacySites(
-            result.customSites,
-            nextIconOverrides
-          )
-        : normaliseCustomSites(
-            result.customSites
-          );
+    if (cloudIsV3) {
+
+      document =
+        TablissSyncModel.normaliseV3Document(
+          result,
+          {
+            now:
+              Date.now()
+          }
+        );
+
+    }
+
+    else {
+
+      /*
+         旧版云端数据升级到 v3。
+
+         云端 version=1：customSites 只含用户
+         自建网站，需要并入预设。
+         云端 version=2：customSites 已是统一
+         管理的权威数据 —— 用户改名、改链接、
+         移动分组、删除预设的结果全部原样
+         保留，绝不重新并入预设。
+
+         两种情况都只补更新时间、构建排序，
+         回收站为空，绝不误判删除。
+      */
+
+      const cloudStoredVersion =
+        Number(
+          result.version
+          ||
+          1
+        );
 
 
-    customSites =
-      nextCustomSites;
+      const nextIconOverrides =
+        normaliseIconOverrides(
+          result.iconOverrides
+        );
 
 
-    iconOverrides =
-      nextIconOverrides;
+      if (
+        cloudStoredVersion < 2
+      ) {
+
+        migrateLegacyIconOverrides(
+          nextIconOverrides
+        );
+
+      }
 
 
-    if (
-      !saveCustomSites()
-      ||
-      !saveIconOverrides()
-    ) {
+      const upgraded =
+        TablissSyncModel.upgradeCustomSitesToV3(
 
-      throw new Error(
-        "本地存储空间不足"
-      );
+          cloudStoredVersion,
+
+          result.customSites
+          ||
+          [],
+
+          cloudStoredVersion < 2
+            ? defaultManagedSites
+            : [],
+
+          {
+            timestamp:
+              result.updatedAt
+              ||
+              new Date().toISOString()
+          }
+
+        );
+
+
+      document = {
+
+        version:
+          SITE_MODEL_VERSION,
+
+        updatedAt:
+          result.updatedAt
+          ||
+          new Date().toISOString(),
+
+        customSites:
+          upgraded.sites,
+
+        iconOverrides:
+          nextIconOverrides,
+
+        groupOrder:
+          upgraded.groupOrder,
+
+        trash: []
+
+      };
 
     }
 
 
-    localStorage.setItem(
-      SITE_MODEL_VERSION_KEY,
-      String(
-        SITE_MODEL_VERSION
-      )
+    applySyncedDocument(
+      document
     );
-
-
-    applyCustomSitesToRuntime(
-      customSites
-    );
-
-
-    refreshShortcutGroups();
 
 
     writeSyncMeta({
 
       dirty:
-        migratedLegacyDocument,
+        !cloudIsV3,
+
       lastSyncedAt:
         result.updatedAt
         ||
-        new Date().toISOString()
+        new Date().toISOString(),
+
+      revision:
+        result.revision
+        ||
+        ""
 
     });
 
 
-    if (migratedLegacyDocument) {
+    if (!cloudIsV3) {
 
       markSyncDirty();
 
@@ -3782,9 +5554,9 @@ async function pullCloudSync({
 
 
     updateSyncStatus(
-      migratedLegacyDocument
-        ? "已从云端恢复，正在升级同步数据…"
-        : "已从云端恢复"
+      cloudIsV3
+        ? "已从云端恢复"
+        : "已从云端恢复，正在升级同步数据…"
     );
 
 
@@ -3826,6 +5598,74 @@ async function pullCloudSync({
     return false;
 
   }
+
+}
+
+
+/*
+   把同步来的版本 3 文档
+   完整落到本机状态。
+*/
+
+function applySyncedDocument(
+  document
+) {
+
+  customSites =
+    normaliseCustomSites(
+      document.customSites
+    );
+
+
+  iconOverrides =
+    normaliseIconOverrides(
+      document.iconOverrides
+    );
+
+
+  groupOrderState =
+    TablissSyncModel.normaliseGroupOrder(
+      document.groupOrder
+    );
+
+
+  trashEntries =
+    TablissSyncModel.normaliseTrashEntries(
+      document.trash
+    );
+
+
+  if (
+    !saveCustomSites()
+    ||
+    !saveIconOverrides()
+    ||
+    !saveGroupOrderState()
+    ||
+    !saveTrashEntries()
+  ) {
+
+    throw new Error(
+      "本地存储空间不足"
+    );
+
+  }
+
+
+  localStorage.setItem(
+    SITE_MODEL_VERSION_KEY,
+    String(
+      SITE_MODEL_VERSION
+    )
+  );
+
+
+  applyCustomSitesToRuntime(
+    customSites
+  );
+
+
+  refreshShortcutGroups();
 
 }
 
@@ -3901,6 +5741,14 @@ async function initialiseCloudSync() {
 
   if (meta.dirty) {
 
+    /*
+       本机有未上传的更改：
+       先走受保护的上传。
+       云端若被其他设备更新过，
+       会自动合并（必要时弹冲突窗口），
+       不会直接覆盖云端。
+    */
+
     await pushCloudSync();
 
   }
@@ -3910,6 +5758,185 @@ async function initialiseCloudSync() {
     await pullCloudSync();
 
   }
+
+}
+
+
+/*
+   同步冲突窗口。
+
+   返回 "merge" | "cloud" | "local" | "cancel"。
+
+   默认（直接回车或点主按钮）是
+   “合并并保留双方更改” —— 非破坏性。
+   “保留本机版本”必须先勾选
+   确认复选框才会启用。
+*/
+
+function showSyncConflictModal(
+  conflicts
+) {
+
+  conflictList
+    .replaceChildren(
+
+      ...conflicts.map(
+        conflict => {
+
+          const item =
+            document.createElement(
+              "li"
+            );
+
+
+          item.textContent =
+            conflict.message;
+
+
+          return item;
+
+        }
+      )
+
+    );
+
+
+  conflictFormError.textContent =
+    "";
+
+
+  conflictOverwriteConfirm.checked =
+    false;
+
+
+  conflictKeepLocalButton.disabled =
+    true;
+
+
+  conflictModal.hidden =
+    false;
+
+
+  requestAnimationFrame(
+    () => {
+
+      conflictMergeButton.focus();
+
+    }
+  );
+
+
+  return new Promise(
+    resolve => {
+
+      let settled =
+        false;
+
+
+      function finish(
+        choice
+      ) {
+
+        if (settled) {
+
+          return;
+
+        }
+
+
+        settled =
+          true;
+
+
+        activeConflictResolver =
+          null;
+
+
+        closeModal(
+          conflictModal
+        );
+
+
+        resolve(
+          choice
+        );
+
+      }
+
+
+      activeConflictResolver =
+        finish;
+
+
+      conflictForm.onsubmit =
+        event => {
+
+          event.preventDefault();
+
+
+          finish(
+            "merge"
+          );
+
+        };
+
+
+      conflictUseCloudButton.onclick =
+        () => {
+
+          finish(
+            "cloud"
+          );
+
+        };
+
+
+      conflictKeepLocalButton.onclick =
+        () => {
+
+          if (
+            !conflictOverwriteConfirm.checked
+          ) {
+
+            return;
+
+          }
+
+
+          finish(
+            "local"
+          );
+
+        };
+
+
+      conflictOverwriteConfirm.onchange =
+        () => {
+
+          conflictKeepLocalButton.disabled =
+            !conflictOverwriteConfirm.checked;
+
+        };
+
+
+      conflictModal.onpointerdown =
+        event => {
+
+          if (
+            event.target ===
+            conflictModal
+          ) {
+
+            finish(
+              "cancel"
+            );
+
+          }
+
+        };
+
+    }
+  );
 
 }
 
@@ -4184,6 +6211,16 @@ function undoDeletedShortcut() {
     null;
 
 
+  /*
+     5 秒内撤销：把刚记录的
+     墓碑一并移除，就像从未删除过。
+  */
+
+  dropTrashEntry(
+    pending.entry.key
+  );
+
+
   customSites.splice(
     Math.min(
       pending.index,
@@ -4209,6 +6246,12 @@ function undoDeletedShortcut() {
 
   applyCustomSitesToRuntime(
     customSites
+  );
+
+
+  touchGroupOrder(
+    pending.entry.groupId,
+    true
   );
 
 
@@ -4249,6 +6292,23 @@ function deleteCustomShortcut(key) {
   const entry = {
     ...customSites[index]
   };
+
+
+  const sourceGroup =
+    groups.find(
+      group =>
+        group.items.includes(
+          key
+        )
+    );
+
+
+  const indexInGroup =
+    sourceGroup
+      ? sourceGroup.items.indexOf(
+          key
+        )
+      : 0;
 
 
   const hadIconOverride =
@@ -4318,6 +6378,26 @@ function deleteCustomShortcut(key) {
 
   applyCustomSitesToRuntime(
     customSites
+  );
+
+
+  touchGroupOrder(
+    entry.groupId,
+    true
+  );
+
+
+  /*
+     删除立即写入墓碑（回收站）。
+     5 秒内撤销会把它一并移除；
+     超时后墓碑随下次同步上传，
+     其他设备就不会把该网站
+     重新同步回来。
+  */
+
+  recordDeletedSite(
+    entry,
+    indexInGroup
   );
 
 
@@ -4409,6 +6489,26 @@ function applyIconOverride(
   }
 
 
+  /*
+     图标也是网站内容的一部分：
+     更新对应站点的更新时间，
+     合并时才能按时间判定
+     哪台设备的图标更新。
+  */
+
+  const entry =
+    touchSiteEntry(
+      key
+    );
+
+
+  if (entry) {
+
+    saveCustomSites();
+
+  }
+
+
   markSyncDirty();
 
 
@@ -4443,6 +6543,19 @@ function resetIconOverride(key) {
 
 
   saveIconOverrides();
+
+
+  const entry =
+    touchSiteEntry(
+      key
+    );
+
+
+  if (entry) {
+
+    saveCustomSites();
+
+  }
 
 
   markSyncDirty();
@@ -4768,6 +6881,97 @@ function createShortcut(
   );
 
 
+  /*
+     拖动排序（同一分组内）。
+
+     拖动由 dragstart/dragover/drop 驱动，
+     全程不会触发点击跳转；
+     拖动结束后的一瞬间，
+     兜底拦截一次 click。
+  */
+
+  if (dragReorderSupported) {
+
+    link.draggable =
+      true;
+
+
+    link.addEventListener(
+      "dragstart",
+      event => {
+
+        dragShortcutKey =
+          key;
+
+
+        dragSourceGroupId =
+          link.closest(".group-grid")?.dataset.group
+          ||
+          "";
+
+
+        if (event.dataTransfer) {
+
+          event.dataTransfer.effectAllowed =
+            "move";
+
+
+          event.dataTransfer.setData(
+            "text/plain",
+            key
+          );
+
+        }
+
+
+        link.classList.add(
+          "dragging"
+        );
+
+      }
+    );
+
+
+    link.addEventListener(
+      "dragend",
+      () => {
+
+        dragJustEnded =
+          true;
+
+
+        link.classList.remove(
+          "dragging"
+        );
+
+
+        clearDropIndicator();
+
+
+        dragShortcutKey =
+          "";
+
+
+        dragSourceGroupId =
+          "";
+
+
+        setTimeout(
+          () => {
+
+            dragJustEnded =
+              false;
+
+          },
+          0
+        );
+
+      }
+    );
+
+  }
+
+
   const shell =
     document.createElement(
       "div"
@@ -5040,6 +7244,401 @@ function buildAllGroups() {
       );
 
     }
+  );
+
+}
+
+
+/*
+   只重建一个分组的网格，
+   拖动结束后按新的稳定键顺序
+   重新渲染，图标走内存缓存，
+   不会闪烁。
+*/
+
+function rebuildGroupGrid(
+  groupId
+) {
+
+  const grid =
+    groupElements.get(
+      groupId
+    );
+
+
+  const group =
+    groups.find(
+      item =>
+        item.id ===
+        groupId
+    );
+
+
+  if (!grid || !group) {
+
+    return;
+
+  }
+
+
+  grid.replaceChildren();
+
+
+  group.items.forEach(
+    key => {
+
+      const shortcut =
+        createShortcut(
+          key
+        );
+
+
+      if (shortcut) {
+
+        grid.appendChild(
+          shortcut
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ========================================
+   拖动排序事件
+
+   只允许在同一分组内拖动。
+   放置位置提示是目标卡片
+   左/右边缘的一根细蓝条。
+   ======================================== */
+
+function clearDropIndicator() {
+
+  if (dropIndicatorElement) {
+
+    dropIndicatorElement.classList.remove(
+      "drop-before",
+      "drop-after"
+    );
+
+  }
+
+
+  dropIndicatorElement =
+    null;
+
+
+  dropIndicatorSide =
+    "";
+
+}
+
+
+function setDropIndicator(
+  element,
+  side
+) {
+
+  if (
+    dropIndicatorElement ===
+      element
+    &&
+    dropIndicatorSide ===
+      side
+  ) {
+
+    return;
+
+  }
+
+
+  clearDropIndicator();
+
+
+  dropIndicatorElement =
+    element;
+
+
+  dropIndicatorSide =
+    side;
+
+
+  element.classList.add(
+    side === "before"
+      ? "drop-before"
+      : "drop-after"
+  );
+
+}
+
+
+if (dragReorderSupported) {
+
+  content.addEventListener(
+    "dragover",
+    event => {
+
+      if (!dragShortcutKey) {
+
+        return;
+
+      }
+
+
+      const grid =
+        event.target.closest(
+          ".group-grid"
+        );
+
+
+      if (
+        !grid
+        ||
+        grid.dataset.group !==
+          dragSourceGroupId
+      ) {
+
+        clearDropIndicator();
+
+        return;
+
+      }
+
+
+      event.preventDefault();
+
+
+      event.dataTransfer.dropEffect =
+        "move";
+
+
+      const target =
+        event.target.closest(
+          ".shortcut"
+        );
+
+
+      if (
+        !target
+        ||
+        target.dataset.siteKey ===
+          dragShortcutKey
+      ) {
+
+        clearDropIndicator();
+
+        return;
+
+      }
+
+
+      const rect =
+        target.getBoundingClientRect();
+
+
+      setDropIndicator(
+        target,
+        event.clientX >
+          rect.left + rect.width / 2
+          ? "after"
+          : "before"
+      );
+
+    }
+  );
+
+
+  content.addEventListener(
+    "drop",
+    event => {
+
+      if (!dragShortcutKey) {
+
+        return;
+
+      }
+
+
+      const grid =
+        event.target.closest(
+          ".group-grid"
+        );
+
+
+      clearDropIndicator();
+
+
+      if (
+        !grid
+        ||
+        grid.dataset.group !==
+          dragSourceGroupId
+      ) {
+
+        return;
+
+      }
+
+
+      event.preventDefault();
+
+
+      const group =
+        groups.find(
+          item =>
+            item.id ===
+            dragSourceGroupId
+        );
+
+
+      const target =
+        event.target.closest(
+          ".shortcut"
+        );
+
+
+      const key =
+        dragShortcutKey;
+
+
+      if (
+        !group
+        ||
+        !target
+        ||
+        target.dataset.siteKey ===
+          key
+      ) {
+
+        return;
+
+      }
+
+
+      const targetKey =
+        target.dataset.siteKey;
+
+
+      const items =
+        group.items.filter(
+          item =>
+            item !==
+            key
+        );
+
+
+      const targetIndex =
+        items.indexOf(
+          targetKey
+        );
+
+
+      if (targetIndex < 0) {
+
+        return;
+
+      }
+
+
+      const rect =
+        target.getBoundingClientRect();
+
+
+      const insertAfter =
+        event.clientX >
+        rect.left + rect.width / 2;
+
+
+      items.splice(
+        insertAfter
+          ? targetIndex + 1
+          : targetIndex,
+        0,
+        key
+      );
+
+
+      group.items =
+        items;
+
+
+      /*
+         排序按稳定键写入 groupOrder，
+         只更新这一组的排序时间，
+         然后走受保护的自动同步。
+      */
+
+      touchGroupOrder(
+        group.id,
+        true
+      );
+
+
+      markSyncDirty();
+
+
+      rebuildGroupGrid(
+        group.id
+      );
+
+    }
+  );
+
+
+  content.addEventListener(
+    "dragleave",
+    event => {
+
+      const grid =
+        event.target.closest(
+          ".group-grid"
+        );
+
+
+      if (
+        grid
+        &&
+        (
+          !event.relatedTarget
+          ||
+          !grid.contains(
+            event.relatedTarget
+          )
+        )
+      ) {
+
+        clearDropIndicator();
+
+      }
+
+    }
+  );
+
+
+  /*
+     拖动结束后的第一次 click
+     一律拦截，确保不会误触跳转。
+  */
+
+  document.addEventListener(
+    "click",
+    event => {
+
+      if (!dragJustEnded) {
+
+        return;
+
+      }
+
+
+      event.preventDefault();
+      event.stopPropagation();
+
+    },
+    true
   );
 
 }
@@ -5653,6 +8252,16 @@ blankMenu.addEventListener(
 
     if (
       action ===
+      "recent-deleted"
+    ) {
+
+      openTrashModal();
+
+    }
+
+
+    if (
+      action ===
       "sync-settings"
     ) {
 
@@ -5783,7 +8392,9 @@ editForm.addEventListener(
         icon:
           previous.url === url
             ? previous.icon
-            : ""
+            : "",
+        updatedAt:
+          new Date().toISOString()
 
       };
 
@@ -5811,10 +8422,28 @@ editForm.addEventListener(
       );
 
 
+      /*
+         移动到其他分组会改变两个分组的
+         成员，需要各自记录排序时间；
+         仅改名、换链接不触碰排序。
+      */
+
       if (
         previous.groupId !==
         group.id
       ) {
+
+        touchGroupOrder(
+          previous.groupId,
+          true
+        );
+
+
+        touchGroupOrder(
+          group.id,
+          true
+        );
+
 
         currentId =
           group.id;
@@ -5953,8 +8582,41 @@ syncPullButton.addEventListener(
 
     try {
 
-      const success =
-        await pullCloudSync({
+      /*
+         恢复按钮：先读取云端并与本机
+         自动合并（有冲突时弹窗，
+         默认合并不丢数据），
+         再把结果上传云端。
+      */
+
+      const resolved =
+        await reconcileCloudConflict(
+          token
+        );
+
+
+      if (!resolved) {
+
+        closeModal(
+          syncModal
+        );
+
+
+        showToast(
+          "已取消：存在需要处理的同步冲突"
+        );
+
+
+        return;
+
+      }
+
+
+      setSyncToken(token);
+
+
+      const uploaded =
+        await pushCloudSync({
 
           token,
           notify: true
@@ -5962,10 +8624,7 @@ syncPullButton.addEventListener(
         });
 
 
-      if (success) {
-
-        setSyncToken(token);
-
+      if (uploaded) {
 
         closeModal(
           syncModal
@@ -6244,7 +8903,9 @@ addForm.addEventListener(
         label,
         url,
         groupId:
-          group.id
+          group.id,
+        updatedAt:
+          new Date().toISOString()
 
       };
 
@@ -6280,6 +8941,12 @@ addForm.addEventListener(
 
       group.items.push(
         key
+      );
+
+
+      touchGroupOrder(
+        group.id,
+        true
       );
 
 
@@ -6360,7 +9027,7 @@ document
   );
 
 
-[addModal, editModal, iconUrlModal, syncModal]
+[addModal, editModal, iconUrlModal, syncModal, trashModal]
   .forEach(
     modal => {
 
@@ -6478,6 +9145,10 @@ document.addEventListener(
       !iconUrlModal.hidden
       ||
       !syncModal.hidden
+      ||
+      !conflictModal.hidden
+      ||
+      !trashModal.hidden
     ) {
 
       return;
@@ -6587,6 +9258,15 @@ document.addEventListener(
       hideContextMenus();
 
 
+      if (activeConflictResolver) {
+
+        activeConflictResolver(
+          "cancel"
+        );
+
+      }
+
+
       closeModal(
         addModal
       );
@@ -6599,6 +9279,16 @@ document.addEventListener(
 
       closeModal(
         syncModal
+      );
+
+
+      closeModal(
+        conflictModal
+      );
+
+
+      closeModal(
+        trashModal
       );
 
 
@@ -6617,6 +9307,10 @@ document.addEventListener(
       !iconUrlModal.hidden
       ||
       !syncModal.hidden
+      ||
+      !conflictModal.hidden
+      ||
+      !trashModal.hidden
       ||
       /^(INPUT|TEXTAREA)$/.test(
         document.activeElement.tagName
