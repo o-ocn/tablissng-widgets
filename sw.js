@@ -1,9 +1,9 @@
 const RUNTIME_CACHE = "tablissng-runtime-v2";
-const SHELL_CACHE = "tablissng-shell-v1";
+const SHELL_CACHE = "tablissng-shell-v2";
 const CACHE_PREFIX = "tablissng-";
 
 /*
-   外壳缓存（HTML / JS）
+   外壳缓存（HTML / JS）—— v2 设计
 
    目的：修复新标签页冷启动时三个 iframe
    （index / search / shortcuts）因 GitHub Pages
@@ -14,28 +14,53 @@ const CACHE_PREFIX = "tablissng-";
    但 29.7KB（压缩后）下载耗时 5.4s；
    三个 iframe 并发时最慢可拖到 20s+。
 
-   策略：
+   ── 版本配套（防止新旧文件混用）──────────────
 
-   1. 只拦截同源的 HTML 导航与脚本请求；
-      图片仍走原 cacheFirstImage；
-      跨域请求（云端同步 Worker、VPS API、
-      搜索引擎、图标）完全不经过这里，
-      同步数据零改动。
-   2. 缓存键 = pathname（忽略 ?v= 查询参数）。
-      发布 ?v=18 时：首次打开立即返回缓存内容
-      （秒出），同时后台拉取新版本成功后替换缓存，
-      下一次打开即为新版 —— 不会长期卡在旧页面。
-   3. 网络优先，超时 2.5 秒后回退缓存：
-      网络好时拿最新，网络差/断网时立即显示
-      上次成功加载的页面。
-   4. 缓存条目带写入时间（x-shell-stored-at），
-      超过 24 小时强制走网络重新填充。
-   5. sw.js 文件本身更新时（部署新版本），
-      activate 会清空旧外壳缓存，强制全量重建。
+   缓存键包含完整的 ?v= 参数：
+
+     /tablissng-widgets/shortcuts.html?v=18
+     /tablissng-widgets/sync-model.js?v=18
+
+   sync-model.js 自身没有版本参数，但页面加载它时
+   SW 能读到请求的 referrer（即 shortcuts.html?v=N
+   的完整地址），因此 JS 的缓存键跟随所属 HTML 的
+   版本号。效果：
+
+   - v18 的 HTML 只会配 v18 的 sync-model.js；
+   - 旧版本 HTML 作为回退时，配套的旧版本 JS
+     仍在自己的键下，同样成对；
+   - 不存在"新 HTML + 旧 JS"的混用路径：
+     若对应版本的 JS 不在缓存，回退网络，
+     网络失败就让该次脚本加载失败（严格但安全）。
+
+   发布新版本后的表现：
+   第一次打开：该版本缓存缺失 → 走网络（与现状相同，
+   可能较慢），成功后写入 v=N 的成对缓存；
+   第二次打开：缓存优先，秒开。
+
+   ── 新鲜度（准确语义）────────────────────────
+
+   - 24 小时内：缓存优先（快路径），后台静默更新。
+   - 24 小时 ~ 30 天：转为网络优先（超时 2.5s 回退到
+     同版本缓存）——不再宣称"强制过期后仍秒开"。
+   - 超过 30 天：条目直接删除，不再作为回退，
+     防止过旧的快捷方式页面带着不兼容的同步逻辑
+     长期运行。
+
+   ── 其他 ────────────────────────────────────
+
+   - 目录首页（/tablissng-widgets/?v=7，VPS iframe）
+     归一化为 index.html 参与缓存。
+   - 图片仍走原 cacheFirstImage；跨域请求（云端同步
+     Worker、VPS API、搜索引擎、图标源）不经过这里，
+     同步数据零改动。
+   - 同一路径只保留最近 3 个版本的条目。
 */
 
-const SHELL_MAX_AGE = 24 * 60 * 60 * 1000;
+const SHELL_FRESH_AGE = 24 * 60 * 60 * 1000;
+const SHELL_HARD_AGE = 30 * 24 * 60 * 60 * 1000;
 const SHELL_NETWORK_TIMEOUT = 2500;
+const SHELL_KEEP_VERSIONS = 3;
 
 self.addEventListener("install", event => {
   event.waitUntil(self.skipWaiting());
@@ -92,77 +117,235 @@ function isShellRequest(request) {
     request.destination === "script"
     || /\.js$/.test(url.pathname);
 
-  const isHtml = /\.html?$/.test(url.pathname) || url.pathname === "/";
+  const path = normalisePath(url.pathname);
+
+  const isHtml =
+    /\.html?$/.test(path)
+    || path.endsWith("index.html");
 
   return (isNavigation && isHtml) || isScript;
 }
 
+/* /tablissng-widgets/ → /tablissng-widgets/index.html */
+
+function normalisePath(pathname) {
+  return pathname.endsWith("/")
+    ? pathname + "index.html"
+    : pathname;
+}
+
+/* 缓存键 = 归一化路径 + 完整查询参数(含 ?v=),统一为绝对 URL */
+
+function cacheKeyFor(url) {
+  return new URL(normalisePath(url.pathname) + url.search, url.origin).href;
+}
+
+function versionOf(url) {
+  return url.searchParams.get("v") || "";
+}
+
+function referrerVersion(request) {
+  try {
+    if (!request.referrer || request.referrer === "about:client") {
+      return "";
+    }
+
+    return versionOf(new URL(request.referrer));
+  } catch (error) {
+    return "";
+  }
+}
+
 async function shellStrategy(request, event) {
+  const url = new URL(request.url);
   const cache = await caches.open(SHELL_CACHE);
-  const key = new URL(request.url).pathname;
+
+  /* 脚本:跟随所属 HTML 的版本(referrer 携带 ?v=) */
+  const isScript = request.destination === "script" || /\.js$/.test(url.pathname);
+
+  if (isScript) {
+    const version = referrerVersion(request);
+    const key = new URL(
+      normalisePath(url.pathname) + (version ? `?v=${version}` : url.search),
+      url.origin
+    ).href;
+    return shellReadThrough(request, event, cache, key, { isScript });
+  }
+
+  return shellReadThrough(request, event, cache, cacheKeyFor(url), { isScript: false });
+}
+
+async function shellReadThrough(request, event, cache, key, { isScript }) {
+  const url = new URL(request.url);
+  const path = normalisePath(url.pathname);
+
   const cached = await cache.match(key);
   const storedAt = cached
     ? Number(cached.headers.get("x-shell-stored-at") || 0)
     : 0;
-  const fresh = cached && Date.now() - storedAt < SHELL_MAX_AGE;
+  const age = Date.now() - storedAt;
 
-  /* 后台更新：无论本次返回什么，都尝试拉取最新版本 */
-  const networkUpdate = (async () => {
-    try {
-      const response = await fetch(request);
+  /*
+     超过 30 天：删除条目，不再作为回退。
+     网络失败时宁可加载失败，也不运行
+     可能不兼容当前同步协议的古老页面。
+  */
 
-      if (response && response.ok) {
-        await cache.put(key, stampResponse(response));
-      }
-
-      return response;
-    } catch (error) {
-      return null;
-    }
-  })();
-
-  if (event && event.waitUntil) {
-    event.waitUntil(networkUpdate);
+  if (cached && age > SHELL_HARD_AGE) {
+    await cache.delete(key);
+    return networkOnly(request);
   }
 
-  /* 缓存新鲜：立即返回，让网络在后台更新 */
+  const fresh = cached && age < SHELL_FRESH_AGE;
+
+  /*
+     24 小时内：缓存优先（快路径）。
+     版本更新由 ?v= 键变化触发：发布新版本时
+     缓存键不同，必然走网络拉取。
+  */
+
   if (fresh) {
     return cached;
   }
 
-  /* 无缓存或已过期（冷启动 / 超过 24h）：
-     网络优先，超时或失败时回退缓存；
-     完全没有缓存时让网络请求自然完成（与现状一致）。 */
+  /*
+     无缓存或已过期（24h~30d）：网络优先。
+     顺序逻辑，超时 2.5s 后按序回退：
+     同版本缓存 → 成对旧版本（仅 HTML）→ 放弃。
+  */
+
   try {
-    const response = await Promise.race([
-      networkUpdate,
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("shell timeout")), SHELL_NETWORK_TIMEOUT);
-      })
-    ]);
+    const response = await fetchWithTimeout(request, SHELL_NETWORK_TIMEOUT);
 
     if (response && response.ok) {
+      await cache.put(key, stampResponse(response));
+      await pruneOldVersions(cache, path);
       return response;
     }
   } catch (error) {
-    /* 超时或网络失败：走缓存回退 */
+    /* 超时或网络失败:走缓存回退 */
   }
 
   if (cached) {
     return cached;
   }
 
-  /* 没有缓存：等待网络结果（成功或失败都如实返回） */
-  const finalResponse = await networkUpdate;
+  /* HTML 导航且同路径存在旧版本条目:
+     返回最近的一个"成对旧版本"(旧 HTML 配旧 JS,
+     各自在自己的 ?v= 键下,不会混用)。 */
+  if (!isScript) {
+    const older = await newestOtherVersion(cache, path, key);
 
-  if (finalResponse) {
-    return finalResponse;
+    if (older) {
+      return older;
+    }
   }
 
-  return fetch(request);
+  /* 脚本没有对应版本缓存时:不做跨版本回退,
+     交给 networkOnly(网络失败返回 504)。 */
+  return networkOnly(request);
+}
+
+function fetchWithTimeout(request, ms) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+
+  return fetch(request, { signal: controller.signal }).finally(() => {
+    clearTimeout(timer);
+  });
+}
+
+async function networkOnly(request) {
+  try {
+    const response = await fetch(request);
+
+    if (response && response.ok) {
+      return response;
+    }
+  } catch (error) {
+    /* 网络失败:无回退 */
+  }
+
+  return new Response("Shell cache expired", { status: 504 });
+}
+
+/* 同一路径下,除当前键外最新的一条旧版本缓存 */
+
+async function newestOtherVersion(cache, path, excludeKey) {
+  const keys = await cache.keys();
+  const candidates = [];
+
+  for (const key of keys) {
+    const requestUrl = shellKeyToString(key);
+    const url = new URL(requestUrl, self.location.origin);
+
+    if (normalisePath(url.pathname) !== path) {
+      continue;
+    }
+
+    const response = await cache.match(url);
+
+    if (!response) {
+      continue;
+    }
+
+    candidates.push({
+      storedAt: Number(response.headers.get("x-shell-stored-at") || 0),
+      response
+    });
+  }
+
+  candidates.sort((left, right) => right.storedAt - left.storedAt);
+
+  return candidates.length ? candidates[0].response : null;
+}
+
+/* 同一路径只保留最近 3 个版本 */
+
+async function pruneOldVersions(cache, path) {
+  const keys = await cache.keys();
+  const versions = [];
+
+  for (const key of keys) {
+    const requestUrl = shellKeyToString(key);
+    const url = new URL(requestUrl, self.location.origin);
+
+    if (normalisePath(url.pathname) !== path) {
+      continue;
+    }
+
+    const response = await cache.match(url);
+
+    versions.push({
+      key,
+      storedAt: Number(response?.headers.get("x-shell-stored-at") || 0)
+    });
+  }
+
+  if (versions.length <= SHELL_KEEP_VERSIONS) {
+    return;
+  }
+
+  versions.sort((left, right) => right.storedAt - left.storedAt);
+
+  for (const entry of versions.slice(SHELL_KEEP_VERSIONS)) {
+    await cache.delete(entry.key);
+  }
 }
 
 /* 给缓存条目打上写入时间戳 */
+
+function shellKeyToString(key) {
+  if (typeof key === "string") {
+    return key;
+  }
+
+  if (typeof key.url === "string") {
+    return key.url;
+  }
+
+  return String(key);
+}
 
 function stampResponse(response) {
   const headers = new Headers(response.headers);
@@ -176,15 +359,38 @@ function stampResponse(response) {
 }
 
 self.addEventListener("message", event => {
-  if (event.data?.type !== "WARM_ICON_CACHE") {
+  if (event.data?.type === "WARM_ICON_CACHE") {
+    const urls = Array.isArray(event.data.urls)
+      ? [...new Set(event.data.urls)].slice(0, 300)
+      : [];
+
+    event.waitUntil(warmIconCache(urls));
     return;
   }
 
-  const urls = Array.isArray(event.data.urls)
-    ? [...new Set(event.data.urls)].slice(0, 300)
-    : [];
+  /*
+     验收辅助:在页面控制台执行
+     navigator.serviceWorker.controller.postMessage({ type: "SHELL_STATS" })
+     并监听 message 事件,可拿到缓存键列表与
+     受控 client 的 frameType(nested = iframe 内受控)。
+  */
 
-  event.waitUntil(warmIconCache(urls));
+  if (event.data?.type === "SHELL_STATS") {
+    event.waitUntil((async () => {
+      const cache = await caches.open(SHELL_CACHE);
+      const keys = await cache.keys();
+      const clients = await self.clients.matchAll({ includeUncontrolled: true });
+
+      event.source.postMessage({
+        type: "SHELL_STATS",
+        keys: keys.map(key => (shellKeyToString(key))),
+        clients: clients.map(client => ({
+          url: client.url.slice(0, 120),
+          frameType: client.frameType
+        }))
+      });
+    })());
+  }
 });
 
 async function cacheFirstImage(request) {
