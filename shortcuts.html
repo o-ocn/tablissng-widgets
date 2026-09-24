@@ -960,6 +960,98 @@ body {
   accent-color: #0A84FF;
 }
 
+.trash-list {
+  max-height: 190px;
+  margin: 0 0 4px;
+  padding: 2px;
+  overflow-y: auto;
+}
+
+.trash-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 7px;
+  border-radius: 10px;
+}
+
+.trash-row + .trash-row {
+  margin-top: 2px;
+}
+
+.trash-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.trash-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trash-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.trash-meta {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 9.5px;
+}
+
+.trash-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 5px;
+}
+
+.trash-actions button {
+  height: 24px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.trash-restore {
+  background: rgba(10, 132, 255, 0.22);
+  color: #7cbcff;
+}
+
+.trash-restore:hover {
+  background: rgba(10, 132, 255, 0.34);
+}
+
+.trash-purge {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.trash-purge:hover {
+  color: #ff9b96;
+}
+
+.trash-purge.confirming {
+  background: rgba(255, 90, 82, 0.24);
+  color: #ff9b96;
+}
+
+.trash-empty {
+  padding: 14px 0 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10.5px;
+  text-align: center;
+}
+
 </style>
 </head>
 
@@ -1046,6 +1138,9 @@ body {
 >
   <button type="button" data-action="add-shortcut">
     添加快捷方式
+  </button>
+  <button type="button" data-action="recent-deleted">
+    最近删除
   </button>
   <button type="button" data-action="sync-settings">
     云端同步
@@ -1282,6 +1377,30 @@ body {
       <span>我确认保留本机版本并覆盖云端数据（不可恢复）</span>
     </label>
   </form>
+</div>
+
+
+<div
+  class="modal-overlay"
+  id="trashModal"
+  hidden
+>
+  <div class="modal-card">
+    <h2 class="modal-title">最近删除</h2>
+
+    <p class="modal-note">
+      删除的快捷方式会在这里保留 30 天（最多 100 条），并加密同步到 GitHub。
+      恢复时会尽量回到原来的分组和位置。
+    </p>
+
+    <div class="trash-list" id="trashList"></div>
+
+    <div class="modal-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        关闭
+      </button>
+    </div>
+  </div>
 </div>
 
 
@@ -3609,6 +3728,526 @@ conflictCancelButton.addEventListener(
 
   }
 );
+
+
+const trashModal =
+  document.getElementById(
+    "trashModal"
+  );
+
+
+const trashList =
+  document.getElementById(
+    "trashList"
+  );
+
+
+function getGroupLabel(
+  groupId
+) {
+
+  return (
+    groups.find(
+      group =>
+        group.id ===
+        groupId
+    )?.label
+    ||
+    groupId
+  );
+
+}
+
+
+function formatDeletedTime(
+  deletedAt
+) {
+
+  const time =
+    new Date(
+      deletedAt
+    );
+
+
+  if (
+    Number.isNaN(
+      time.getTime()
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  return time.toLocaleString();
+
+}
+
+
+function renderTrashList() {
+
+  if (!trashEntries.length) {
+
+    const empty =
+      document.createElement(
+        "div"
+      );
+
+
+    empty.className =
+      "trash-empty";
+
+
+    empty.textContent =
+      "回收站是空的";
+
+
+    trashList.replaceChildren(
+      empty
+    );
+
+
+    return;
+
+  }
+
+
+  trashList.replaceChildren(
+
+    ...trashEntries.map(
+      entry => {
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+
+        row.className =
+          "trash-row";
+
+
+        const info =
+          document.createElement(
+            "div"
+          );
+
+
+        info.className =
+          "trash-info";
+
+
+        const name =
+          document.createElement(
+            "span"
+          );
+
+
+        name.className =
+          "trash-name";
+
+
+        name.textContent =
+          entry.label;
+
+
+        const meta =
+          document.createElement(
+            "span"
+          );
+
+
+        meta.className =
+          "trash-meta";
+
+
+        meta.textContent =
+          `${getGroupLabel(entry.originalGroupId)} · ${formatDeletedTime(entry.deletedAt)} 删除`;
+
+
+        info.appendChild(
+          name
+        );
+
+
+        info.appendChild(
+          meta
+        );
+
+
+        const actions =
+          document.createElement(
+            "div"
+          );
+
+
+        actions.className =
+          "trash-actions";
+
+
+        const restoreButton =
+          document.createElement(
+            "button"
+          );
+
+
+        restoreButton.type =
+          "button";
+
+
+        restoreButton.className =
+          "trash-restore";
+
+
+        restoreButton.textContent =
+          "恢复";
+
+
+        restoreButton.addEventListener(
+          "click",
+          () => {
+
+            restoreFromTrash(
+              entry.key
+            );
+
+
+            renderTrashList();
+
+          }
+        );
+
+
+        const purgeButton =
+          document.createElement(
+            "button"
+          );
+
+
+        purgeButton.type =
+          "button";
+
+
+        purgeButton.className =
+          "trash-purge";
+
+
+        purgeButton.textContent =
+          "永久删除";
+
+
+        /*
+           永久删除的二次确认：
+           第一次点击只切换成
+           “确认永久删除”，
+           4 秒内再次点击才真正删除。
+        */
+
+        purgeButton.addEventListener(
+          "click",
+          () => {
+
+            if (
+              purgeButton.dataset.confirm !==
+              "1"
+            ) {
+
+              purgeButton.dataset.confirm =
+                "1";
+
+
+              purgeButton.classList.add(
+                "confirming"
+              );
+
+
+              purgeButton.textContent =
+                "确认永久删除";
+
+
+              setTimeout(
+                () => {
+
+                  if (
+                    purgeButton.isConnected
+                  ) {
+
+                    purgeButton.dataset.confirm =
+                      "";
+
+
+                    purgeButton.classList.remove(
+                      "confirming"
+                    );
+
+
+                    purgeButton.textContent =
+                      "永久删除";
+
+                  }
+
+                },
+                4000
+              );
+
+
+              return;
+
+            }
+
+
+            purgeFromTrash(
+              entry.key
+            );
+
+
+            renderTrashList();
+
+          }
+        );
+
+
+        actions.appendChild(
+          restoreButton
+        );
+
+
+        actions.appendChild(
+          purgeButton
+        );
+
+
+        row.appendChild(
+          info
+        );
+
+
+        row.appendChild(
+          actions
+        );
+
+
+        return row;
+
+      }
+    )
+
+  );
+
+}
+
+
+function openTrashModal() {
+
+  renderTrashList();
+
+
+  openModal(
+    trashModal,
+    trashList
+  );
+
+}
+
+
+/*
+   从回收站恢复：
+   尽量回到原分组、原位置
+   （originalIndex 是删除时
+   在分组内的下标）。
+*/
+
+function restoreFromTrash(
+  key
+) {
+
+  const entry =
+    trashEntries.find(
+      item =>
+        item.key ===
+        key
+    );
+
+
+  if (!entry) {
+
+    return;
+
+  }
+
+
+  if (
+    getCustomSiteEntry(
+      key
+    )
+  ) {
+
+    dropTrashEntry(
+      key
+    );
+
+
+    return;
+
+  }
+
+
+  const targetGroupId =
+    groups.some(
+      group =>
+        group.id ===
+        entry.originalGroupId
+    )
+      ? entry.originalGroupId
+      : groups[0].id;
+
+
+  const restored = {
+
+    key: entry.key,
+    label: entry.label,
+    url: entry.url,
+    groupId: targetGroupId,
+    icon: entry.icon || "",
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+
+  customSites.push(
+    restored
+  );
+
+
+  if (!saveCustomSites()) {
+
+    customSites.pop();
+
+
+    showToast(
+      "恢复失败：本地存储空间不足"
+    );
+
+
+    return;
+
+  }
+
+
+  /*
+     把 key 插回该分组的排序，
+     位置尽量等于删除时的下标。
+  */
+
+  const order =
+    groupOrderState[
+      targetGroupId
+    ]
+    ||
+    {
+
+      items: [],
+      updatedAt: ""
+
+    };
+
+
+  const items =
+    order.items.filter(
+      item =>
+        item !==
+        key
+    );
+
+
+  const insertIndex =
+    Math.min(
+      entry.originalIndex || 0,
+      items.length
+    );
+
+
+  items.splice(
+    insertIndex,
+    0,
+    key
+  );
+
+
+  groupOrderState[targetGroupId] = {
+
+    items,
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+
+  saveGroupOrderState();
+
+
+  dropTrashEntry(
+    key
+  );
+
+
+  applyCustomSitesToRuntime(
+    customSites
+  );
+
+
+  refreshShortcutGroups();
+
+
+  markSyncDirty();
+
+
+  showToast(
+    `已恢复「${entry.label}」`
+  );
+
+}
+
+
+function purgeFromTrash(
+  key
+) {
+
+  const entry =
+    trashEntries.find(
+      item =>
+        item.key ===
+        key
+    );
+
+
+  if (!entry) {
+
+    return;
+
+  }
+
+
+  dropTrashEntry(
+    key
+  );
+
+
+  clearStoredIcon(
+    key
+  );
+
+
+  markSyncDirty();
+
+
+  showToast(
+    `已永久删除「${entry.label}」`
+  );
+
+}
 
 
 const toast =
@@ -7540,6 +8179,16 @@ blankMenu.addEventListener(
 
     if (
       action ===
+      "recent-deleted"
+    ) {
+
+      openTrashModal();
+
+    }
+
+
+    if (
+      action ===
       "sync-settings"
     ) {
 
@@ -8305,7 +8954,7 @@ document
   );
 
 
-[addModal, editModal, iconUrlModal, syncModal]
+[addModal, editModal, iconUrlModal, syncModal, trashModal]
   .forEach(
     modal => {
 
@@ -8425,6 +9074,8 @@ document.addEventListener(
       !syncModal.hidden
       ||
       !conflictModal.hidden
+      ||
+      !trashModal.hidden
     ) {
 
       return;
@@ -8563,6 +9214,11 @@ document.addEventListener(
       );
 
 
+      closeModal(
+        trashModal
+      );
+
+
       pendingIconKey =
         "";
 
@@ -8580,6 +9236,8 @@ document.addEventListener(
       !syncModal.hidden
       ||
       !conflictModal.hidden
+      ||
+      !trashModal.hidden
       ||
       /^(INPUT|TEXTAREA)$/.test(
         document.activeElement.tagName
