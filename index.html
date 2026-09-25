@@ -832,6 +832,30 @@ function restoreCachedSnapshot() {
     applyMeta(saved.meta);
     renderLatest(saved.latest, true);
 
+
+    /*
+       恢复的是本机缓存的旧快照，
+       必须明确标出快照保存时间，
+       不能把旧状态当作实时状态。
+       VPS API 返回数据后会被
+       renderLatest 覆盖为实时时间。
+    */
+
+    if (saved.savedAt) {
+
+      const savedAt =
+        new Date(saved.savedAt);
+
+
+      $("updated").textContent =
+
+        time(saved.latest?.updated_at)
+
+        +
+        `（缓存 ${savedAt.getHours()}:${String(savedAt.getMinutes()).padStart(2, "0")}）`;
+
+    }
+
   }
 
   catch (error) {

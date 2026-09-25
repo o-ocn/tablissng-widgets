@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>SW 验收自检</title>
+<style>
+  body { margin: 0; padding: 16px; background: #14181f; color: #d7deea; font: 13px/1.6 Consolas, "Microsoft YaHei", monospace; }
+  h1 { font-size: 16px; }
+  .pass { color: #7dd487; }
+  .fail { color: #ff9b96; }
+  .info { color: #9db4d8; }
+  pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Service Worker 外壳缓存验收自检</h1>
+<p class="info">本页必须在 https 的线上环境打开(例如 GitHub Pages 发布后)。逐项自动检查,结果如下:</p>
+<pre id="out">running…</pre>
+
+<script>
+const out = document.getElementById("out");
+const lines = [];
+
+function log(text, cls) {
+  lines.push(cls ? `<span class="${cls}">${text}</span>` : text);
+  out.innerHTML = lines.join("\n");
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+(async () => {
+  /* 1. SW 注册与激活 */
+  if (!("serviceWorker" in navigator)) {
+    log("FAIL 浏览器不支持 Service Worker", "fail");
+    return;
+  }
+
+  const registration = await navigator.serviceWorker.register("./sw.js", {
+    scope: "./",
+    updateViaCache: "none"
+  });
+
+  await navigator.serviceWorker.ready;
+  const state = registration.active?.state || "none";
+  log(`${state === "activated" ? "PASS" : "FAIL"} Service Worker 已注册并激活(state=${state})`, state === "activated" ? "pass" : "fail");
+
+  /* 2. 顶层页面受控:首次安装后 controller 可能为 null,正常提示并结束该项 */
+  const controlled = !!navigator.serviceWorker.controller;
+
+  if (!controlled) {
+    log("INFO 顶层 controller=null:SW 刚安装、本页尚未受控。重开一次本页(或新开标签页)后再运行本自检即可看到 controller=true。", "info");
+  } else {
+    log("PASS 顶层页面受控(controller=true)", "pass");
+
+    /* 3. iframe(nested client)受控证据:
+       与 SW 的通信统一使用 postMessage + message 事件
+       (SW 侧以 event.source.postMessage 回复)。 */
+
+    const stats = await new Promise(resolve => {
+      const onMessage = event => {
+        if (event.data?.type === "SHELL_STATS") {
+          navigator.serviceWorker.removeEventListener("message", onMessage);
+          resolve(event.data);
+        }
+      };
+
+      navigator.serviceWorker.addEventListener("message", onMessage);
+      navigator.serviceWorker.controller.postMessage({ type: "SHELL_STATS" });
+      setTimeout(() => {
+        navigator.serviceWorker.removeEventListener("message", onMessage);
+        resolve(null);
+      }, 4000);
+    });
+
+    if (stats) {
+      log(`INFO 受控 clients:${JSON.stringify(stats.clients)}`);
+      const nested = stats.clients.some(client => client.frameType === "nested");
+      log(`${nested ? "PASS" : "INFO"} 存在 frameType=nested 的受控 iframe(嵌在 TablissNG 里的直接证据;值为 info 表示当前没有 iframe 打开本仓库页面)`, nested ? "pass" : "info");
+      log(`INFO 外壳缓存键:${JSON.stringify(stats.keys)}`);
+    } else {
+      log("WARN 4 秒内未收到 SHELL_STATS 回包(检查 SW 版本是否为本 PR 的 sw.js)", "info");
+    }
+
+    /* 4. 缓存命中判定:再次 fetch 本页,响应带 x-shell-stored-at 即为 SW 缓存命中 */
+    let stamped = null;
+    try {
+      const self = await fetch(location.pathname + location.search, { cache: "no-store" });
+      stamped = self.headers.get("x-shell-stored-at");
+    } catch (e) {}
+
+    if (!stamped && "caches" in window) {
+      try {
+        const cache = await caches.open("tablissng-shell-v2");
+        const entry = await cache.match(location.href) || await cache.match(location.pathname + location.search);
+        if (entry) {
+          stamped = entry.headers.get("x-shell-stored-at");
+        }
+      } catch (e) {}
+    }
+
+    log(`${stamped ? "PASS" : "INFO"} 自身 HTML 响应 x-shell-stored-at=${stamped || "无(本次为网络直取;SW 缓存填充后此头出现)"}`, stamped ? "pass" : "info");
+  }
+
+  /* 5. 重要说明 */
+  log("注意:单独打开本页不能替代 TablissNG 内的真实验收。", "fail");
+  log("完整验收还须在 TablissNG 的新标签页(三个组件 iframe 实际嵌入环境)中确认:", "info");
+  log("1) 三个 iframe 均受控且从缓存加载(F12 → Application → Service Workers / Cache Storage 可见 tablissng-shell-v2);", "info");
+  log("2) 断网(DevTools → Network → Offline)重开新标签页,三个 iframe 仍能显示,shortcuts 页面功能完整(HTML + sync-model.js 成对来自缓存);", "info");
+  log("3) VPS 卡片显示“（缓存 HH:MM）”而不是把旧数据当实时。", "info");
+
+  /* 6. 断网模拟提示 */
+  log("INFO 弱网验证:DevTools → Network → Slow 3G 后重开,iframe 应在 2.5 秒内显示缓存内容。", "info");
+
+  log("自检完成。把本页截图与控制台输出附回 PR 即可。", "pass");
+})();
+</script>
+</body>
+</html>
