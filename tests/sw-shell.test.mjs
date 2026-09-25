@@ -570,3 +570,89 @@ test("sw: 同一路径超过 3 个版本时只保留最近 3 个", async () => {
   assert.ok(keys.includes(`${SCOPE}shortcuts.html?v=18`), "最新版本保留");
   assert.ok(!keys.includes(`${SCOPE}shortcuts.html?v=14`), "最旧版本被清理");
 });
+
+test("sw: 并发多标签 —— Tab A 回退旧版本，不污染持有新鲜缓存的 Tab B 脚本版本", async () => {
+  let networkDown = false;
+  const sw = loadServiceWorker({
+    fetchImpl: async request => {
+      const url = new URL(request.url);
+      if (networkDown) {
+        return Promise.reject(new Error("network down"));
+      }
+      if (url.pathname.endsWith("shortcuts.html")) {
+        return makeResponse(`<html>${url.search}</html>`);
+      }
+      if (url.pathname.endsWith("sync-model.js")) {
+        return makeResponse(`const JS_${url.searchParams.get("v") || "NONE"} = true;`);
+      }
+      return makeResponse("other");
+    }
+  });
+
+  const shellStore = sw.cachesMap.get("tablissng-shell-v2");
+
+  // 预置 v17 成对缓存（旧版，已过 24h 新鲜期）
+  const staleTs = String(Date.now() - 25 * 24 * 60 * 60 * 1000);
+  shellStore.set(`${SCOPE}shortcuts.html?v=17`, makeResponse("<html>v17 html</html>", { headers: { "x-shell-stored-at": staleTs } }));
+  shellStore.set(`${SCOPE}sync-model.js?v=17`, makeResponse("const JS_v17 = true;", { headers: { "x-shell-stored-at": staleTs } }));
+
+  // 网络断开
+  networkDown = true;
+
+  // Tab A: 请求 v19 导航，网络挂掉，回退到唯一的成对旧版 v17
+  const fallbackA = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=19`));
+  assert.equal(await fallbackA.text(), "<html>v17 html</html>");
+
+  // 预置 Tab B 的 v18 成对缓存（新鲜，<24h）
+  const freshTs = String(Date.now());
+  shellStore.set(`${SCOPE}shortcuts.html?v=18`, makeResponse("<html>v18 html</html>", { headers: { "x-shell-stored-at": freshTs } }));
+  shellStore.set(`${SCOPE}sync-model.js?v=18`, makeResponse("const JS_v18 = true;", { headers: { "x-shell-stored-at": freshTs } }));
+
+  // Tab B: 同时打开已配置为 v18 的新标签页，命中新鲜缓存
+  const freshB = await dispatchFetch(sw, fakeRequest(`${SCOPE}shortcuts.html?v=18`));
+  assert.equal(await freshB.text(), "<html>v18 html</html>");
+
+  // Tab B 加载 sync-model.js (referrer 带 v=18)：必须配到 v18 的 JS，绝不能被 Tab A 污染成 v17
+  const jsB = await dispatchFetch(
+    sw,
+    fakeRequest(`${SCOPE}sync-model.js`, {
+      destination: "script",
+      referrer: `${SCOPE}shortcuts.html?v=18`
+    })
+  );
+  assert.equal(await jsB.text(), "const JS_v18 = true;", "Tab B 的脚本必须保持与自身 HTML 配套的 v18，不受 Tab A 回退影响");
+
+  // Tab A 加载 sync-model.js (referrer 带 v=19)：必须配到其实际回退得到的 v17
+  const jsA = await dispatchFetch(
+    sw,
+    fakeRequest(`${SCOPE}sync-model.js`, {
+      destination: "script",
+      referrer: `${SCOPE}shortcuts.html?v=19`
+    })
+  );
+  assert.equal(await jsA.text(), "const JS_v17 = true;", "Tab A 的脚本按自身实际回退版本配到 v17");
+});
+
+test("sw: diagnostic 或脚本内 fetch HTML 文件会被作为外壳拦截并命中缓存", async () => {
+  const sw = loadServiceWorker({
+    fetchImpl: async () => makeResponse("<html>diag</html>")
+  });
+
+  // 第一次 fetch: 写入外壳缓存
+  const res1 = await dispatchFetch(sw, {
+    url: `${SCOPE}diagnostic.html`,
+    method: "GET",
+    mode: "cors",
+    destination: ""
+  });
+  assert.equal(res1.status, 200);
+
+  // 第二次 fetch: 应该命中新鲜外壳缓存，带有 x-shell-stored-at
+  const res2 = await dispatchFetch(sw, {
+    url: `${SCOPE}diagnostic.html`,
+    method: "GET",
+    mode: "cors",
+    destination: ""
+  });
+  assert.ok(res2.headers.get("x-shell-stored-at"), "普通 fetch HTML 也能受 SW 外壳缓存管理并在二次请求命中带标记的缓存");
+});

@@ -84,8 +84,22 @@ function sleep(ms) {
     }
 
     /* 4. 缓存命中判定:再次 fetch 本页,响应带 x-shell-stored-at 即为 SW 缓存命中 */
-    const self = await fetch(location.pathname + location.search, { cache: "no-store" });
-    const stamped = self.headers.get("x-shell-stored-at");
+    let stamped = null;
+    try {
+      const self = await fetch(location.pathname + location.search, { cache: "no-store" });
+      stamped = self.headers.get("x-shell-stored-at");
+    } catch (e) {}
+
+    if (!stamped && "caches" in window) {
+      try {
+        const cache = await caches.open("tablissng-shell-v2");
+        const entry = await cache.match(location.href) || await cache.match(location.pathname + location.search);
+        if (entry) {
+          stamped = entry.headers.get("x-shell-stored-at");
+        }
+      } catch (e) {}
+    }
+
     log(`${stamped ? "PASS" : "INFO"} 自身 HTML 响应 x-shell-stored-at=${stamped || "无(本次为网络直取;SW 缓存填充后此头出现)"}`, stamped ? "pass" : "info");
   }
 

@@ -144,7 +144,7 @@ function isShellRequest(request) {
     /\.html?$/.test(path)
     || path.endsWith("index.html");
 
-  return (isNavigation && isHtml) || isScript;
+  return isNavigation || isHtml || isScript;
 }
 
 /* /tablissng-widgets/ → /tablissng-widgets/index.html */
@@ -188,9 +188,12 @@ async function shellStrategy(request, event) {
 
   if (isScript) {
     let version = referrerVersion(request);
+    const referrerKey = referrerKeyOf(request);
     const referrerPath = referrerPathOf(request);
 
-    if (referrerPath && servedFallback.has(referrerPath)) {
+    if (referrerKey && servedFallback.has(referrerKey)) {
+      version = servedFallback.get(referrerKey);
+    } else if (!version && referrerPath && servedFallback.has(referrerPath)) {
       version = servedFallback.get(referrerPath);
     }
 
@@ -213,6 +216,20 @@ function referrerPathOf(request) {
     }
 
     return normalisePath(new URL(request.referrer).pathname);
+  } catch (error) {
+    return "";
+  }
+}
+
+/* referrer 指向的 HTML 完整版本化缓存键(无法解析时返回 "") */
+
+function referrerKeyOf(request) {
+  try {
+    if (!request.referrer || request.referrer === "about:client") {
+      return "";
+    }
+
+    return cacheKeyFor(new URL(request.referrer));
   } catch (error) {
     return "";
   }
@@ -248,6 +265,7 @@ async function shellReadThrough(request, event, cache, key, { isScript }) {
   */
 
   if (fresh) {
+    servedFallback.delete(key);
     return cached;
   }
 
@@ -279,6 +297,7 @@ async function shellReadThrough(request, event, cache, key, { isScript }) {
   if (response && response.ok) {
     await cache.put(key, stampResponse(response));
     await pruneOldVersions(cache, path);
+    servedFallback.delete(key);
     servedFallback.delete(path);
     return response;
   }
@@ -291,8 +310,10 @@ async function shellReadThrough(request, event, cache, key, { isScript }) {
 
   if (paired) {
     /* 回退的旧 HTML 与其配套 JS 在各自 ?v= 键下成对存在,
-       记录实际提供的版本,页面随后请求 JS 时配套使用。 */
+       优先记录该请求特定 URL 键的版本映射(防止多标签并发不同版本时串扰),
+       同时保留路径级备用映射,页面随后请求 JS 时配套使用。 */
     if (paired.version) {
+      servedFallback.set(key, paired.version);
       servedFallback.set(path, paired.version);
     }
 
@@ -486,7 +507,7 @@ self.addEventListener("message", event => {
       const keys = await cache.keys();
       const clients = await self.clients.matchAll({ includeUncontrolled: true });
 
-      event.source.postMessage({
+      event.source?.postMessage({
         type: "SHELL_STATS",
         keys: keys.map(key => (shellKeyToString(key))),
         clients: clients.map(client => ({
