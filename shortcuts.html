@@ -2812,13 +2812,13 @@ const sites = {
   tieba: {
     label: "百度贴吧",
     url: "https://tieba.baidu.com/",
-    icon: "https://o-ocn.github.io/icons/icons/tieba.svg"
+    icon: "https://o-ocn.github.io/icons/icons/tieba.png"
   },
 
   loltieba: {
     label: "LOL台服吧",
     url: "https://tieba.baidu.com/f?kw=lol%CC%A8%B7%FE",
-    icon: "https://o-ocn.github.io/icons/icons/tieba.svg"
+    icon: "https://o-ocn.github.io/icons/icons/tieba.png"
   },
 
   keylol: {
@@ -3594,6 +3594,14 @@ const defaultManagedSites =
   buildDefaultManagedSites();
 
 
+const ORIGINAL_PRESET_ICONS =
+  Object.fromEntries(
+    Object.entries(sites).map(
+      ([k, s]) => [k, s.icon || ""]
+    )
+  );
+
+
 /*
    仅 v1 数据使用：预设重复出现时
    （preset-<组>-<键>），把旧 sourceKey 上的
@@ -3663,14 +3671,44 @@ function applyCustomSitesToRuntime(
     normaliseCustomSites(entries);
 
 
+  let customSitesDirty = false;
   customSites.forEach(
     entry => {
+
+      const sourceKey =
+        entry.sourceKey
+        ||
+        entry.key.replace(/^preset-[^-]+-/, "");
+
+      const presetIcon =
+        ORIGINAL_PRESET_ICONS[sourceKey]
+        ||
+        ORIGINAL_PRESET_ICONS[entry.key];
+
+      if (presetIcon && !iconOverrides[entry.key]) {
+        if (
+          !entry.icon
+          ||
+          entry.icon.includes("files.codelife.cc")
+          ||
+          entry.icon.includes("dbbqb.com")
+          ||
+          entry.icon.includes("mengma.moe")
+          ||
+          entry.icon.includes("tieba.svg")
+          ||
+          entry.icon !== presetIcon
+        ) {
+          entry.icon = presetIcon;
+          customSitesDirty = true;
+        }
+      }
 
       if (entry.groupId && entry.groupId.startsWith("folder_")) {
         sites[entry.key] = {
           label: entry.label,
           url: entry.url,
-          icon: entry.icon
+          icon: entry.icon || presetIcon || ""
         };
         return;
       }
@@ -3697,7 +3735,7 @@ function applyCustomSitesToRuntime(
 
         label: entry.label,
         url: entry.url,
-        icon: entry.icon
+        icon: entry.icon || presetIcon || ""
 
       };
 
@@ -3710,6 +3748,41 @@ function applyCustomSitesToRuntime(
 
     }
   );
+
+  if (customSitesDirty) {
+    saveCustomSites();
+  }
+
+  let cacheCleaned = false;
+  Object.keys(storedIconCache).forEach(k => {
+    const cached = storedIconCache[k];
+    if (cached && typeof cached.src === "string") {
+      if (
+        cached.src.includes("files.codelife.cc")
+        ||
+        cached.src.includes("duckduckgo.com")
+        ||
+        cached.src.includes("google.com/s2/favicons")
+        ||
+        cached.src.includes("dbbqb.com")
+        ||
+        cached.src.includes("mengma.moe")
+        ||
+        cached.src.includes("tieba.svg")
+      ) {
+        delete storedIconCache[k];
+        cacheCleaned = true;
+      }
+    }
+  });
+  if (cacheCleaned) {
+    try {
+      localStorage.setItem(
+        ICON_CACHE_STORAGE_KEY,
+        JSON.stringify(storedIconCache)
+      );
+    } catch(e) {}
+  }
 
 
   applyGroupOrderToRuntime();
