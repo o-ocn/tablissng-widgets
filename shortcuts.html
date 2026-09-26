@@ -55,9 +55,29 @@ body {
 
   gap: 16px;
 
-  padding: 8px 10px;
+  padding: 10px 14px;
 
   overflow: hidden;
+
+  border-radius: 20px;
+
+  /* Apple 仿玻璃磨砂蒙版 */
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.04)
+    ),
+    rgba(22, 26, 36, 0.42);
+
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 
@@ -75,6 +95,7 @@ body {
 }
 
 .sidebar {
+  position: relative;
   height: 100%;
   min-height: 0;
 
@@ -200,7 +221,7 @@ body {
       255,
       255,
       255,
-      0.60
+      0.70
     );
 
   font-family:
@@ -213,11 +234,12 @@ body {
     sans-serif;
 
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
 
   letter-spacing: 0.1px;
 
   cursor: pointer;
+  touch-action: pan-y;
 
   display: flex;
   align-items: center;
@@ -243,7 +265,7 @@ body {
       255,
       255,
       255,
-      0.78
+      0.85
     );
 }
 
@@ -257,7 +279,7 @@ body {
       0.98
     );
 
-  font-weight: 600;
+  font-weight: 700;
 
   border-radius: 999px;
 
@@ -277,6 +299,45 @@ body {
 
   backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.nav-item.nav-item-dragging {
+  opacity: 0.65;
+  transform: scale(1.03);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+  z-index: 20;
+}
+
+.nav-item-add {
+  margin-top: 4px;
+  opacity: 0.55;
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.18);
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.nav-item-add:hover {
+  opacity: 0.95;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.sidebar-drop-indicator {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: #0A84FF;
+  border-radius: 999px;
+  box-shadow: 0 0 8px rgba(10, 132, 255, 0.8);
+  pointer-events: none;
+  z-index: 30;
+  display: none;
+  transition: top 0.08s ease;
 }
 
 
@@ -534,6 +595,8 @@ body {
   display: block;
 
   object-fit: contain;
+
+  image-rendering: -webkit-optimize-contrast;
 }
 
 
@@ -676,16 +739,16 @@ body {
   background:
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.10),
-      rgba(255, 255, 255, 0.025)
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0.05)
     ),
-    rgba(26, 29, 36, 0.56);
-  backdrop-filter: blur(22px) saturate(145%);
-  -webkit-backdrop-filter: blur(22px) saturate(145%);
+    rgba(36, 41, 52, 0.76);
+  backdrop-filter: blur(26px) saturate(155%);
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
   border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 12px 32px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10);
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -1150,11 +1213,32 @@ body {
   <button type="button" data-action="add-shortcut">
     添加快捷方式
   </button>
+  <button type="button" data-action="add-group">
+    新建分组
+  </button>
   <button type="button" data-action="recent-deleted">
     最近删除
   </button>
   <button type="button" data-action="sync-settings">
     云端同步
+  </button>
+</div>
+
+
+<div
+  class="context-menu"
+  id="groupMenu"
+  hidden
+>
+  <button type="button" data-action="edit-group">
+    重命名分组
+  </button>
+  <button type="button" data-action="add-group">
+    新建分组
+  </button>
+  <div class="context-menu-separator"></div>
+  <button class="danger" type="button" data-action="delete-group">
+    删除分组
   </button>
 </div>
 
@@ -1165,6 +1249,40 @@ body {
   accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
   hidden
 >
+
+
+<div
+  class="modal-overlay"
+  id="groupModal"
+  hidden
+>
+  <form class="modal-card" id="groupForm">
+    <h2 class="modal-title" id="groupModalTitle">新建分组</h2>
+
+    <label class="field">
+      <span>分组名称</span>
+      <input
+        id="groupNameInput"
+        type="text"
+        maxlength="16"
+        autocomplete="off"
+        placeholder="例如：常用、工作、开发"
+        required
+      >
+    </label>
+
+    <div class="form-error" id="groupFormError"></div>
+
+    <div class="modal-actions">
+      <button class="button-secondary" type="button" data-close-modal>
+        取消
+      </button>
+      <button class="button-primary" type="submit">
+        保存
+      </button>
+    </div>
+  </form>
+</div>
 
 
 <div
@@ -1839,6 +1957,21 @@ function getStoredIcon(
   }
 
 
+  /*
+     若旧缓存保存的是低清 16x16 / 32x32 的 .ico，
+     主动忽略该缓存，触发重新走高解析度链路（Apple Touch Icon / Google 128px）。
+  */
+  if (
+    entry.src.toLowerCase().includes(".ico")
+    ||
+    entry.src.includes("icons.duckduckgo.com")
+  ) {
+
+    return "";
+
+  }
+
+
   return entry.src;
 
 }
@@ -2032,6 +2165,46 @@ function ownFavicon(url) {
 }
 
 
+/* ========================================
+   Apple Touch Icon (Retina 高清 PNG，通常为 180x180)
+   ======================================== */
+
+function appleTouchIcon(url) {
+
+  try {
+
+    const parsed =
+      new URL(url);
+
+
+    if (
+      parsed.protocol !== "https:"
+      &&
+      parsed.protocol !== "http:"
+    ) {
+
+      return "";
+
+    }
+
+
+    return (
+      parsed.origin
+      +
+      "/apple-touch-icon.png"
+    );
+
+  }
+
+  catch {
+
+    return "";
+
+  }
+
+}
+
+
 function googleFavicon(url) {
 
   return (
@@ -2066,7 +2239,7 @@ function duckFavicon(url) {
 
 
 /* ========================================
-   检查一个图标是否可以加载
+   检查一个图标是否可以加载且具备有效尺寸
    ======================================== */
 
 function probeImage(url) {
@@ -2090,7 +2263,11 @@ function probeImage(url) {
       img.onload =
         () => {
 
-          resolve(true);
+          resolve(
+            img.naturalWidth > 0
+            &&
+            img.naturalHeight > 0
+          );
 
         };
 
@@ -2115,13 +2292,14 @@ function probeImage(url) {
 /* ========================================
    解析网站图标
 
-   优先级：
-
-   1 自定义本地图标
-   2 我们指定的图标
-   3 网站 favicon
-   4 Google favicon
-   5 DuckDuckGo favicon
+   高清晰度优先：
+   1 自定义本地图标（用户手动上传/链接）
+   2 预设高清图标（SVG 或 PNG）
+   3 网站官方 Apple Touch Icon (180x180 PNG)
+   4 Google Favicon (sz=128 高清缓存)
+   5 预设 .ico 图标
+   6 网站默认 /favicon.ico (通常仅 16x16)
+   7 DuckDuckGo 兜底图标
    ======================================== */
 
 function resolveIcon(
@@ -2188,15 +2366,23 @@ function resolveIcon(
           site.customIcon
         ),
 
-        normaliseIcon(
-          site.icon
-        ),
+        site.icon && !site.icon.toLowerCase().endsWith(".ico")
+          ? normaliseIcon(site.icon)
+          : "",
 
-        ownFavicon(
+        appleTouchIcon(
           site.url
         ),
 
         googleFavicon(
+          site.url
+        ),
+
+        site.icon && site.icon.toLowerCase().endsWith(".ico")
+          ? normaliseIcon(site.icon)
+          : "",
+
+        ownFavicon(
           site.url
         ),
 
@@ -2670,7 +2856,7 @@ const sites = {
    分组
    ======================================== */
 
-const groups = [
+const DEFAULT_PRESET_GROUPS = [
 
   {
     id: "home",
@@ -2851,6 +3037,91 @@ const groups = [
 
 
 /* ========================================
+   分组配置持久化（支持拖拽排序、增删改）
+   ======================================== */
+
+const GROUPS_STORAGE_KEY =
+  "tabliss-shortcuts-groups-config-v1";
+
+function loadGroupsConfig() {
+  try {
+    const raw =
+      localStorage.getItem(
+        GROUPS_STORAGE_KEY
+      );
+
+    if (raw) {
+      const parsed =
+        JSON.parse(raw);
+
+      if (
+        Array.isArray(parsed)
+        &&
+        parsed.length > 0
+      ) {
+        return parsed
+          .filter(
+            g =>
+              g
+              &&
+              typeof g.id === "string"
+              &&
+              g.id.trim()
+              &&
+              typeof g.label === "string"
+          )
+          .map(
+            g => ({
+              id: g.id.slice(0, 50),
+              label: g.label.slice(0, 50),
+              items: []
+            })
+          );
+      }
+    }
+  } catch (error) {
+    console.warn(
+      "Unable to load groups configuration",
+      error
+    );
+  }
+
+  return DEFAULT_PRESET_GROUPS.map(
+    g => ({
+      id: g.id,
+      label: g.label,
+      items: []
+    })
+  );
+}
+
+let groups =
+  loadGroupsConfig();
+
+function saveGroupsConfig() {
+  try {
+    const data =
+      groups.map(
+        g => ({
+          id: g.id,
+          label: g.label
+        })
+      );
+
+    localStorage.setItem(
+      GROUPS_STORAGE_KEY,
+      JSON.stringify(data)
+    );
+  } catch (error) {
+    console.warn(
+      "Unable to save groups configuration",
+      error
+    );
+  }
+}
+
+
+/* ========================================
    统一快捷方式数据
 
    预设只用于第一次初始化。
@@ -2947,7 +3218,7 @@ function buildDefaultManagedSites() {
     new Set();
 
 
-  return groups.flatMap(
+  return DEFAULT_PRESET_GROUPS.flatMap(
     group =>
       group.items
         .map(
@@ -3075,14 +3346,22 @@ function applyCustomSitesToRuntime(
   customSites.forEach(
     entry => {
 
-      const group =
+      let group =
         groups.find(
           item =>
             item.id ===
             entry.groupId
-        )
-        ||
-        groups[0];
+        );
+
+      if (!group) {
+        group = {
+          id: entry.groupId,
+          label: entry.groupId,
+          items: []
+        };
+        groups.push(group);
+        saveGroupsConfig();
+      }
 
 
       sites[entry.key] = {
@@ -3498,9 +3777,45 @@ const blankMenu =
   );
 
 
+const groupMenu =
+  document.getElementById(
+    "groupMenu"
+  );
+
+
 const iconFileInput =
   document.getElementById(
     "iconFileInput"
+  );
+
+
+const groupModal =
+  document.getElementById(
+    "groupModal"
+  );
+
+
+const groupForm =
+  document.getElementById(
+    "groupForm"
+  );
+
+
+const groupModalTitle =
+  document.getElementById(
+    "groupModalTitle"
+  );
+
+
+const groupNameInput =
+  document.getElementById(
+    "groupNameInput"
+  );
+
+
+const groupFormError =
+  document.getElementById(
+    "groupFormError"
   );
 
 
@@ -4398,6 +4713,8 @@ if (
 ) {
 
   currentId =
+    groups[0]?.id
+    ||
     "home";
 
 }
@@ -4423,6 +4740,12 @@ function hideContextMenus() {
 
   blankMenu.hidden =
     true;
+
+
+  if (groupMenu) {
+    groupMenu.hidden =
+      true;
+  }
 
 }
 
@@ -7645,7 +7968,244 @@ if (dragReorderSupported) {
 
 
 /* ========================================
-   左侧菜单
+   分组拖拽排序与 CRUD 管理
+   ======================================== */
+
+let isDraggingGroup = false;
+let groupDragTimer = null;
+let groupDragStartIndex = -1;
+let groupDragCurrentTargetIndex = -1;
+let groupDragJustFinished = false;
+let selectedGroupIdForMenu = null;
+let pendingGroupAction = null;
+
+let sidebarDropIndicator = null;
+function getOrCreateDropIndicator() {
+  if (!sidebarDropIndicator) {
+    sidebarDropIndicator = document.createElement("div");
+    sidebarDropIndicator.className = "sidebar-drop-indicator";
+    sidebar.appendChild(sidebarDropIndicator);
+  }
+  return sidebarDropIndicator;
+}
+
+function calcGroupDropIndex(clientY) {
+  const navItems = Array.from(
+    sidebar.querySelectorAll(".nav-item:not(.nav-item-add)")
+  );
+  if (navItems.length === 0) {
+    return 0;
+  }
+
+  for (let i = 0; i < navItems.length; i++) {
+    const rect = navItems[i].getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (clientY < midY) {
+      return i;
+    }
+  }
+
+  return navItems.length;
+}
+
+function updateGroupDropIndicator(slotIdx) {
+  const indicator = getOrCreateDropIndicator();
+  const navItems = Array.from(
+    sidebar.querySelectorAll(".nav-item:not(.nav-item-add)")
+  );
+  if (navItems.length === 0) {
+    indicator.style.display = "none";
+    return;
+  }
+
+  indicator.style.display = "block";
+  if (slotIdx < navItems.length) {
+    indicator.style.top = `${Math.max(0, navItems[slotIdx].offsetTop - 1)}px`;
+  } else {
+    const last = navItems[navItems.length - 1];
+    indicator.style.top = `${last.offsetTop + last.offsetHeight + 1}px`;
+  }
+}
+
+function startGroupDrag(event, groupId, button) {
+  isDraggingGroup = true;
+  groupDragStartIndex = groups.findIndex(g => g.id === groupId);
+  if (groupDragStartIndex < 0) return;
+
+  groupDragCurrentTargetIndex = groupDragStartIndex;
+
+  if (navigator.vibrate) {
+    try {
+      navigator.vibrate(25);
+    } catch {}
+  }
+
+  button.classList.add("nav-item-dragging");
+  updateGroupDropIndicator(groupDragStartIndex);
+
+  function onDragPointerMove(e) {
+    e.preventDefault();
+
+    const sidebarRect = sidebar.getBoundingClientRect();
+    if (e.clientY < sidebarRect.top + 28) {
+      sidebar.scrollTop -= 5;
+    } else if (e.clientY > sidebarRect.bottom - 28) {
+      sidebar.scrollTop += 5;
+    }
+
+    const slotIdx = calcGroupDropIndex(e.clientY);
+    groupDragCurrentTargetIndex = slotIdx;
+    updateGroupDropIndicator(slotIdx);
+  }
+
+  function onDragPointerUp() {
+    window.removeEventListener("pointermove", onDragPointerMove);
+    window.removeEventListener("pointerup", onDragPointerUp);
+    window.removeEventListener("pointercancel", onDragPointerUp);
+
+    button.classList.remove("nav-item-dragging");
+    const indicator = getOrCreateDropIndicator();
+    indicator.style.display = "none";
+
+    isDraggingGroup = false;
+    groupDragJustFinished = true;
+    setTimeout(() => {
+      groupDragJustFinished = false;
+    }, 150);
+
+    let targetIdx = groupDragCurrentTargetIndex;
+    if (targetIdx > groupDragStartIndex) {
+      targetIdx -= 1;
+    }
+
+    if (
+      groupDragStartIndex >= 0
+      &&
+      targetIdx >= 0
+      &&
+      targetIdx !== groupDragStartIndex
+      &&
+      targetIdx < groups.length
+    ) {
+      const [movedGroup] = groups.splice(groupDragStartIndex, 1);
+      groups.splice(targetIdx, 0, movedGroup);
+      saveGroupsConfig();
+      touchAllGroupOrders(false);
+      buildSidebar();
+      updateSidebarScrollControls();
+    }
+  }
+
+  window.addEventListener("pointermove", onDragPointerMove, { passive: false });
+  window.addEventListener("pointerup", onDragPointerUp, { once: true });
+  window.addEventListener("pointercancel", onDragPointerUp, { once: true });
+}
+
+function openGroupContextMenu(event, groupId) {
+  selectedGroupIdForMenu = groupId;
+  hideContextMenus();
+
+  const editBtn = groupMenu.querySelector('[data-action="edit-group"]');
+  const deleteBtn = groupMenu.querySelector('[data-action="delete-group"]');
+  const sep = groupMenu.querySelector(".context-menu-separator");
+
+  if (groupId) {
+    if (editBtn) editBtn.hidden = false;
+    if (deleteBtn) {
+      deleteBtn.hidden = false;
+      deleteBtn.disabled = groups.length <= 1;
+      if (groups.length <= 1) {
+        deleteBtn.style.opacity = "0.4";
+        deleteBtn.style.cursor = "not-allowed";
+      } else {
+        deleteBtn.style.opacity = "";
+        deleteBtn.style.cursor = "";
+      }
+    }
+    if (sep) sep.hidden = false;
+  } else {
+    if (editBtn) editBtn.hidden = true;
+    if (deleteBtn) deleteBtn.hidden = true;
+    if (sep) sep.hidden = true;
+  }
+
+  openContextMenu(groupMenu, event.clientX, event.clientY);
+}
+
+function openGroupModal(mode, groupId = null) {
+  hideContextMenus();
+  groupFormError.textContent = "";
+
+  if (mode === "add") {
+    pendingGroupAction = { mode: "add" };
+    groupModalTitle.textContent = "新建分组";
+    groupNameInput.value = "";
+  } else {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    pendingGroupAction = { mode: "edit", id: groupId };
+    groupModalTitle.textContent = "编辑分组名称";
+    groupNameInput.value = group.label;
+  }
+
+  openModal(groupModal, groupNameInput);
+}
+
+function deleteGroup(groupId) {
+  if (groups.length <= 1) {
+    showToast("至少需要保留一个分组");
+    return;
+  }
+
+  const group = groups.find(g => g.id === groupId);
+  if (!group) return;
+
+  const fallbackGroup = groups.find(g => g.id !== groupId) || groups[0];
+  const siteCount = group.items ? group.items.length : 0;
+
+  const confirmMsg =
+    siteCount > 0
+      ? `确认删除分组「${group.label}」？\n\n该分组下的 ${siteCount} 个快捷方式将移至「${fallbackGroup.label}」。`
+      : `确认删除分组「${group.label}」？`;
+
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  if (siteCount > 0) {
+    let movedCount = 0;
+    const now = new Date().toISOString();
+    customSites.forEach(site => {
+      if (site.groupId === groupId) {
+        site.groupId = fallbackGroup.id;
+        site.updatedAt = now;
+        movedCount++;
+      }
+    });
+
+    if (movedCount > 0) {
+      saveCustomSites();
+      touchGroupOrder(fallbackGroup.id, true);
+    }
+  }
+
+  groups = groups.filter(g => g.id !== groupId);
+  delete groupOrderState[groupId];
+  saveGroupsConfig();
+  saveGroupOrderState();
+
+  if (currentId === groupId) {
+    activateGroup(fallbackGroup.id);
+  }
+
+  buildSidebar();
+  buildAllGroups();
+  showToast(`已删除分组「${group.label}」`);
+}
+
+
+/* ========================================
+   左侧菜单构建
    ======================================== */
 
 function buildSidebar() {
@@ -7675,26 +8235,92 @@ function buildSidebar() {
         group.id;
 
 
-      button.innerHTML = `
+      const dot =
+        document.createElement(
+          "span"
+        );
+      dot.className =
+        "nav-dot";
 
-        <span
-          class="nav-dot"
-        ></span>
+      const labelSpan =
+        document.createElement(
+          "span"
+        );
+      labelSpan.textContent =
+        group.label;
 
-        <span>
-          ${group.label}
-        </span>
-
-      `;
+      button.append(
+        dot,
+        labelSpan
+      );
 
 
       button.addEventListener(
         "click",
-        () => {
+        event => {
+
+          if (groupDragJustFinished) {
+
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+
+          }
 
           activateGroup(
             group.id
           );
+
+        }
+      );
+
+
+      button.addEventListener(
+        "contextmenu",
+        event => {
+
+          event.preventDefault();
+          event.stopPropagation();
+          openGroupContextMenu(
+            event,
+            group.id
+          );
+
+        }
+      );
+
+
+      button.addEventListener(
+        "pointerdown",
+        event => {
+
+          if (event.button !== 0) return;
+
+          const startX = event.clientX;
+          const startY = event.clientY;
+          const groupId = group.id;
+
+          clearTimeout(groupDragTimer);
+          groupDragTimer = setTimeout(() => {
+            startGroupDrag(event, groupId, button);
+          }, 230);
+
+          function cancelTimerIfMoved(e) {
+            if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) {
+              clearTimeout(groupDragTimer);
+              window.removeEventListener("pointermove", cancelTimerIfMoved);
+              window.removeEventListener("pointerup", cancelTimerOnUp);
+            }
+          }
+
+          function cancelTimerOnUp() {
+            clearTimeout(groupDragTimer);
+            window.removeEventListener("pointermove", cancelTimerIfMoved);
+            window.removeEventListener("pointerup", cancelTimerOnUp);
+          }
+
+          window.addEventListener("pointermove", cancelTimerIfMoved, { passive: true });
+          window.addEventListener("pointerup", cancelTimerOnUp, { once: true });
 
         }
       );
@@ -7707,7 +8333,208 @@ function buildSidebar() {
     }
   );
 
+
+  const addButton =
+    document.createElement(
+      "button"
+    );
+  addButton.type =
+    "button";
+  addButton.className =
+    "nav-item nav-item-add";
+  addButton.setAttribute(
+    "aria-label",
+    "新建分组"
+  );
+  addButton.title =
+    "新建分组";
+  addButton.innerHTML = `
+    <span class="nav-dot" style="opacity:0.4;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;">+</span>
+    <span>新建分组</span>
+  `;
+  addButton.addEventListener(
+    "click",
+    () => {
+
+      openGroupModal("add");
+
+    }
+  );
+
+  sidebar.appendChild(
+    addButton
+  );
+
+  updateNav();
+  requestAnimationFrame(
+    updateSidebarScrollControls
+  );
+
 }
+
+
+sidebar.addEventListener(
+  "contextmenu",
+  event => {
+
+    if (
+      event.target.closest(".nav-item")
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    openGroupContextMenu(
+      event,
+      null
+    );
+
+  }
+);
+
+
+groupMenu.addEventListener(
+  "click",
+  event => {
+
+    const button =
+      event.target.closest(
+        "button[data-action]"
+      );
+
+    if (!button) return;
+
+    const action =
+      button.dataset.action;
+
+    hideContextMenus();
+
+    if (action === "add-group") {
+
+      openGroupModal("add");
+
+    } else if (
+      action === "edit-group"
+      &&
+      selectedGroupIdForMenu
+    ) {
+
+      openGroupModal(
+        "edit",
+        selectedGroupIdForMenu
+      );
+
+    } else if (
+      action === "delete-group"
+      &&
+      selectedGroupIdForMenu
+    ) {
+
+      deleteGroup(
+        selectedGroupIdForMenu
+      );
+
+    }
+
+  }
+);
+
+
+groupForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+    const name =
+      groupNameInput.value.trim();
+
+    if (!name) {
+
+      groupFormError.textContent =
+        "请输入分组名称";
+      return;
+
+    }
+
+    if (name.length > 20) {
+
+      groupFormError.textContent =
+        "分组名称不能超过 20 个字符";
+      return;
+
+    }
+
+
+    if (pendingGroupAction.mode === "add") {
+
+      if (
+        groups.some(
+          g => g.label === name
+        )
+      ) {
+
+        groupFormError.textContent =
+          "已存在同名分组";
+        return;
+
+      }
+
+      const newId =
+        "g_" + Date.now().toString(36);
+
+      const newGroup = {
+        id: newId,
+        label: name,
+        items: []
+      };
+
+      groups.push(newGroup);
+      saveGroupsConfig();
+      buildSidebar();
+      buildAllGroups();
+      activateGroup(newId);
+      closeModal(groupModal);
+      showToast(`已创建分组「${name}」`);
+
+    } else if (
+      pendingGroupAction.mode === "edit"
+    ) {
+
+      const group =
+        groups.find(
+          g =>
+            g.id ===
+            pendingGroupAction.id
+        );
+
+      if (!group) return;
+
+      if (
+        groups.some(
+          g =>
+            g.label === name
+            &&
+            g.id !== group.id
+        )
+      ) {
+
+        groupFormError.textContent =
+          "已存在同名分组";
+        return;
+
+      }
+
+      group.label = name;
+      saveGroupsConfig();
+      buildSidebar();
+      closeModal(groupModal);
+      showToast(`已重命名分组为「${name}」`);
+
+    }
+
+  }
+);
 
 
 /* ========================================
@@ -8246,6 +9073,16 @@ blankMenu.addEventListener(
         addModal,
         shortcutNameInput
       );
+
+    }
+
+
+    if (
+      action ===
+      "add-group"
+    ) {
+
+      openGroupModal("add");
 
     }
 
@@ -9027,7 +9864,7 @@ document
   );
 
 
-[addModal, editModal, iconUrlModal, syncModal, trashModal]
+[addModal, editModal, iconUrlModal, syncModal, trashModal, groupModal]
   .forEach(
     modal => {
 
