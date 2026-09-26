@@ -2536,6 +2536,10 @@ function googleFavicon(url) {
 }
 
 
+const DEFAULT_FALLBACK_ICON =
+  "https://o-ocn.github.io/icons/icons/default-fallback.png";
+
+
 function duckFavicon(url) {
 
   const hostname =
@@ -2704,10 +2708,6 @@ function resolveIcon(
 
         ownFavicon(
           site.url
-        ),
-
-        duckFavicon(
-          site.url
         )
 
       ])];
@@ -2745,7 +2745,7 @@ function resolveIcon(
       }
 
 
-      return "";
+      return DEFAULT_FALLBACK_ICON;
 
     })();
 
@@ -2788,19 +2788,19 @@ const sites = {
   netease: {
     label: "网易邮箱",
     url: "https://email.163.com/",
-    icon: "https://files.codelife.cc/icons/eb58486c2f648735.png"
+    icon: "https://o-ocn.github.io/icons/icons/netease.png"
   },
 
   qianmo: {
     label: "阡陌居",
     url: "http://www.1000qm.vip/",
-    icon: "https://files.codelife.cc/user-website-icon/20240110/gu-VMXO-ECF-ibdMPLkjR2327.png"
+    icon: "https://o-ocn.github.io/icons/icons/qianmo.png"
   },
 
   soushuba: {
     label: "搜书吧",
     url: "http://2303--1416.0314.world.chickengotogo.com:1223/o/?sigin=vpm72416787818706x8xfV38717172",
-    icon: "https://files.codelife.cc/user-website-icon/20240110/pxwn78duASsVjdH2Kszls3244.png"
+    icon: "https://o-ocn.github.io/icons/icons/soushuba.png"
   },
 
   laowang: {
@@ -2812,13 +2812,13 @@ const sites = {
   tieba: {
     label: "百度贴吧",
     url: "https://tieba.baidu.com/",
-    icon: "https://files.codelife.cc/icons/tieba.svg"
+    icon: "https://o-ocn.github.io/icons/icons/tieba.svg"
   },
 
   loltieba: {
     label: "LOL台服吧",
     url: "https://tieba.baidu.com/f?kw=lol%CC%A8%B7%FE",
-    icon: "https://files.codelife.cc/icons/tieba.svg"
+    icon: "https://o-ocn.github.io/icons/icons/tieba.svg"
   },
 
   keylol: {
@@ -2830,7 +2830,7 @@ const sites = {
   threedm: {
     label: "3DM论坛",
     url: "https://bbs.3dmgame.com/forum.php",
-    icon: "https://files.codelife.cc/website/5b862e120576296373cacabf.png"
+    icon: "https://o-ocn.github.io/icons/icons/threedm.png"
   },
 
   googleTranslate: {
@@ -2866,7 +2866,7 @@ const sites = {
   localsend: {
     label: "LocalSend",
     url: "https://web.localsend.org/zh-CN",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/localsend.png"
   },
 
   notion: {
@@ -2902,7 +2902,7 @@ const sites = {
   twitch: {
     label: "Twitch",
     url: "https://www.twitch.tv/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/twitch.svg"
   },
 
   douban: {
@@ -2932,13 +2932,13 @@ const sites = {
   x: {
     label: "X",
     url: "https://x.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/x.svg"
   },
 
   instagram: {
     label: "Instagram",
     url: "https://www.instagram.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/instagram.svg"
   },
 
   discord: {
@@ -2950,19 +2950,19 @@ const sites = {
   reddit: {
     label: "Reddit",
     url: "https://www.reddit.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/reddit.svg"
   },
 
   chatgpt: {
     label: "ChatGPT",
     url: "https://chatgpt.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/chatgpt.svg"
   },
 
   grok: {
     label: "Grok",
     url: "https://grok.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/grok.svg"
   },
 
   gemini: {
@@ -2986,7 +2986,7 @@ const sites = {
   deepseek: {
     label: "DeepSeek",
     url: "https://chat.deepseek.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/deepseek.svg"
   },
 
   tongyi: {
@@ -3016,13 +3016,13 @@ const sites = {
   onedrive: {
     label: "OneDrive",
     url: "https://onedrive.live.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/onedrive.svg"
   },
 
   gdrive: {
     label: "Google Drive",
     url: "https://drive.google.com/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/googledrive.svg"
   },
 
   baidupan: {
@@ -3112,61 +3112,61 @@ const sites = {
   oopz: {
     label: "Oopz",
     url: "https://web.oopz.cn/",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/oopz.png"
   },
 
   douyinBusiness: {
     label: "抖音来客",
     url: "https://life.douyin.com/p/home",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
   },
 
   douyinLive: {
     label: "直播专业版",
     url: "https://eos.douyin.com/livesite/live/current",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
   },
 
   localAds: {
     label: "巨量本地推",
     url: "https://localads.chengzijianzhan.cn/lamp/pc/home",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
   },
 
   anchor: {
     label: "主播平台",
     url: "https://anchor.douyin.com/anchor/dashboard/home",
-    icon: ""
+    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
   },
 
   fabiaoqing: {
     label: "发表情",
     url: "https://fabiaoqing.com/",
-    icon: "https://files.codelife.cc/icons/5b0bee5e8b6029438eae9535.png"
+    icon: "https://o-ocn.github.io/icons/icons/fabiaoqing.png"
   },
 
   dbbqb: {
     label: "逗比拯救世界",
     url: "https://www.dbbqb.com/",
-    icon: "https://www.dbbqb.com/logo192.png"
+    icon: "https://o-ocn.github.io/icons/icons/default-fallback.png"
   },
 
   pkdoutu: {
     label: "斗图啦",
     url: "https://www.pkdoutu.com/",
-    icon: "https://www.pkdoutu.com/favicon.ico"
+    icon: "https://o-ocn.github.io/icons/icons/pkdoutu.ico"
   },
 
   weshine: {
     label: "闪萌",
     url: "https://www.weshineapp.com/",
-    icon: "https://files.codelife.cc/website/5b9a5ec153aef51fa149f374.png"
+    icon: "https://o-ocn.github.io/icons/icons/weshine.png"
   },
 
   mengma: {
     label: "颜文字",
     url: "https://mengma.moe/#greet",
-    icon: "https://mengma.moe/favicon.ico"
+    icon: "https://o-ocn.github.io/icons/icons/default-fallback.png"
   }
 
 };
@@ -7890,8 +7890,9 @@ function createShortcut(key) {
   }
 
   function showFallback() {
-    img.style.display = "none";
-    fallback.style.display = "flex";
+    img.src = DEFAULT_FALLBACK_ICON;
+    img.style.display = "block";
+    fallback.style.display = "none";
   }
 
   const storedIcon = getStoredIcon(key, site);
@@ -7903,8 +7904,9 @@ function createShortcut(key) {
 
   let retriedAfterError = false;
   img.addEventListener("error", () => {
-    if (retriedAfterError) {
-      showFallback();
+    if (img.src.includes("default-fallback.png") || retriedAfterError) {
+      img.style.display = "none";
+      fallback.style.display = "flex";
       return;
     }
     retriedAfterError = true;
