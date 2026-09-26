@@ -59,7 +59,7 @@ const CACHE_PREFIX = "tablissng-";
 
 const SHELL_FRESH_AGE = 24 * 60 * 60 * 1000;
 const SHELL_HARD_AGE = 30 * 24 * 60 * 60 * 1000;
-const SHELL_NETWORK_TIMEOUT = 2500;
+const SHELL_NETWORK_TIMEOUT = 4000;
 const SHELL_KEEP_VERSIONS = 3;
 
 /*
@@ -315,6 +315,23 @@ async function shellReadThrough(request, event, cache, key, { isScript }) {
     if (paired.version) {
       servedFallback.set(key, paired.version);
       servedFallback.set(path, paired.version);
+    }
+
+    /* 后台静默抓取最新版本并写入缓存，保证下次打开即可切换到最新版，避免永久卡在旧版回退 */
+    if (event && typeof event.waitUntil === "function") {
+      event.waitUntil(
+        (async () => {
+          try {
+            const bgResponse = await fetch(request);
+            if (bgResponse && bgResponse.ok) {
+              await cache.put(key, stampResponse(bgResponse));
+              await pruneOldVersions(cache, path);
+              servedFallback.delete(key);
+              servedFallback.delete(path);
+            }
+          } catch (e) {}
+        })()
+      );
     }
 
     return paired.response;
