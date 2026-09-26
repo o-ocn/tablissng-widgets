@@ -11,19 +11,18 @@ import fs from "node:fs";
 
 const shortcutsHtml = fs.readFileSync("shortcuts.html", "utf8");
 
-test("HTML 包含仿 Apple 磨砂玻璃蒙版样式及圆角", () => {
-  assert.ok(shortcutsHtml.includes("backdrop-filter: blur(28px) saturate(160%)"), "包含高质量 backdrop blur");
-  assert.ok(shortcutsHtml.includes("border-radius: 20px"), "容器包含 Apple 风格圆角");
+test("shortcuts.html 内部保持纯内容与零滤镜，彻底杜绝跨 OOPIF 边界的 damage 截断", () => {
+  assert.ok(!shortcutsHtml.includes("backdrop-filter"), "iframe 内部不包含 backdrop-filter，避免触发 Chromium Compositor 表面失配");
+  assert.ok(!shortcutsHtml.includes("filter:"), "iframe 内部无 filter 滤镜");
   assert.ok(shortcutsHtml.includes("image-rendering: -webkit-optimize-contrast"), "图标渲染包含优化对比度规则");
   assert.ok(shortcutsHtml.includes("scrollbar-width: none !important"), "强制禁止滚动条以防触发视口缩放");
-  assert.ok(shortcutsHtml.includes("contain: paint layout"), "侧边栏区域包含隔离容器");
 });
 
-test("Tabliss 外层组件配置保持透明背景以防双层蒙版叠加", () => {
+test("Tabliss 外层宿主 div 承载 Apple 磨砂玻璃蒙版，与壁纸同树真正采样壁纸", () => {
   const widgetHtml = fs.readFileSync("tabliss/shortcuts-widget.html", "utf8");
-  assert.ok(widgetHtml.includes("background:transparent"), "外层 div 背景透明");
-  assert.ok(widgetHtml.includes("border:0"), "外层 div 无多余边框");
-  assert.ok(widgetHtml.includes("box-shadow:none"), "外层 div 无多余阴影");
+  assert.ok(widgetHtml.includes("backdrop-filter:blur(28px) saturate(160%)"), "外层宿主包含高质量 backdrop blur");
+  assert.ok(widgetHtml.includes("border-radius:20px"), "外层宿主包含 Apple 风格圆角");
+  assert.ok(widgetHtml.includes("box-sizing:border-box"), "外层宿主包含标准盒模型");
 });
 
 test("HTML 包含分组右键菜单 groupMenu 与分组弹窗 groupModal", () => {
@@ -205,12 +204,12 @@ test("删除分组时快捷方式迁移到兜底分组，且至少保留一个�
   assert.equal(groups.length, 1);
 });
 
-test("Tabliss 外壳透明化与双层蒙版消除检验", () => {
+test("Tabliss 外层宿主与 iframe 纯透明集成检验", () => {
   const widgetHtml = fs.readFileSync("tabliss/shortcuts-widget.html", "utf8");
-  assert.ok(widgetHtml.includes("background:transparent"), "外层 div 背景透明");
-  assert.ok(widgetHtml.includes("border:0"), "外层 div 无独立边框");
-  assert.ok(widgetHtml.includes("box-shadow:none"), "外层 div 无多余阴影");
-  assert.ok(!widgetHtml.includes("backdrop-filter:blur"), "外层 div 不再包含重复的 backdrop-filter 蒙版");
+  assert.ok(widgetHtml.includes("background:transparent"), "iframe 本身背景必须透明");
+  assert.ok(widgetHtml.includes("border:0"), "iframe 无边框");
+  assert.ok(widgetHtml.includes("width:100%"), "iframe 撑满宿主");
+  assert.ok(widgetHtml.includes("height:100%"), "iframe 撑满宿主");
 });
 
 test("左侧分组拖拽实感悬浮长条与手风琴上下避让位移算法", () => {

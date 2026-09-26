@@ -77,26 +77,6 @@ body {
   padding: 10px 14px;
 
   overflow: hidden;
-
-  border-radius: 20px;
-
-  /* Apple 仿玻璃清透磨砂蒙版 */
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.03)
-    ),
-    rgba(255, 255, 255, 0.08);
-
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-
-  border: 1px solid rgba(255, 255, 255, 0.18);
-
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 
@@ -111,7 +91,6 @@ body {
   min-height: 0;
   padding: 17px 0;
   overflow: hidden;
-  contain: paint layout;
 }
 
 .sidebar {
@@ -170,7 +149,6 @@ body {
   align-items: center;
   justify-content: center;
 
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   transition:
     color 0.16s ease,
     opacity 0.18s ease,
@@ -509,10 +487,8 @@ body {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(45, 50, 65, 0.78);
   color: #fff;
   display: flex;
   align-items: center;
@@ -891,19 +867,11 @@ body {
   scrollbar-width: none;
   padding: 5px;
   border-radius: 18px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.16),
-      rgba(255, 255, 255, 0.05)
-    ),
-    rgba(36, 41, 52, 0.76);
-  backdrop-filter: blur(26px) saturate(155%);
-  -webkit-backdrop-filter: blur(26px) saturate(155%);
+  background: rgba(30, 34, 44, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.20),
-    inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   font-family:
     -apple-system,
     BlinkMacSystemFont,
@@ -965,9 +933,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 14px;
-  background: rgba(5, 8, 14, 0.20);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(5, 8, 14, 0.50);
 }
 
 .modal-card {
@@ -1125,11 +1091,9 @@ body {
   padding: 8px 13px;
   border-radius: 999px;
   transform: translateX(-50%);
-  background: rgba(28, 31, 39, 0.86);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.20);
+  background: rgba(28, 31, 39, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   color: rgba(255, 255, 255, 0.94);
   font-size: 11px;
   white-space: nowrap;
@@ -1293,9 +1257,7 @@ body {
   height: 27px;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  background: rgba(36, 41, 52, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 14px rgba(10, 132, 255, 0.5);
   color: #ffffff;
