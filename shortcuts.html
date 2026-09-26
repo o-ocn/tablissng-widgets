@@ -61,23 +61,23 @@ body {
 
   border-radius: 20px;
 
-  /* Apple 仿玻璃磨砂蒙版 */
+  /* Apple 仿玻璃清透磨砂蒙版 */
   background:
     linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.12),
-      rgba(255, 255, 255, 0.04)
+      rgba(255, 255, 255, 0.03)
     ),
-    rgba(22, 26, 36, 0.42);
+    rgba(255, 255, 255, 0.08);
 
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
 
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 
   box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 
@@ -112,7 +112,7 @@ body {
   box-shadow: none;
 
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   scroll-behavior: smooth;
   scrollbar-width: none;
   overscroll-behavior: contain;
@@ -204,24 +204,25 @@ body {
   width: 100%;
   height: 27px;
   flex: 0 0 27px;
+  box-sizing: border-box;
 
   appearance: none;
 
-  border: 0;
+  border: 1px solid transparent;
   outline: 0;
 
-  padding: 0 9px;
+  padding: 0 10px;
 
   background: transparent;
 
-  border-radius: 11px;
+  border-radius: 999px;
 
   color:
     rgba(
       255,
       255,
       255,
-      0.70
+      0.72
     );
 
   font-family:
@@ -234,7 +235,7 @@ body {
     sans-serif;
 
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 
   letter-spacing: 0.1px;
 
@@ -252,10 +253,7 @@ body {
     color 0.16s ease,
     background 0.16s ease,
     border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.16s ease;
-
-  border: 1px solid transparent;
+    box-shadow 0.16s ease;
 }
 
 
@@ -265,40 +263,43 @@ body {
       255,
       255,
       255,
-      0.85
+      0.95
+    );
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.08
     );
 }
 
 
 .nav-item.active {
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      0.98
-    );
-
-  font-weight: 700;
+  color: #ffffff;
+  font-weight: 600;
 
   border-radius: 999px;
 
   background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.14),
-      rgba(255, 255, 255, 0.045)
+    rgba(
+      255,
+      255,
+      255,
+      0.18
     );
 
   border-color:
-    rgba(255, 255, 255, 0.14);
+    rgba(
+      255,
+      255,
+      255,
+      0.22
+    );
 
   box-shadow:
-    0 5px 15px rgba(0, 0, 0, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-
-  backdrop-filter: blur(18px) saturate(145%);
-  -webkit-backdrop-filter: blur(18px) saturate(145%);
+    0 2px 8px rgba(0, 0, 0, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .nav-item.nav-item-dragging {
@@ -418,18 +419,7 @@ body {
 
   width: 100%;
   height: 100%;
-
-  display: grid;
-
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
-
-  grid-auto-rows: 88px;
-
-  gap:
-    8px 9px;
-
-  align-content: center;
+  overflow: hidden;
 
   opacity: 0;
 
@@ -469,6 +459,148 @@ body {
 .group-grid.active.from-top {
   transform:
     translateY(0);
+}
+
+.group-slider-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.group-page {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 88px;
+  gap: 8px 9px;
+  align-content: center;
+  box-sizing: border-box;
+}
+
+/* 左右分页小箭头：悬浮边缘显现 */
+.page-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease, background 0.18s ease;
+  user-select: none;
+  padding: 0;
+}
+
+.page-arrow-prev {
+  left: 4px;
+}
+
+.page-arrow-next {
+  right: 4px;
+}
+
+.page-arrow.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.page-arrow:hover {
+  background: rgba(255, 255, 255, 0.30);
+  transform: translateY(-50%) scale(1.10);
+}
+
+.page-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.page-dots {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.page-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  transition: width 0.22s ease, background 0.22s ease;
+}
+
+.page-dot.active {
+  width: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/* 文件夹与拖动合并样式 */
+.shortcut.shortcut-folder {
+  cursor: pointer;
+}
+
+.shortcut.shortcut-folder .icon-shell {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 17px;
+  display: grid;
+  grid-template-columns: repeat(2, 22px);
+  grid-template-rows: repeat(2, 22px);
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.folder-mini-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+}
+
+.folder-mini-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.shortcut.folder-drop-target .icon-shell {
+  box-shadow: 0 0 0 3px #0A84FF, 0 6px 20px rgba(10, 132, 255, 0.5) !important;
+  transform: scale(1.08);
+  border-color: rgba(10, 132, 255, 0.8) !important;
 }
 
 
@@ -1126,6 +1258,129 @@ body {
   text-align: center;
 }
 
+/* 侧边栏分组拖拽时跟随鼠标的圆角长条（实感胶囊） */
+.sidebar-drag-avatar {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  height: 27px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 14px rgba(10, 132, 255, 0.5);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translate(-50%, -50%) scale(1.06);
+  will-change: left, top;
+}
+
+/* 文件夹弹窗相关样式 */
+.modal-card-folder {
+  width: min(390px, 94vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.folder-title-input {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 4px 8px;
+  outline: 0;
+  transition: background 0.16s, border-color 0.16s;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-title-input:hover,
+.folder-title-input:focus {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+.folder-close-btn {
+  background: rgba(255, 255, 255, 0.10);
+  border: 0;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.16s, color 0.16s;
+}
+
+.folder-close-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.folder-modal-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px 4px;
+}
+
+.folder-item-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.folder-item-wrapper .shortcut {
+  width: 100%;
+}
+
+.folder-item-remove-btn {
+  position: absolute;
+  top: -4px;
+  right: 12px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 69, 58, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  padding: 0;
+}
+
+.folder-item-wrapper:hover .folder-item-remove-btn {
+  display: flex;
+}
 </style>
 </head>
 
@@ -1172,7 +1427,31 @@ body {
   <main
     class="content"
     id="content"
-  ></main>
+  >
+    <button
+      type="button"
+      class="page-arrow page-arrow-prev"
+      id="pageArrowPrev"
+      aria-label="上一页"
+      title="上一页"
+    >
+      <svg viewBox="0 0 12 20" width="10" height="16" aria-hidden="true">
+        <path d="M10 2L2 10L10 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button
+      type="button"
+      class="page-arrow page-arrow-next"
+      id="pageArrowNext"
+      aria-label="下一页"
+      title="下一页"
+    >
+      <svg viewBox="0 0 12 20" width="10" height="16" aria-hidden="true">
+        <path d="M2 2L10 10L2 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="page-dots" id="pageDots" aria-label="分页指示器" style="display:none;"></div>
+  </main>
 
 </div>
 
@@ -1182,20 +1461,30 @@ body {
   id="shortcutMenu"
   hidden
 >
-  <button type="button" data-action="edit-shortcut" data-custom-only>
+  <button type="button" data-action="open-folder" data-folder-only hidden>
+    打开文件夹
+  </button>
+  <button type="button" data-action="rename-folder" data-folder-only hidden>
+    重命名文件夹
+  </button>
+  <button type="button" data-action="dissolve-folder" data-folder-only hidden>
+    解散文件夹
+  </button>
+  <div class="context-menu-separator" data-folder-only hidden></div>
+  <button type="button" data-action="edit-shortcut" data-shortcut-only data-custom-only>
     编辑快捷方式
   </button>
-  <button type="button" data-action="move-shortcut" data-custom-only>
+  <button type="button" data-action="move-shortcut" data-shortcut-only data-custom-only>
     移动到其他分组
   </button>
-  <div class="context-menu-separator" data-custom-only></div>
-  <button type="button" data-action="upload-icon">
+  <div class="context-menu-separator" data-shortcut-only data-custom-only></div>
+  <button type="button" data-action="upload-icon" data-shortcut-only>
     本地上传图标
   </button>
-  <button type="button" data-action="icon-url">
+  <button type="button" data-action="icon-url" data-shortcut-only>
     使用图标链接
   </button>
-  <button type="button" data-action="reset-icon">
+  <button type="button" data-action="reset-icon" data-shortcut-only>
     恢复自动图标
   </button>
   <div class="context-menu-separator" data-custom-only></div>
@@ -1282,6 +1571,48 @@ body {
       </button>
     </div>
   </form>
+</div>
+
+
+<div
+  class="modal-overlay"
+  id="folderModal"
+  hidden
+>
+  <div class="modal-card modal-card-folder" role="dialog" aria-modal="true" aria-label="文件夹">
+    <div class="folder-modal-header">
+      <input
+        type="text"
+        class="folder-title-input"
+        id="folderTitleInput"
+        maxlength="20"
+        placeholder="文件夹名称"
+        autocomplete="off"
+      />
+      <button
+        type="button"
+        class="folder-close-btn"
+        id="folderCloseBtn"
+        aria-label="关闭文件夹"
+        title="关闭"
+      >
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="folder-modal-body" id="folderModalBody"></div>
+
+    <div class="modal-actions" style="margin-top:10px;justify-content:space-between;">
+      <button class="button-secondary" type="button" id="folderDissolveBtn" style="color:#ff6b6b;border-color:rgba(255,107,107,0.3);">
+        解散文件夹
+      </button>
+      <button class="button-secondary" type="button" data-close-modal>
+        完成
+      </button>
+    </div>
+  </div>
 </div>
 
 
@@ -3346,6 +3677,15 @@ function applyCustomSitesToRuntime(
   customSites.forEach(
     entry => {
 
+      if (entry.groupId && entry.groupId.startsWith("folder_")) {
+        sites[entry.key] = {
+          label: entry.label,
+          url: entry.url,
+          icon: entry.icon
+        };
+        return;
+      }
+
       let group =
         groups.find(
           item =>
@@ -4045,6 +4385,48 @@ const trashModal =
 const trashList =
   document.getElementById(
     "trashList"
+  );
+
+
+const folderModal =
+  document.getElementById(
+    "folderModal"
+  );
+
+
+const folderTitleInput =
+  document.getElementById(
+    "folderTitleInput"
+  );
+
+
+const folderModalBody =
+  document.getElementById(
+    "folderModalBody"
+  );
+
+
+const folderCloseBtn =
+  document.getElementById(
+    "folderCloseBtn"
+  );
+
+
+const folderDissolveBtn =
+  document.getElementById(
+    "folderDissolveBtn"
+  );
+
+
+const pageArrowPrev =
+  document.getElementById(
+    "pageArrowPrev"
+  );
+
+
+const pageArrowNext =
+  document.getElementById(
+    "pageArrowNext"
   );
 
 
@@ -4750,28 +5132,47 @@ function hideContextMenus() {
 }
 
 
+function isFolderSite(site) {
+  if (!site) return false;
+  return (
+    (typeof site.key === "string" && site.key.startsWith("folder_")) ||
+    (typeof site.url === "string" && site.url.startsWith("https://folder.local"))
+  );
+}
+
 function updateShortcutMenu(key) {
-
+  const site =
+    customSites.find(entry => entry.key === key) ||
+    sites[key];
   const isCustom =
-    customSites.some(
-      entry =>
-        entry.key === key
-    );
-
+    customSites.some(entry => entry.key === key);
+  const isFolder =
+    isFolderSite(site);
 
   shortcutMenu
-    .querySelectorAll(
-      "[data-custom-only]"
-    )
-    .forEach(
-      item => {
+    .querySelectorAll("[data-custom-only]")
+    .forEach(item => {
+      item.hidden = !isCustom || isFolder;
+    });
 
-        item.hidden =
-          !isCustom;
+  shortcutMenu
+    .querySelectorAll("[data-folder-only]")
+    .forEach(item => {
+      item.hidden = !isFolder;
+    });
 
-      }
-    );
+  shortcutMenu
+    .querySelectorAll("[data-shortcut-only]")
+    .forEach(item => {
+      item.hidden = isFolder;
+    });
 
+  const deleteBtn =
+    shortcutMenu.querySelector('[data-action="delete-shortcut"]');
+  if (deleteBtn) {
+    deleteBtn.hidden = false;
+    deleteBtn.textContent = isFolder ? "删除文件夹" : "删除快捷方式";
+  }
 }
 
 
@@ -6269,6 +6670,10 @@ function closeModal(modal) {
   modal.hidden =
     true;
 
+  if (modal === folderModal) {
+    currentOpenFolderKey = null;
+  }
+
 }
 
 
@@ -6422,24 +6827,16 @@ function populateEditGroupOptions(
         );
 
 
-      const isFull =
-        group.items.length >= 12
-        &&
-        !alreadyHere;
-
-
       option.value =
         group.id;
 
 
       option.textContent =
-        isFull
-          ? `${group.label}（已满）`
-          : group.label;
+        group.label;
 
 
       option.disabled =
-        isFull;
+        false;
 
 
       option.selected =
@@ -7129,786 +7526,704 @@ function verifyRemoteIcon(url) {
 
 
 /* ========================================
+   文件夹管理与子项检索
+   ======================================== */
+
+function getFolderChildren(folderKey) {
+  const fromGroup = customSites.filter(s => s.groupId === folderKey);
+  if (fromGroup.length > 0) return fromGroup;
+
+  const folder = customSites.find(s => s.key === folderKey);
+  if (folder && folder.url && folder.url.includes("items=")) {
+    try {
+      const u = new URL(folder.url);
+      const itemsStr = u.searchParams.get("items") || "";
+      const keys = itemsStr.split(",").filter(Boolean);
+      return keys.map(k => customSites.find(s => s.key === k) || sites[k]).filter(Boolean);
+    } catch {}
+  }
+  return [];
+}
+
+function createFolderElement(key, site) {
+  const link = document.createElement("div");
+  link.className = "shortcut shortcut-folder";
+  link.dataset.siteKey = key;
+  link.title = site.label;
+
+  if (dragReorderSupported) {
+    link.draggable = true;
+    link.addEventListener("dragstart", event => {
+      dragShortcutKey = key;
+      dragSourceGroupId = link.closest(".group-grid")?.dataset.group || "";
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", key);
+      }
+      link.classList.add("dragging");
+    });
+    link.addEventListener("dragend", () => {
+      dragJustEnded = true;
+      link.classList.remove("dragging");
+      clearDropIndicator();
+      clearFolderDropTarget();
+      dragShortcutKey = "";
+      dragSourceGroupId = "";
+      setTimeout(() => {
+        dragJustEnded = false;
+      }, 0);
+    });
+  }
+
+  const shell = document.createElement("div");
+  shell.className = "icon-shell folder-icon-shell";
+
+  const children = getFolderChildren(key);
+  const previewChildren = children.slice(0, 4);
+
+  previewChildren.forEach(child => {
+    const mini = document.createElement("div");
+    mini.className = "folder-mini-icon";
+    const storedIcon = getStoredIcon(child.key, child);
+    if (storedIcon) {
+      const img = document.createElement("img");
+      img.src = storedIcon;
+      img.alt = "";
+      mini.appendChild(img);
+    } else {
+      const fallback = document.createElement("span");
+      fallback.textContent = (child.label || "").trim().charAt(0) || "·";
+      mini.appendChild(fallback);
+      resolveIcon(child.key, child).then(icon => {
+        if (icon) {
+          mini.innerHTML = "";
+          const img = document.createElement("img");
+          img.src = icon;
+          img.alt = "";
+          mini.appendChild(img);
+        }
+      });
+    }
+    shell.appendChild(mini);
+  });
+
+  const label = document.createElement("div");
+  label.className = "shortcut-label";
+  label.textContent = site.label;
+
+  link.appendChild(shell);
+  link.appendChild(label);
+
+  link.addEventListener("click", event => {
+    if (dragJustEnded) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    openFolderModal(key);
+  });
+
+  link.addEventListener("contextmenu", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    selectedShortcutKey = key;
+    updateShortcutMenu(key);
+    openContextMenu(shortcutMenu, event.clientX, event.clientY);
+  });
+
+  return link;
+}
+
+function createFolderFromShortcuts(targetKey, draggedKey) {
+  const currentGroup = groups.find(g => g.id === currentId);
+  if (!currentGroup) return;
+
+  const siteTarget = customSites.find(s => s.key === targetKey);
+  const siteDragged = customSites.find(s => s.key === draggedKey);
+  if (!siteTarget || !siteDragged) return;
+
+  const folderId = `folder_${Date.now()}`;
+  const now = new Date().toISOString();
+
+  siteTarget.groupId = folderId;
+  siteTarget.updatedAt = now;
+  siteDragged.groupId = folderId;
+  siteDragged.updatedAt = now;
+
+  const folderSite = {
+    key: folderId,
+    label: "新建文件夹",
+    url: `https://folder.local/?items=${encodeURIComponent(targetKey + "," + draggedKey)}`,
+    groupId: currentId,
+    icon: "",
+    updatedAt: now
+  };
+
+  customSites.push(folderSite);
+
+  const newItems = [];
+  for (const k of currentGroup.items) {
+    if (k === targetKey) {
+      newItems.push(folderId);
+    } else if (k !== draggedKey) {
+      newItems.push(k);
+    }
+  }
+  currentGroup.items = newItems;
+
+  saveCustomSites(customSites);
+  touchGroupOrder(currentId, true);
+  touchGroupOrder(folderId, true);
+  markSyncDirty();
+  rebuildGroupGrid(currentId);
+  showToast("已合并为文件夹");
+}
+
+function addShortcutToFolder(folderKey, draggedKey) {
+  const currentGroup = groups.find(g => g.id === currentId);
+  if (!currentGroup) return;
+
+  const folder = customSites.find(s => s.key === folderKey);
+  const siteDragged = customSites.find(s => s.key === draggedKey);
+  if (!folder || !siteDragged) return;
+
+  const now = new Date().toISOString();
+  siteDragged.groupId = folderKey;
+  siteDragged.updatedAt = now;
+
+  const children = getFolderChildren(folderKey);
+  const childKeys = [...new Set([...children.map(c => c.key), draggedKey])];
+  folder.url = `https://folder.local/?items=${encodeURIComponent(childKeys.join(","))}`;
+  folder.updatedAt = now;
+
+  currentGroup.items = currentGroup.items.filter(k => k !== draggedKey);
+
+  saveCustomSites(customSites);
+  touchGroupOrder(currentId, true);
+  touchGroupOrder(folderKey, true);
+  markSyncDirty();
+  rebuildGroupGrid(currentId);
+  showToast(`已放入文件夹「${folder.label}」`);
+}
+
+function removeShortcutFromFolder(folderKey, childKey) {
+  const currentGroup = groups.find(g => g.id === currentId);
+  const child = customSites.find(s => s.key === childKey);
+  const folder = customSites.find(s => s.key === folderKey);
+  if (!child) return;
+
+  const now = new Date().toISOString();
+  child.groupId = currentId;
+  child.updatedAt = now;
+
+  if (currentGroup && !currentGroup.items.includes(childKey)) {
+    currentGroup.items.push(childKey);
+  }
+
+  const remaining = getFolderChildren(folderKey).filter(c => c.key !== childKey);
+  if (remaining.length === 0) {
+    dissolveFolder(folderKey);
+    return;
+  }
+
+  if (folder) {
+    folder.url = `https://folder.local/?items=${encodeURIComponent(remaining.map(r => r.key).join(","))}`;
+    folder.updatedAt = now;
+  }
+
+  saveCustomSites(customSites);
+  touchGroupOrder(currentId, true);
+  touchGroupOrder(folderKey, true);
+  markSyncDirty();
+  rebuildGroupGrid(currentId);
+  openFolderModal(folderKey);
+  showToast(`已将「${child.label}」移出文件夹`);
+}
+
+function dissolveFolder(folderKey) {
+  const currentGroup = groups.find(g => g.id === currentId);
+  const folder = customSites.find(s => s.key === folderKey);
+  const children = getFolderChildren(folderKey);
+  const now = new Date().toISOString();
+
+  children.forEach(c => {
+    c.groupId = currentId;
+    c.updatedAt = now;
+  });
+
+  if (currentGroup) {
+    const idx = currentGroup.items.indexOf(folderKey);
+    const childKeys = children.map(c => c.key);
+    if (idx >= 0) {
+      currentGroup.items.splice(idx, 1, ...childKeys);
+    } else {
+      currentGroup.items.push(...childKeys);
+    }
+  }
+
+  const folderIndex = customSites.findIndex(s => s.key === folderKey);
+  if (folderIndex >= 0) {
+    customSites.splice(folderIndex, 1);
+  }
+
+  if (folderModal) folderModal.hidden = true;
+  currentOpenFolderKey = null;
+
+  saveCustomSites(customSites);
+  touchGroupOrder(currentId, true);
+  markSyncDirty();
+  rebuildGroupGrid(currentId);
+  showToast(`已解散文件夹「${folder?.label || ""}」`);
+}
+
+function renameFolder(folderKey, newLabel) {
+  const folder = customSites.find(s => s.key === folderKey);
+  const trimmed = (newLabel || "").trim();
+  if (!folder || !trimmed) return;
+  folder.label = trimmed;
+  folder.updatedAt = new Date().toISOString();
+  saveCustomSites(customSites);
+  markSyncDirty();
+  rebuildGroupGrid(currentId);
+}
+
+let currentOpenFolderKey = null;
+
+function openFolderModal(folderKey) {
+  const folder = customSites.find(s => s.key === folderKey);
+  if (!folder) return;
+
+  currentOpenFolderKey = folderKey;
+
+  if (folderTitleInput) folderTitleInput.value = folder.label;
+  if (folderModalBody) {
+    folderModalBody.innerHTML = "";
+    const children = getFolderChildren(folderKey);
+    children.forEach(child => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "folder-item-wrapper";
+
+      const sc = createShortcut(child.key);
+      if (sc) {
+        wrapper.appendChild(sc);
+      }
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "folder-item-remove-btn";
+      removeBtn.title = "移出文件夹";
+      removeBtn.textContent = "✕";
+      removeBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        removeShortcutFromFolder(folderKey, child.key);
+      });
+
+      wrapper.appendChild(removeBtn);
+      folderModalBody.appendChild(wrapper);
+    });
+  }
+
+  if (folderModal) openModal(folderModal, folderTitleInput);
+}
+
+/* ========================================
    创建快捷方式
    ======================================== */
 
-function createShortcut(
-  key
-) {
-
+function createShortcut(key) {
   const site =
+    customSites.find(s => s.key === key) ||
     sites[key];
 
-
   if (!site) {
-
     return null;
-
   }
 
+  if (isFolderSite(site)) {
+    return createFolderElement(key, site);
+  }
 
-  const link =
-    document.createElement(
-      "a"
-    );
+  const link = document.createElement("a");
+  link.className = "shortcut";
+  link.href = site.url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = site.label;
+  link.dataset.siteKey = key;
 
-
-  link.className =
-    "shortcut";
-
-
-  link.href =
-    site.url;
-
-
-  link.target =
-    "_blank";
-
-
-  link.rel =
-    "noopener noreferrer";
-
-
-  link.title =
-    site.label;
-
-
-  link.dataset.siteKey =
-    key;
-
-
-  link.addEventListener(
-    "contextmenu",
-    event => {
-
-      event.preventDefault();
-      event.stopPropagation();
-
-
-      selectedShortcutKey =
-        key;
-
-
-      updateShortcutMenu(
-        key
-      );
-
-
-      openContextMenu(
-        shortcutMenu,
-        event.clientX,
-        event.clientY
-      );
-
-    }
-  );
-
-
-  /*
-     拖动排序（同一分组内）。
-
-     拖动由 dragstart/dragover/drop 驱动，
-     全程不会触发点击跳转；
-     拖动结束后的一瞬间，
-     兜底拦截一次 click。
-  */
+  link.addEventListener("contextmenu", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    selectedShortcutKey = key;
+    updateShortcutMenu(key);
+    openContextMenu(shortcutMenu, event.clientX, event.clientY);
+  });
 
   if (dragReorderSupported) {
-
-    link.draggable =
-      true;
-
-
-    link.addEventListener(
-      "dragstart",
-      event => {
-
-        dragShortcutKey =
-          key;
-
-
-        dragSourceGroupId =
-          link.closest(".group-grid")?.dataset.group
-          ||
-          "";
-
-
-        if (event.dataTransfer) {
-
-          event.dataTransfer.effectAllowed =
-            "move";
-
-
-          event.dataTransfer.setData(
-            "text/plain",
-            key
-          );
-
-        }
-
-
-        link.classList.add(
-          "dragging"
-        );
-
+    link.draggable = true;
+    link.addEventListener("dragstart", event => {
+      dragShortcutKey = key;
+      dragSourceGroupId = link.closest(".group-grid")?.dataset.group || "";
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", key);
       }
-    );
+      link.classList.add("dragging");
+    });
 
-
-    link.addEventListener(
-      "dragend",
-      () => {
-
-        dragJustEnded =
-          true;
-
-
-        link.classList.remove(
-          "dragging"
-        );
-
-
-        clearDropIndicator();
-
-
-        dragShortcutKey =
-          "";
-
-
-        dragSourceGroupId =
-          "";
-
-
-        setTimeout(
-          () => {
-
-            dragJustEnded =
-              false;
-
-          },
-          0
-        );
-
-      }
-    );
-
+    link.addEventListener("dragend", () => {
+      dragJustEnded = true;
+      link.classList.remove("dragging");
+      clearDropIndicator();
+      clearFolderDropTarget();
+      dragShortcutKey = "";
+      dragSourceGroupId = "";
+      setTimeout(() => {
+        dragJustEnded = false;
+      }, 0);
+    });
   }
 
+  const shell = document.createElement("div");
+  shell.className = "icon-shell";
 
-  const shell =
-    document.createElement(
-      "div"
-    );
+  const img = document.createElement("img");
+  img.alt = "";
 
-
-  shell.className =
-    "icon-shell";
-
-
-  const img =
-    document.createElement(
-      "img"
-    );
-
-
-  img.alt =
-    "";
-
-
-  const fallback =
-    document.createElement(
-      "span"
-    );
-
-
-  fallback.className =
-    "fallback";
-
-
-  fallback.textContent =
-    site.label
-      .trim()
-      .charAt(0);
-
+  const fallback = document.createElement("span");
+  fallback.className = "fallback";
+  fallback.textContent = (site.label || "").trim().charAt(0);
 
   function showIcon(icon) {
-
-    img.src =
-      icon;
-
-
-    img.style.display =
-      "block";
-
-
-    fallback.style.display =
-      "none";
-
+    img.src = icon;
+    img.style.display = "block";
+    fallback.style.display = "none";
   }
-
 
   function showFallback() {
-
-    img.style.display =
-      "none";
-
-
-    fallback.style.display =
-      "flex";
-
+    img.style.display = "none";
+    fallback.style.display = "flex";
   }
 
-
-  const storedIcon =
-    getStoredIcon(
-      key,
-      site
-    );
-
-
+  const storedIcon = getStoredIcon(key, site);
   if (storedIcon) {
-
-    showIcon(
-      storedIcon
-    );
-
-  }
-
-  else {
-
+    showIcon(storedIcon);
+  } else {
     showFallback();
-
   }
 
-
-  let retriedAfterError =
-    false;
-
-
-  img.addEventListener(
-    "error",
-    () => {
-
-      if (retriedAfterError) {
-
-        showFallback();
-
-        return;
-
-      }
-
-
-      retriedAfterError =
-        true;
-
-
+  let retriedAfterError = false;
+  img.addEventListener("error", () => {
+    if (retriedAfterError) {
       showFallback();
-
-
-      clearStoredIcon(
-        key
-      );
-
-
-      resolveIcon(
-        key,
-        site,
-        true
-      )
-      .then(
-        icon => {
-
-          if (icon) {
-
-            showIcon(
-              icon
-            );
-
-          }
-
-        }
-      );
-
+      return;
     }
-  );
-
-
-  shell.appendChild(
-    img
-  );
-
-
-  shell.appendChild(
-    fallback
-  );
-
-
-  const label =
-    document.createElement(
-      "div"
-    );
-
-
-  label.className =
-    "shortcut-label";
-
-
-  label.textContent =
-    site.label;
-
-
-  link.appendChild(
-    shell
-  );
-
-
-  link.appendChild(
-    label
-  );
-
-
-  /*
-     每个网站图标只解析一次。
-
-     同一个 Outlook 即使同时存在：
-     主页 + 邮箱
-
-     resolveIcon 也只真正执行一次。
-  */
-
-  resolveIcon(
-    key,
-    site
-  )
-  .then(
-    icon => {
-
+    retriedAfterError = true;
+    showFallback();
+    clearStoredIcon(key);
+    resolveIcon(key, site, true).then(icon => {
       if (icon) {
-
-        showIcon(
-          icon
-        );
-
+        showIcon(icon);
       }
+    });
+  });
 
-      else {
+  shell.appendChild(img);
+  shell.appendChild(fallback);
 
-        showFallback();
+  const label = document.createElement("div");
+  label.className = "shortcut-label";
+  label.textContent = site.label;
 
-      }
+  link.appendChild(shell);
+  link.appendChild(label);
 
+  resolveIcon(key, site).then(icon => {
+    if (icon) {
+      showIcon(icon);
+    } else {
+      showFallback();
     }
-  );
-
+  });
 
   return link;
-
 }
-
 
 /* ========================================
-   启动时一次性创建全部分组
-
-   后面滚轮切换时不再重建。
+   分组左右分页与网格构建
    ======================================== */
 
-function buildAllGroups() {
+const ITEMS_PER_PAGE = 12;
+const groupPageMap = new Map();
 
-  content.innerHTML =
-    "";
-
-
-  groups.forEach(
-    group => {
-
-      const grid =
-        document.createElement(
-          "div"
-        );
-
-
-      grid.className =
-        "group-grid";
-
-
-      grid.dataset.group =
-        group.id;
-
-
-      group.items.forEach(
-        key => {
-
-          const shortcut =
-            createShortcut(
-              key
-            );
-
-
-          if (shortcut) {
-
-            grid.appendChild(
-              shortcut
-            );
-
-          }
-
-        }
-      );
-
-
-      content.appendChild(
-        grid
-      );
-
-
-      groupElements.set(
-        group.id,
-        grid
-      );
-
-    }
-  );
-
+function getGroupCurrentPage(groupId) {
+  return groupPageMap.get(groupId) || 0;
 }
 
+function getGroupTotalPages(groupId) {
+  const group = groups.find(g => g.id === groupId);
+  if (!group || !Array.isArray(group.items)) return 1;
+  return Math.max(1, Math.ceil(group.items.length / ITEMS_PER_PAGE));
+}
 
-/*
-   只重建一个分组的网格，
-   拖动结束后按新的稳定键顺序
-   重新渲染，图标走内存缓存，
-   不会闪烁。
-*/
+function setGroupPage(groupId, pageIndex) {
+  const totalPages = getGroupTotalPages(groupId);
+  const validPage = Math.max(0, Math.min(pageIndex, totalPages - 1));
+  groupPageMap.set(groupId, validPage);
 
-function rebuildGroupGrid(
-  groupId
-) {
-
-  const grid =
-    groupElements.get(
-      groupId
-    );
-
-
-  const group =
-    groups.find(
-      item =>
-        item.id ===
-        groupId
-    );
-
-
-  if (!grid || !group) {
-
-    return;
-
+  const grid = groupElements.get(groupId);
+  if (grid) {
+    const track = grid.querySelector(".group-slider-track");
+    if (track) {
+      track.style.transform = `translateX(-${validPage * 100}%)`;
+    }
   }
 
+  updatePaginationUI(groupId);
+}
+
+function updatePaginationUI(groupId) {
+  if (groupId !== currentId) return;
+
+  const totalPages = getGroupTotalPages(groupId);
+  const currentPage = getGroupCurrentPage(groupId);
+  const pageDotsEl = document.getElementById("pageDots");
+  const pageArrowPrev = document.getElementById("pageArrowPrev");
+  const pageArrowNext = document.getElementById("pageArrowNext");
+
+  if (!pageDotsEl) return;
+
+  if (totalPages <= 1) {
+    pageDotsEl.style.display = "none";
+    pageDotsEl.innerHTML = "";
+    if (pageArrowPrev) pageArrowPrev.classList.remove("visible");
+    if (pageArrowNext) pageArrowNext.classList.remove("visible");
+    return;
+  }
+
+  pageDotsEl.style.display = "flex";
+  pageDotsEl.innerHTML = "";
+
+  if (currentPage === 0 && pageArrowPrev) pageArrowPrev.classList.remove("visible");
+  if (currentPage >= totalPages - 1 && pageArrowNext) pageArrowNext.classList.remove("visible");
+
+  for (let i = 0; i < totalPages; i++) {
+    const dot = document.createElement("span");
+    dot.className = `page-dot ${i === currentPage ? "active" : ""}`;
+    dot.title = `第 ${i + 1} 页`;
+    dot.addEventListener("click", () => setGroupPage(groupId, i));
+    pageDotsEl.appendChild(dot);
+  }
+}
+
+function buildAllGroups() {
+  content.querySelectorAll(".group-grid").forEach(el => el.remove());
+
+  groups.forEach(group => {
+    const grid = document.createElement("div");
+    grid.className = "group-grid";
+    grid.dataset.group = group.id;
+
+    const track = document.createElement("div");
+    track.className = "group-slider-track";
+
+    const totalPages = Math.max(1, Math.ceil(group.items.length / ITEMS_PER_PAGE));
+    const currentPage = Math.min(getGroupCurrentPage(group.id), totalPages - 1);
+    track.style.transform = `translateX(-${currentPage * 100}%)`;
+
+    for (let p = 0; p < totalPages; p++) {
+      const pageDiv = document.createElement("div");
+      pageDiv.className = "group-page";
+      pageDiv.dataset.page = p;
+
+      const pageItems = group.items.slice(p * ITEMS_PER_PAGE, (p + 1) * ITEMS_PER_PAGE);
+      pageItems.forEach(key => {
+        const shortcut = createShortcut(key);
+        if (shortcut) {
+          pageDiv.appendChild(shortcut);
+        }
+      });
+      track.appendChild(pageDiv);
+    }
+
+    grid.appendChild(track);
+    content.appendChild(grid);
+    groupElements.set(group.id, grid);
+  });
+
+  updatePaginationUI(currentId);
+}
+
+function rebuildGroupGrid(groupId) {
+  const grid = groupElements.get(groupId);
+  const group = groups.find(item => item.id === groupId);
+
+  if (!grid || !group) return;
 
   grid.replaceChildren();
 
+  const track = document.createElement("div");
+  track.className = "group-slider-track";
 
-  group.items.forEach(
-    key => {
+  const totalPages = Math.max(1, Math.ceil(group.items.length / ITEMS_PER_PAGE));
+  let currentPage = getGroupCurrentPage(groupId);
+  if (currentPage >= totalPages) {
+    currentPage = totalPages - 1;
+    groupPageMap.set(groupId, currentPage);
+  }
+  track.style.transform = `translateX(-${currentPage * 100}%)`;
 
-      const shortcut =
-        createShortcut(
-          key
-        );
+  for (let p = 0; p < totalPages; p++) {
+    const pageDiv = document.createElement("div");
+    pageDiv.className = "group-page";
+    pageDiv.dataset.page = p;
 
-
+    const pageItems = group.items.slice(p * ITEMS_PER_PAGE, (p + 1) * ITEMS_PER_PAGE);
+    pageItems.forEach(key => {
+      const shortcut = createShortcut(key);
       if (shortcut) {
-
-        grid.appendChild(
-          shortcut
-        );
-
+        pageDiv.appendChild(shortcut);
       }
+    });
+    track.appendChild(pageDiv);
+  }
 
-    }
-  );
-
+  grid.appendChild(track);
+  updatePaginationUI(groupId);
 }
-
 
 /* ========================================
-   拖动排序事件
-
-   只允许在同一分组内拖动。
-   放置位置提示是目标卡片
-   左/右边缘的一根细蓝条。
+   快捷方式拖动排序与文件夹拖拽合并
    ======================================== */
 
+let activeFolderDropTarget = null;
+
+function setFolderDropTarget(target) {
+  if (activeFolderDropTarget === target) return;
+  clearFolderDropTarget();
+  activeFolderDropTarget = target;
+  target.classList.add("folder-drop-target");
+}
+
+function clearFolderDropTarget() {
+  if (activeFolderDropTarget) {
+    activeFolderDropTarget.classList.remove("folder-drop-target");
+    activeFolderDropTarget = null;
+  }
+}
+
 function clearDropIndicator() {
-
   if (dropIndicatorElement) {
-
-    dropIndicatorElement.classList.remove(
-      "drop-before",
-      "drop-after"
-    );
-
+    dropIndicatorElement.classList.remove("drop-before", "drop-after");
   }
-
-
-  dropIndicatorElement =
-    null;
-
-
-  dropIndicatorSide =
-    "";
-
+  dropIndicatorElement = null;
+  dropIndicatorSide = "";
 }
 
-
-function setDropIndicator(
-  element,
-  side
-) {
-
-  if (
-    dropIndicatorElement ===
-      element
-    &&
-    dropIndicatorSide ===
-      side
-  ) {
-
+function setDropIndicator(element, side) {
+  if (dropIndicatorElement === element && dropIndicatorSide === side) {
     return;
-
   }
-
-
   clearDropIndicator();
-
-
-  dropIndicatorElement =
-    element;
-
-
-  dropIndicatorSide =
-    side;
-
-
-  element.classList.add(
-    side === "before"
-      ? "drop-before"
-      : "drop-after"
-  );
-
+  dropIndicatorElement = element;
+  dropIndicatorSide = side;
+  element.classList.add(side === "before" ? "drop-before" : "drop-after");
 }
-
 
 if (dragReorderSupported) {
+  content.addEventListener("dragover", event => {
+    if (!dragShortcutKey) return;
 
-  content.addEventListener(
-    "dragover",
-    event => {
-
-      if (!dragShortcutKey) {
-
-        return;
-
-      }
-
-
-      const grid =
-        event.target.closest(
-          ".group-grid"
-        );
-
-
-      if (
-        !grid
-        ||
-        grid.dataset.group !==
-          dragSourceGroupId
-      ) {
-
-        clearDropIndicator();
-
-        return;
-
-      }
-
-
-      event.preventDefault();
-
-
-      event.dataTransfer.dropEffect =
-        "move";
-
-
-      const target =
-        event.target.closest(
-          ".shortcut"
-        );
-
-
-      if (
-        !target
-        ||
-        target.dataset.siteKey ===
-          dragShortcutKey
-      ) {
-
-        clearDropIndicator();
-
-        return;
-
-      }
-
-
-      const rect =
-        target.getBoundingClientRect();
-
-
-      setDropIndicator(
-        target,
-        event.clientX >
-          rect.left + rect.width / 2
-          ? "after"
-          : "before"
-      );
-
-    }
-  );
-
-
-  content.addEventListener(
-    "drop",
-    event => {
-
-      if (!dragShortcutKey) {
-
-        return;
-
-      }
-
-
-      const grid =
-        event.target.closest(
-          ".group-grid"
-        );
-
-
+    const grid = event.target.closest(".group-grid");
+    if (!grid || grid.dataset.group !== dragSourceGroupId) {
       clearDropIndicator();
-
-
-      if (
-        !grid
-        ||
-        grid.dataset.group !==
-          dragSourceGroupId
-      ) {
-
-        return;
-
-      }
-
-
-      event.preventDefault();
-
-
-      const group =
-        groups.find(
-          item =>
-            item.id ===
-            dragSourceGroupId
-        );
-
-
-      const target =
-        event.target.closest(
-          ".shortcut"
-        );
-
-
-      const key =
-        dragShortcutKey;
-
-
-      if (
-        !group
-        ||
-        !target
-        ||
-        target.dataset.siteKey ===
-          key
-      ) {
-
-        return;
-
-      }
-
-
-      const targetKey =
-        target.dataset.siteKey;
-
-
-      const items =
-        group.items.filter(
-          item =>
-            item !==
-            key
-        );
-
-
-      const targetIndex =
-        items.indexOf(
-          targetKey
-        );
-
-
-      if (targetIndex < 0) {
-
-        return;
-
-      }
-
-
-      const rect =
-        target.getBoundingClientRect();
-
-
-      const insertAfter =
-        event.clientX >
-        rect.left + rect.width / 2;
-
-
-      items.splice(
-        insertAfter
-          ? targetIndex + 1
-          : targetIndex,
-        0,
-        key
-      );
-
-
-      group.items =
-        items;
-
-
-      /*
-         排序按稳定键写入 groupOrder，
-         只更新这一组的排序时间，
-         然后走受保护的自动同步。
-      */
-
-      touchGroupOrder(
-        group.id,
-        true
-      );
-
-
-      markSyncDirty();
-
-
-      rebuildGroupGrid(
-        group.id
-      );
-
+      clearFolderDropTarget();
+      return;
     }
-  );
+
+    const target = event.target.closest(".shortcut");
+    if (!target || target.dataset.siteKey === dragShortcutKey) {
+      clearDropIndicator();
+      clearFolderDropTarget();
+      return;
+    }
+
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+
+    const targetKey = target.dataset.siteKey;
+    const draggedSite = customSites.find(s => s.key === dragShortcutKey) || sites[dragShortcutKey];
+    const targetSite = customSites.find(s => s.key === targetKey) || sites[targetKey];
+
+    const rect = target.getBoundingClientRect();
+    const relX = event.clientX - rect.left;
+    const relY = event.clientY - rect.top;
+
+    const isDraggingFolder = isFolderSite(draggedSite);
+    const canMerge = !isDraggingFolder;
+    const isCenter = canMerge &&
+      (relX > rect.width * 0.22 && relX < rect.width * 0.78) &&
+      (relY > rect.height * 0.15 && relY < rect.height * 0.85);
+
+    if (isCenter) {
+      clearDropIndicator();
+      setFolderDropTarget(target);
+    } else {
+      clearFolderDropTarget();
+      setDropIndicator(target, relX > rect.width / 2 ? "after" : "before");
+    }
+  });
+
+  content.addEventListener("drop", event => {
+    if (!dragShortcutKey) return;
+
+    const grid = event.target.closest(".group-grid");
+    if (!grid || grid.dataset.group !== dragSourceGroupId) {
+      clearDropIndicator();
+      clearFolderDropTarget();
+      return;
+    }
+
+    event.preventDefault();
+
+    const group = groups.find(item => item.id === dragSourceGroupId);
+    const target = event.target.closest(".shortcut");
+    const key = dragShortcutKey;
+
+    if (!group || !target || target.dataset.siteKey === key) {
+      clearDropIndicator();
+      clearFolderDropTarget();
+      return;
+    }
+
+    const targetKey = target.dataset.siteKey;
+    const targetSite = customSites.find(s => s.key === targetKey) || sites[targetKey];
+
+    if (activeFolderDropTarget) {
+      if (isFolderSite(targetSite)) {
+        addShortcutToFolder(targetKey, key);
+      } else {
+        createFolderFromShortcuts(targetKey, key);
+      }
+    } else {
+      const items = group.items.filter(item => item !== key);
+      const targetIndex = items.indexOf(targetKey);
+
+      if (targetIndex >= 0) {
+        const rect = target.getBoundingClientRect();
+        const insertAfter = event.clientX > rect.left + rect.width / 2;
+        items.splice(insertAfter ? targetIndex + 1 : targetIndex, 0, key);
+        group.items = items;
+
+        touchGroupOrder(group.id, true);
+        markSyncDirty();
+        rebuildGroupGrid(group.id);
+      }
+    }
+
+    clearDropIndicator();
+    clearFolderDropTarget();
+  });
 
 
   content.addEventListener(
@@ -8032,6 +8347,7 @@ function startGroupDrag(event, groupId, button) {
   groupDragStartIndex = groups.findIndex(g => g.id === groupId);
   if (groupDragStartIndex < 0) return;
 
+  const group = groups[groupDragStartIndex];
   groupDragCurrentTargetIndex = groupDragStartIndex;
 
   if (navigator.vibrate) {
@@ -8040,11 +8356,55 @@ function startGroupDrag(event, groupId, button) {
     } catch {}
   }
 
+  // 1. 创建跟随鼠标的圆角长条胶囊（实感长条）
+  const dragAvatar = document.createElement("div");
+  dragAvatar.className = "sidebar-drag-avatar";
+  dragAvatar.innerHTML = `
+    <span class="nav-dot" style="background:#0A84FF;box-shadow:0 0 8px #0A84FF;"></span>
+    <span>${group.label}</span>
+  `;
+  document.body.appendChild(dragAvatar);
+  dragAvatar.style.left = `${event.clientX}px`;
+  dragAvatar.style.top = `${event.clientY}px`;
+
+  // 2. 原始按钮半透明占位
   button.classList.add("nav-item-dragging");
-  updateGroupDropIndicator(groupDragStartIndex);
+
+  const navItems = Array.from(
+    sidebar.querySelectorAll(".nav-item:not(.nav-item-add)")
+  );
+  // 记录未变换时的原始几何位置，避免连续 transform 导致计算抖动
+  const itemRects = navItems.map(item => item.getBoundingClientRect());
+  navItems.forEach(item => {
+    item.style.transition = "transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1)";
+  });
+
+  const GAP_SIZE = 30; // 27px 按钮高 + 3px gap
+
+  function applyAccordionDisplacements(slotIdx) {
+    navItems.forEach((item, i) => {
+      if (i === groupDragStartIndex) return;
+
+      let offset = 0;
+      if (slotIdx < groupDragStartIndex) {
+        if (i >= slotIdx && i < groupDragStartIndex) {
+          offset = GAP_SIZE;
+        }
+      } else if (slotIdx > groupDragStartIndex) {
+        if (i > groupDragStartIndex && i <= slotIdx) {
+          offset = -GAP_SIZE;
+        }
+      }
+      item.style.transform = offset ? `translateY(${offset}px)` : "";
+    });
+  }
 
   function onDragPointerMove(e) {
     e.preventDefault();
+
+    // 更新悬浮胶囊坐标
+    dragAvatar.style.left = `${e.clientX}px`;
+    dragAvatar.style.top = `${e.clientY}px`;
 
     const sidebarRect = sidebar.getBoundingClientRect();
     if (e.clientY < sidebarRect.top + 28) {
@@ -8053,9 +8413,18 @@ function startGroupDrag(event, groupId, button) {
       sidebar.scrollTop += 5;
     }
 
-    const slotIdx = calcGroupDropIndex(e.clientY);
+    // 根据初始几何中心计算插入槽位
+    let slotIdx = itemRects.length - 1;
+    for (let i = 0; i < itemRects.length; i++) {
+      const midY = itemRects[i].top + itemRects[i].height / 2;
+      if (e.clientY < midY) {
+        slotIdx = i;
+        break;
+      }
+    }
+
     groupDragCurrentTargetIndex = slotIdx;
-    updateGroupDropIndicator(slotIdx);
+    applyAccordionDisplacements(slotIdx);
   }
 
   function onDragPointerUp() {
@@ -8063,9 +8432,18 @@ function startGroupDrag(event, groupId, button) {
     window.removeEventListener("pointerup", onDragPointerUp);
     window.removeEventListener("pointercancel", onDragPointerUp);
 
+    // 移除悬浮胶囊
+    if (dragAvatar) {
+      dragAvatar.remove();
+    }
+
+    // 清理平移效果
+    navItems.forEach(item => {
+      item.style.transform = "";
+      item.style.transition = "";
+    });
+
     button.classList.remove("nav-item-dragging");
-    const indicator = getOrCreateDropIndicator();
-    indicator.style.display = "none";
 
     isDraggingGroup = false;
     groupDragJustFinished = true;
@@ -8073,11 +8451,7 @@ function startGroupDrag(event, groupId, button) {
       groupDragJustFinished = false;
     }, 150);
 
-    let targetIdx = groupDragCurrentTargetIndex;
-    if (targetIdx > groupDragStartIndex) {
-      targetIdx -= 1;
-    }
-
+    const targetIdx = groupDragCurrentTargetIndex;
     if (
       groupDragStartIndex >= 0
       &&
@@ -8093,6 +8467,7 @@ function startGroupDrag(event, groupId, button) {
       touchAllGroupOrders(false);
       buildSidebar();
       updateSidebarScrollControls();
+      markSyncDirty();
     }
   }
 
@@ -8607,6 +8982,7 @@ function activateGroup(
 
     }
 
+    updatePaginationUI(currentId);
 
     return;
 
@@ -8655,6 +9031,7 @@ function activateGroup(
 
 
   updateNav();
+  updatePaginationUI(currentId);
 
 
   localStorage.setItem(
@@ -8926,6 +9303,55 @@ shortcutMenu.addEventListener(
 
     if (
       action ===
+      "open-folder"
+    ) {
+
+      openFolderModal(
+        key
+      );
+
+      return;
+
+    }
+
+
+    if (
+      action ===
+      "rename-folder"
+    ) {
+
+      openFolderModal(
+        key
+      );
+
+      setTimeout(() => {
+        if (folderTitleInput) {
+          folderTitleInput.focus();
+          folderTitleInput.select();
+        }
+      }, 60);
+
+      return;
+
+    }
+
+
+    if (
+      action ===
+      "dissolve-folder"
+    ) {
+
+      dissolveFolder(
+        key
+      );
+
+      return;
+
+    }
+
+
+    if (
+      action ===
       "edit-shortcut"
     ) {
 
@@ -9018,9 +9444,12 @@ shortcutMenu.addEventListener(
       "delete-shortcut"
     ) {
 
-      deleteCustomShortcut(
-        key
-      );
+      const site = customSites.find(s => s.key === key);
+      if (isFolderSite(site)) {
+        dissolveFolder(key);
+      } else {
+        deleteCustomShortcut(key);
+      }
 
     }
 
@@ -9201,20 +9630,6 @@ editForm.addEventListener(
 
         throw new Error(
           "请选择有效分组"
-        );
-
-      }
-
-
-      if (
-        previous.groupId !==
-          group.id
-        &&
-        group.items.length >= 12
-      ) {
-
-        throw new Error(
-          "目标分组已满，最多可放 12 个快捷方式"
         );
 
       }
@@ -9696,18 +10111,6 @@ addForm.addEventListener(
       }
 
 
-      if (
-        group.items.length >=
-        12
-      ) {
-
-        throw new Error(
-          "当前分类已满，最多可放 12 个快捷方式"
-        );
-
-      }
-
-
       const label =
         shortcutNameInput.value
           .trim();
@@ -9864,7 +10267,7 @@ document
   );
 
 
-[addModal, editModal, iconUrlModal, syncModal, trashModal, groupModal]
+[addModal, editModal, iconUrlModal, syncModal, trashModal, groupModal, folderModal]
   .forEach(
     modal => {
 
@@ -9986,6 +10389,8 @@ document.addEventListener(
       !conflictModal.hidden
       ||
       !trashModal.hidden
+      ||
+      !folderModal.hidden
     ) {
 
       return;
@@ -10129,6 +10534,11 @@ document.addEventListener(
       );
 
 
+      closeModal(
+        folderModal
+      );
+
+
       pendingIconKey =
         "";
 
@@ -10148,6 +10558,8 @@ document.addEventListener(
       !conflictModal.hidden
       ||
       !trashModal.hidden
+      ||
+      !folderModal.hidden
       ||
       /^(INPUT|TEXTAREA)$/.test(
         document.activeElement.tagName
@@ -10180,6 +10592,92 @@ document.addEventListener(
   }
 
 );
+
+
+/* ========================================
+   左右分页箭头与文件夹事件绑定
+   ======================================== */
+
+if (pageArrowPrev) {
+  pageArrowPrev.addEventListener("click", () => {
+    const cur = getGroupCurrentPage(currentId);
+    setGroupPage(currentId, cur - 1);
+  });
+}
+
+if (pageArrowNext) {
+  pageArrowNext.addEventListener("click", () => {
+    const cur = getGroupCurrentPage(currentId);
+    setGroupPage(currentId, cur + 1);
+  });
+}
+
+content.addEventListener("mousemove", e => {
+  const totalPages = getGroupTotalPages(currentId);
+  if (totalPages <= 1) {
+    if (pageArrowPrev) pageArrowPrev.classList.remove("visible");
+    if (pageArrowNext) pageArrowNext.classList.remove("visible");
+    return;
+  }
+  const rect = content.getBoundingClientRect();
+  const curPage = getGroupCurrentPage(currentId);
+  const x = e.clientX;
+  const THRESHOLD = 75;
+
+  const nearLeft = x >= rect.left && x <= rect.left + THRESHOLD;
+  const nearRight = x >= rect.right - THRESHOLD && x <= rect.right;
+
+  if (pageArrowPrev) {
+    pageArrowPrev.classList.toggle("visible", nearLeft && curPage > 0);
+  }
+  if (pageArrowNext) {
+    pageArrowNext.classList.toggle("visible", nearRight && curPage < totalPages - 1);
+  }
+});
+
+content.addEventListener("mouseleave", () => {
+  if (pageArrowPrev) pageArrowPrev.classList.remove("visible");
+  if (pageArrowNext) pageArrowNext.classList.remove("visible");
+});
+
+let lastWheelPageTime = 0;
+content.addEventListener("wheel", event => {
+  if (Math.abs(event.deltaX) > 25 && Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+    const now = Date.now();
+    if (now - lastWheelPageTime < 300) return;
+    lastWheelPageTime = now;
+    const cur = getGroupCurrentPage(currentId);
+    if (event.deltaX > 0) {
+      setGroupPage(currentId, cur + 1);
+    } else {
+      setGroupPage(currentId, cur - 1);
+    }
+  }
+}, { passive: true });
+
+if (folderTitleInput) {
+  folderTitleInput.addEventListener("input", () => {
+    if (!currentOpenFolderKey) return;
+    const trimmed = folderTitleInput.value.trim();
+    if (trimmed) {
+      renameFolder(currentOpenFolderKey, trimmed);
+    }
+  });
+}
+
+if (folderCloseBtn) {
+  folderCloseBtn.addEventListener("click", () => {
+    closeModal(folderModal);
+  });
+}
+
+if (folderDissolveBtn) {
+  folderDissolveBtn.addEventListener("click", () => {
+    if (currentOpenFolderKey) {
+      dissolveFolder(currentOpenFolderKey);
+    }
+  });
+}
 
 
 /* ========================================

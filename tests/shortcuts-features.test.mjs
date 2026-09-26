@@ -195,3 +195,143 @@ test("删除分组时快捷方式迁移到兜底分组，且至少保留一个�
   assert.equal(lastDelete.reason, "at_least_one");
   assert.equal(groups.length, 1);
 });
+
+test("Tabliss 外壳透明化与双层蒙版消除检验", () => {
+  const widgetHtml = fs.readFileSync("tabliss/shortcuts-widget.html", "utf8");
+  assert.ok(widgetHtml.includes("background:transparent"), "外层 div 背景透明");
+  assert.ok(widgetHtml.includes("border:0"), "外层 div 无独立边框");
+  assert.ok(widgetHtml.includes("box-shadow:none"), "外层 div 无多余阴影");
+  assert.ok(!widgetHtml.includes("backdrop-filter:blur"), "外层 div 不再包含重复的 backdrop-filter 蒙版");
+});
+
+test("左侧分组拖拽实感悬浮长条与手风琴上下避让位移算法", () => {
+  assert.ok(shortcutsHtml.includes(".sidebar-drag-avatar"), "HTML 包含悬浮圆角长条拖拽代理类");
+
+  function calculateAccordionDisplacements(totalItems, dragStartIndex, targetSlotIndex, gapSize = 30) {
+    const offsets = new Array(totalItems).fill(0);
+    for (let i = 0; i < totalItems; i++) {
+      if (i === dragStartIndex) continue;
+      if (targetSlotIndex < dragStartIndex) {
+        if (i >= targetSlotIndex && i < dragStartIndex) {
+          offsets[i] = gapSize;
+        }
+      } else if (targetSlotIndex > dragStartIndex) {
+        if (i > dragStartIndex && i <= targetSlotIndex) {
+          offsets[i] = -gapSize;
+        }
+      }
+    }
+    return offsets;
+  }
+
+  // 场景 1：拖动第 0 项往下插入到槽位 2（经过第 1 项与第 2 项）
+  // 原第 1 项与第 2 项均上移 -30px，给新位置腾出空间
+  const offsetsDown = calculateAccordionDisplacements(4, 0, 2, 30);
+  assert.deepEqual(offsetsDown, [0, -30, -30, 0]);
+
+  // 场景 2：拖动第 3 项往上插入到槽位 1（在原第 0 项之后、原第 1 项之前）
+  // 原第 1 项、原第 2 项应下移 +30px，空出缝隙
+  const offsetsUp = calculateAccordionDisplacements(4, 3, 1, 30);
+  assert.deepEqual(offsetsUp, [0, 30, 30, 0]);
+});
+
+test("快捷方式拖拽合并文件夹、移出及解散逻辑", () => {
+  let customSites = [
+    { key: "siteA", label: "Site A", url: "https://a.com", groupId: "home", updatedAt: "2026-09-24T00:00:00.000Z" },
+    { key: "siteB", label: "Site B", url: "https://b.com", groupId: "home", updatedAt: "2026-09-24T00:00:00.000Z" }
+  ];
+  let groupItems = ["siteA", "siteB"];
+
+  // 1. 合并 siteA 与 siteB
+  function createFolder(targetKey, draggedKey) {
+    const folderId = "folder_test123";
+    const now = "2026-09-26T12:00:00.000Z";
+    const siteTarget = customSites.find(s => s.key === targetKey);
+    const siteDragged = customSites.find(s => s.key === draggedKey);
+
+    siteTarget.groupId = folderId;
+    siteTarget.updatedAt = now;
+    siteDragged.groupId = folderId;
+    siteDragged.updatedAt = now;
+
+    const folderSite = {
+      key: folderId,
+      label: "新建文件夹",
+      url: `https://folder.local/?items=${encodeURIComponent(targetKey + "," + draggedKey)}`,
+      groupId: "home",
+      icon: "",
+      updatedAt: now
+    };
+    customSites.push(folderSite);
+    groupItems = groupItems.map(k => (k === targetKey ? folderId : k)).filter(k => k !== draggedKey);
+    return folderId;
+  }
+
+  const folderKey = createFolder("siteA", "siteB");
+  assert.deepEqual(groupItems, [folderKey]);
+  assert.equal(customSites.length, 3);
+  assert.equal(customSites.find(s => s.key === "siteA").groupId, folderKey);
+  assert.equal(customSites.find(s => s.key === "siteB").groupId, folderKey);
+
+  // 2. 解散文件夹
+  function dissolveFolder(fKey) {
+    const children = customSites.filter(s => s.groupId === fKey);
+    const now = "2026-09-26T12:05:00.000Z";
+    children.forEach(c => {
+      c.groupId = "home";
+      c.updatedAt = now;
+    });
+    const folderIdx = groupItems.indexOf(fKey);
+    groupItems.splice(folderIdx, 1, ...children.map(c => c.key));
+    customSites = customSites.filter(s => s.key !== fKey);
+  }
+
+  dissolveFolder(folderKey);
+  assert.deepEqual(groupItems, ["siteA", "siteB"]);
+  assert.equal(customSites.length, 2);
+  assert.equal(customSites.find(s => s.key === "siteA").groupId, "home");
+  assert.equal(customSites.find(s => s.key === "siteB").groupId, "home");
+});
+
+test("横向多页滑动分页计算与左右箭头边缘悬浮触发逻辑", () => {
+  const ITEMS_PER_PAGE = 12;
+
+  function calculatePages(itemsCount) {
+    return Math.max(1, Math.ceil(itemsCount / ITEMS_PER_PAGE));
+  }
+
+  assert.equal(calculatePages(0), 1);
+  assert.equal(calculatePages(5), 1);
+  assert.equal(calculatePages(12), 1);
+  assert.equal(calculatePages(13), 2);
+  assert.equal(calculatePages(25), 3);
+
+  // 边缘悬浮阈值（75px）判定
+  function getArrowVisibility(mouseX, contentLeft, contentWidth, currentPage, totalPages) {
+    if (totalPages <= 1) return { prev: false, next: false };
+    const contentRight = contentLeft + contentWidth;
+    const THRESHOLD = 75;
+    const nearLeft = mouseX >= contentLeft && mouseX <= contentLeft + THRESHOLD;
+    const nearRight = mouseX >= contentRight - THRESHOLD && mouseX <= contentRight;
+
+    return {
+      prev: nearLeft && currentPage > 0,
+      next: nearRight && currentPage < totalPages - 1
+    };
+  }
+
+  const rect = { left: 100, width: 480 }; // right = 580
+  // 首页：左移不显示 prev，右移显示 next
+  assert.deepEqual(getArrowVisibility(120, rect.left, rect.width, 0, 3), { prev: false, next: false }); // 靠近左侧但在第 0 页 -> prev 为 false
+  assert.deepEqual(getArrowVisibility(550, rect.left, rect.width, 0, 3), { prev: false, next: true });  // 靠近右侧且有后页 -> next 为 true
+  assert.deepEqual(getArrowVisibility(300, rect.left, rect.width, 0, 3), { prev: false, next: false }); // 中间区域 -> 都不显示
+
+  // 中间页（第 1 页）：左移显示 prev，右移显示 next
+  assert.deepEqual(getArrowVisibility(120, rect.left, rect.width, 1, 3), { prev: true, next: false });
+  assert.deepEqual(getArrowVisibility(550, rect.left, rect.width, 1, 3), { prev: false, next: true });
+
+  // 尾页（第 2 页）：左移显示 prev，右移不显示 next
+  assert.deepEqual(getArrowVisibility(120, rect.left, rect.width, 2, 3), { prev: true, next: false });
+  assert.deepEqual(getArrowVisibility(550, rect.left, rect.width, 2, 3), { prev: false, next: false });
+});
+
