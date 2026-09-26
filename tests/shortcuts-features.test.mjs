@@ -15,6 +15,15 @@ test("HTML 包含仿 Apple 磨砂玻璃蒙版样式及圆角", () => {
   assert.ok(shortcutsHtml.includes("backdrop-filter: blur(28px) saturate(160%)"), "包含高质量 backdrop blur");
   assert.ok(shortcutsHtml.includes("border-radius: 20px"), "容器包含 Apple 风格圆角");
   assert.ok(shortcutsHtml.includes("image-rendering: -webkit-optimize-contrast"), "图标渲染包含优化对比度规则");
+  assert.ok(shortcutsHtml.includes("scrollbar-width: none !important"), "强制禁止滚动条以防触发视口缩放");
+  assert.ok(shortcutsHtml.includes("contain: paint layout"), "侧边栏区域包含隔离容器");
+});
+
+test("Tabliss 外层组件配置保持透明背景以防双层蒙版叠加", () => {
+  const widgetHtml = fs.readFileSync("tabliss/shortcuts-widget.html", "utf8");
+  assert.ok(widgetHtml.includes("background:transparent"), "外层 div 背景透明");
+  assert.ok(widgetHtml.includes("border:0"), "外层 div 无多余边框");
+  assert.ok(widgetHtml.includes("box-shadow:none"), "外层 div 无多余阴影");
 });
 
 test("HTML 包含分组右键菜单 groupMenu 与分组弹窗 groupModal", () => {
