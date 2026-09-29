@@ -246,38 +246,46 @@ body {
 
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
 
   gap: 10px;
 }
 
+.expire-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 
-/* “到期”两个字保持原来的小字效果 */
+/* “到期”标签放大提亮，与卡片整体保持一致易读 */
 .expire-label {
-  color: rgba(255, 255, 255, 0.46);
+  color: rgba(255, 255, 255, 0.80);
 
-  font-size: 8px;
-  font-weight: 400;
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: 0.3px;
 }
 
 
-/* 日期单独稍微放大 */
+/* 到期日期高亮 */
 .expire-date {
-  color: rgba(255, 255, 255, 0.68);
+  color: #fff;
 
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: 0.3px;
 }
 
 
-/* 更新时间继续放大 */
+/* 右下角更新时间同步清晰易读 */
 .updated-time {
-  color: rgba(255, 255, 255, 0.68);
+  color: rgba(255, 255, 255, 0.82);
 
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 550;
 
   white-space: nowrap;
+  letter-spacing: 0.3px;
 }
 
 </style>
@@ -419,7 +427,7 @@ body {
 
   <div class="footer">
 
-    <span>
+    <span class="expire-group">
       <span class="expire-label">到期</span>
       <span
         class="expire-date"
