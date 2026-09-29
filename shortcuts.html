@@ -3118,19 +3118,19 @@ const sites = {
   douyinBusiness: {
     label: "抖音来客",
     url: "https://life.douyin.com/p/home",
-    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
+    icon: "https://o-ocn.github.io/icons/icons/douyin-laike.png"
   },
 
   douyinLive: {
     label: "直播专业版",
     url: "https://eos.douyin.com/livesite/live/current",
-    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
+    icon: "https://o-ocn.github.io/icons/icons/douyin-livepro.png"
   },
 
   localAds: {
     label: "巨量本地推",
     url: "https://localads.chengzijianzhan.cn/lamp/pc/home",
-    icon: "https://o-ocn.github.io/icons/icons/douyin.svg"
+    icon: "https://o-ocn.github.io/icons/icons/localads.png"
   },
 
   anchor: {
@@ -3672,6 +3672,7 @@ function applyCustomSitesToRuntime(
 
 
   let customSitesDirty = false;
+  let cacheCleaned = false;
   customSites.forEach(
     entry => {
 
@@ -3701,6 +3702,10 @@ function applyCustomSitesToRuntime(
         ) {
           entry.icon = presetIcon;
           customSitesDirty = true;
+          delete storedIconCache[entry.key];
+          delete storedIconCache[sourceKey];
+          delete storedIconCache[entry.url];
+          cacheCleaned = true;
         }
       }
 
@@ -3753,7 +3758,6 @@ function applyCustomSitesToRuntime(
     saveCustomSites();
   }
 
-  let cacheCleaned = false;
   Object.keys(storedIconCache).forEach(k => {
     const cached = storedIconCache[k];
     if (cached && typeof cached.src === "string") {
