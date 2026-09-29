@@ -33,16 +33,9 @@ body {
   padding: 16px 18px 14px;
   border-radius: 20px;
 
-  background: rgba(245, 245, 245, 0.10);
-
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-
-  border: 1px solid rgba(255, 255, 255, 0.20);
-
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 
   cursor: pointer;
 
@@ -52,13 +45,31 @@ body {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 
   transition:
-    background 0.18s ease,
-    border-color 0.18s ease;
+    background 0.18s ease;
 }
 
 .card:hover {
-  background: rgba(245, 245, 245, 0.14);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root.is-standalone body {
+  background: #11141a;
+  min-height: 100vh;
+}
+
+:root.is-standalone .card {
+  width: 360px;
+  height: 160px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03)), rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+:root.is-standalone .card:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)), rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 
@@ -431,6 +442,12 @@ body {
 
 
 <script>
+
+try {
+  if (window.self === window.top) {
+    document.documentElement.classList.add("is-standalone");
+  }
+} catch (e) {}
 
 const UUID =
   "312e359a-52d7-4725-98d1-593182f062e4";
