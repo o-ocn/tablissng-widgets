@@ -1,5 +1,10 @@
 # TablissNG widgets
 
+> [!IMPORTANT]
+> ### 🤖 AI 协作者接手必读 (AI Onboarding Guide)
+> 本项目采用根目录 **[`PROJECT_STATE.md`](PROJECT_STATE.md)** 作为当前项目状态的**唯一事实源（Single Source of Truth）**。  
+> 任何新 AI（ChatGPT / Claude / Codex / Gemini 等）接手前，**必须首先读取 [`PROJECT_STATE.md`](PROJECT_STATE.md) 与 [`AGENTS.md`](AGENTS.md)**，严格遵守 `data/sync.enc.json` 严禁手工篡改原则与 77 项全绿单测纪律。
+
 用于 TablissNG 新标签页的独立小组件。
 
 - `index.html`：VPS 监控器
