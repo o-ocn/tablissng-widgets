@@ -25,10 +25,10 @@
 
 ## 二、当前版本与分支状态
 
-- **当前工作分支**：`main`（HEAD `3066e5a`）
+- **当前工作分支**：`main`（已合入 `331f818`）
 - **远端同步状态**：与 `origin/main` 保持对齐（工作区 clean）
 - **主要分支状态说明**：
-  - `main`：线上稳定分支，包含最新透明矢量图标优化与 Worker v3 安全同步架构；
+  - `main`：线上稳定分支，包含最新透明矢量图标优化、Worker v3 安全同步架构与 AI-Project-Hub 规范治理；
   - `feature/shortcut-sync-safety`：PR #1 来源，同步模型加固、SHA 乐观锁与回收站（已合入 main）；
   - `feature/ui-glass-polish`：磨砂质感优化与侧边栏分组字重微调；
   - `feature/cold-start-resilience`：冷启动 Service Worker 外壳缓存加固与诊断页；
@@ -47,16 +47,21 @@
 
 ## 四、核心技术约定与铁律
 
-1. **绝对禁止手动篡改同步密文**：
+1. **唯一事实源与 AI-Project-Hub 协作铁律**：
+   本项目已正式接入 **[AI-Project-Hub](https://github.com/o-ocn/AI-Project-Hub)**。作为拥有独立 GitHub 仓库的项目，**本项目根目录 `PROJECT_STATE.md` 是唯一详细事实源**，Hub 仅作全局索引。
+   - 每完成一段有实质性变化的工作，在结束前**必须自动执行交接收尾**：验证结果 $\rightarrow$ 更新 `PROJECT_STATE.md` $\rightarrow$ commit/push；
+   - 严禁每次新建冗余交接报告，严禁将完整详细技术状态复制进 Hub；
+   - 仅当项目名称、仓库地址、状态类别等元数据发生变更时，同步更新 Hub 的 `PROJECT_INDEX.md`。
+2. **绝对禁止手动篡改同步密文**：
    `data/sync.enc.json` 为真实端到端加密书签数据，**严禁手工编辑、格式化或清空该文件**，所有变更必须经由客户端加密逻辑生成。
-2. **禁止破坏 Git 历史**：
+3. **禁止破坏 Git 历史**：
    严禁 `git reset --hard`、严禁强制推送（force push），保持分支树清晰可追溯。
-3. **Service Worker 缓存版本配对准则**：
+4. **Service Worker 缓存版本配对准则**：
    - HTML、JS 与 SW 缓存键强绑定 `?v=` 参数；
    - 每次对 HTML 界面或脚本进行实质修改后，在引入处递增版本号（如 `?v=28`），确保客户端秒级拉取最新资源，杜绝缓存死锁。
-4. **组件代码隔离**：
+5. **组件代码隔离**：
    `sync-model.js` 采用严格 IIFE 模式暴露 `window.TablissSyncModel`，避免与页面内联脚本命名空间污染。
-5. **Public 仓库安全边界**：
+6. **Public 仓库安全边界**：
    本项目为开源/公开仓库，**严禁提交任何个人 API Key、私钥正文、私人动态域名或未脱敏配置**。
 
 ---
@@ -69,5 +74,5 @@
   npm test
   ```
   确认 77 项测试 pass 后展开工作。
-- **日常维护**：
-  日常小修改以 `main` 分支为主；如需改动同步算法或 Service Worker 逻辑，优先编写对应单元测试并保证 `npm test` 全绿后提交。
+- **日常维护与收尾流转**：
+  日常小修改以 `main` 分支为主；完成修改并验证后，就地更新本文件（`PROJECT_STATE.md`）并提交推送，工作树保持干净。如需改动同步算法或 Service Worker 逻辑，优先编写对应单元测试并保证 `npm test` 全绿后提交。
