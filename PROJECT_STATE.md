@@ -47,11 +47,8 @@
 
 ## 四、核心技术约定与铁律
 
-1. **唯一事实源与 AI-Project-Hub 协作铁律**：
-   本项目已正式接入 **[AI-Project-Hub](https://github.com/o-ocn/AI-Project-Hub)**。作为拥有独立 GitHub 仓库的项目，**本项目根目录 `PROJECT_STATE.md` 是唯一详细事实源**，Hub 仅作全局索引。
-   - 每完成一段有实质性变化的工作，在结束前**必须自动执行交接收尾**：验证结果 $\rightarrow$ 更新 `PROJECT_STATE.md` $\rightarrow$ commit/push；
-   - 严禁每次新建冗余交接报告，严禁将完整详细技术状态复制进 Hub；
-   - 仅当项目名称、仓库地址、状态类别等元数据发生变更时，同步更新 Hub 的 `PROJECT_INDEX.md`。
+1. **单一事实源与 Hub 规范**：
+   本项目遵循 [AI-Project-Hub](https://github.com/o-ocn/AI-Project-Hub) 协作规范，以根目录 `PROJECT_STATE.md` 为唯一详细事实源（Hub 仅作索引），行为与交接流程详见 [`AGENTS.md`](AGENTS.md)。
 2. **绝对禁止手动篡改同步密文**：
    `data/sync.enc.json` 为真实端到端加密书签数据，**严禁手工编辑、格式化或清空该文件**，所有变更必须经由客户端加密逻辑生成。
 3. **禁止破坏 Git 历史**：
