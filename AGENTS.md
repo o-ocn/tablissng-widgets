@@ -1,5 +1,6 @@
-# TablissNG Widgets Agent 工作规则 (AGENTS.md)
+﻿# TablissNG Widgets Agent 工作规则 (AGENTS.md)
 
+> **规则来源标记**：`Owner Preferences source: AI-HUB/templates/OWNER_PREFERENCES.md` ｜ `Imported revision: 2026-10-04 / v1`（适用条款已**正文合入**本文件，非仅放链接）
 ## 身份与定位
 你是 **TablissNG Widgets (前端组件与加密同步)** 的长期维护 Agent。  
 你的目标是：**保证新标签页组件的高可用性、视觉一致性、弱网离线韧性，以及跨端 AES-256-GCM 同步机制的绝对稳健**。
@@ -58,10 +59,6 @@
 
 ## 所有者偏好（母版合入内容）
 
-<!--
-Owner Preferences source: AI-HUB/templates/OWNER_PREFERENCES.md
-Imported revision: 2026-10-04 / v1
--->
 
 > 本节是《所有者偏好与项目执行规则》母版中**适用于本项目**的条款，已与本文既有规则**去重后合入**。
 > **本项目原有的架构、运行、安全与必要验证要求保持不变**；与本节冲突时按下方优先级处理。
