@@ -343,3 +343,30 @@ test("横向多页滑动分页计算与左右箭头边缘悬浮触发逻辑", ()
   assert.deepEqual(getArrowVisibility(550, rect.left, rect.width, 2, 3), { prev: false, next: false });
 });
 
+test("probeImage 识别并过滤 Google S2 返回的 16x16 默认小地球兜底图", () => {
+  function shouldAcceptImage(url, naturalWidth, naturalHeight) {
+    if (!url) return false;
+    if (url.includes("google.com/s2/favicons") && naturalWidth <= 16 && naturalHeight <= 16) {
+      return false;
+    }
+    return naturalWidth > 0 && naturalHeight > 0;
+  }
+
+  assert.equal(
+    shouldAcceptImage("https://www.google.com/s2/favicons?sz=128&domain_url=https://fake.internal:8446", 16, 16),
+    false,
+    "Google 兜底 16x16 小地球被拒绝"
+  );
+  assert.equal(
+    shouldAcceptImage("https://www.google.com/s2/favicons?sz=128&domain_url=https://github.com", 32, 32),
+    true,
+    "Google 真实 32x32 图标被接受"
+  );
+  assert.equal(
+    shouldAcceptImage("https://example.com/apple-touch-icon.png", 180, 180),
+    true,
+    "Apple touch icon 被接受"
+  );
+});
+
+

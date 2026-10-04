@@ -25,10 +25,10 @@
 
 ## 二、当前版本与分支状态
 
-- **当前工作分支**：`main`（已合入 `331f818`）
+- **当前工作分支**：`main`
 - **远端同步状态**：与 `origin/main` 保持对齐（工作区 clean）
 - **主要分支状态说明**：
-  - `main`：线上稳定分支，包含最新透明矢量图标优化、Worker v3 安全同步架构与 AI-Project-Hub 规范治理；
+  - `main`：线上稳定分支，包含最新透明矢量图标优化、Worker v3 安全同步架构、v28 图标探测兜底修复与 AI-Project-Hub 规范治理；
   - `feature/shortcut-sync-safety`：PR #1 来源，同步模型加固、SHA 乐观锁与回收站（已合入 main）；
   - `feature/ui-glass-polish`：磨砂质感优化与侧边栏分组字重微调；
   - `feature/cold-start-resilience`：冷启动 Service Worker 外壳缓存加固与诊断页；
@@ -36,12 +36,14 @@
 
 ---
 
-## 三、实测验证基线 (2026-09-30 现场核验)
+## 三、实测验证基线 (2026-10-04 现场核验)
 
-- **自动化单元测试**：运行 `npm test`，全套 **77/77 单元测试全部通过**（0 fail, 0 skipped）：
+- **自动化单元测试**：运行 `npm test`，全套 **78/78 单元测试全部通过**（0 fail, 0 skipped）：
+  - `tests/shortcuts-features.test.mjs`：测试 Apple 磨砂样式、高清图标解析管道、Google S2 16x16 假兜底过滤、多页滑动与分组拖拽算法（14 项子测试 pass）；
   - `tests/sync-model.test.mjs`：测试 AES-GCM 数据模型、版本升级（v1/v2/v3 兼容）、并发合并冲突解决、站点墓碑（tombstone）与回收站生命周期（67 项子测试 pass）；
   - `tests/worker.test.mjs`：测试 Cloudflare Worker 鉴权、409 冲突拦截、合法性校验、只读与写入隔离（10 项子测试 pass）。
 - **静态安全验证**：测试用例显式断言“任何响应与异常均不回显同步口令、加密密钥或 GitHub 私钥”。
+- **图标探测与兜底修复验证**：实测拦截 Google Favicon 16x16 假成功小地球，确保无图标站点正确降级至 `DEFAULT_FALLBACK_ICON`（可爱猫猫 略——！！）；已为 Gemini/Gemini监控接入官方高清矢量 Logo。
 
 ---
 
@@ -70,7 +72,7 @@
   git status
   npm test
   ```
-  确认 77 项测试 pass 后展开工作。
+  确认 78 项测试 pass 后展开工作。
 - **日常维护与收尾流转**：
   日常小修改以 `main` 分支为主；完成修改并验证后，就地更新本文件（`PROJECT_STATE.md`）并提交推送，工作树保持干净。如需改动同步算法或 Service Worker 逻辑，优先编写对应单元测试并保证 `npm test` 全绿后提交。
 

@@ -1,4 +1,4 @@
-﻿# TablissNG Widgets Agent 工作规则 (AGENTS.md)
+# TablissNG Widgets Agent 工作规则 (AGENTS.md)
 
 > **规则来源标记**：`Owner Preferences source: AI-HUB/templates/OWNER_PREFERENCES.md` ｜ `Imported revision: 2026-10-04 / v1`（适用条款已**正文合入**本文件，非仅放链接）
 ## 身份与定位
@@ -20,7 +20,7 @@
    ```bash
    npm test
    ```
-   确认全套 77 项单元测试处于全部通过（pass）状态。
+   确认全套 78 项单元测试处于全部通过（pass）状态。
 
 ---
 

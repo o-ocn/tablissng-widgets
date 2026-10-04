@@ -2279,12 +2279,15 @@ function getStoredIcon(
 
   /*
      若旧缓存保存的是低清 16x16 / 32x32 的 .ico，
-     主动忽略该缓存，触发重新走高解析度链路（Apple Touch Icon / Google 128px）。
+     或含有 Google 兜底小地球 / DuckDuckGo 兜底，
+     主动忽略该缓存，触发重新走高解析度链路或回退到默认备用图标。
   */
   if (
     entry.src.toLowerCase().includes(".ico")
     ||
     entry.src.includes("icons.duckduckgo.com")
+    ||
+    entry.src.includes("google.com/s2/favicons")
   ) {
 
     return "";
@@ -2587,6 +2590,25 @@ function probeImage(url) {
       img.onload =
         () => {
 
+          /*
+             Google S2 Favicon 在目标站点无图标时会强行返回 16x16 的默认小地球（即使请求 sz=128）。
+             将其识别并判定为无效，避免模糊小地球拦截默认备用图标（DEFAULT_FALLBACK_ICON）。
+          */
+          if (
+            url.includes("google.com/s2/favicons")
+            &&
+            img.naturalWidth <= 16
+            &&
+            img.naturalHeight <= 16
+          ) {
+
+            resolve(false);
+
+            return;
+
+          }
+
+
           resolve(
             img.naturalWidth > 0
             &&
@@ -2692,6 +2714,11 @@ function resolveIcon(
 
         site.icon && !site.icon.toLowerCase().endsWith(".ico")
           ? normaliseIcon(site.icon)
+          : "",
+
+        ((site.label && site.label.toLowerCase().includes("gemini"))
+          || (site.url && site.url.toLowerCase().includes("gemini")))
+          ? "https://o-ocn.github.io/icons/icons/gemini.svg"
           : "",
 
         appleTouchIcon(
@@ -2968,7 +2995,7 @@ const sites = {
   gemini: {
     label: "Gemini",
     url: "https://gemini.google.com/",
-    icon: "https://files.codelife.cc/user-website-icon/20250515/FOfpxZGQ9JrcsfvNUA4AI6419.png"
+    icon: "https://o-ocn.github.io/icons/icons/gemini.svg"
   },
 
   kimi: {
