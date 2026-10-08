@@ -43,10 +43,10 @@
   - `tests/sync-model.test.mjs`：测试 AES-GCM 数据模型、版本升级（v1/v2/v3 兼容）、并发合并冲突解决、站点墓碑（tombstone）与回收站生命周期（67 项子测试 pass）；
   - `tests/worker.test.mjs`：测试 Cloudflare Worker 鉴权、409 冲突拦截、合法性校验、只读与写入隔离（10 项子测试 pass）。
 - **静态安全验证**：测试用例显式断言“任何响应与异常均不回显同步口令、加密密钥或 GitHub 私钥”。
-- **全分类图标全面对齐 Apple App Store 官方规范 (v32)**：
-  - **全量升级覆盖**：邮箱（Outlook、Gmail、QQ邮箱、网易邮箱）、社交（小红书、知乎、微博、豆瓣、X、Instagram、Discord、Reddit、贴吧）、影音（哔哩哔哩、YouTube、抖音、Twitch）、网盘（百度网盘、阿里云盘、夸克网盘、OneDrive、Google Drive、PikPak）、购物（淘宝、京东、什么值得买）、工具（Google翻译、DeepL、Speedtest、Notion、GitHub）、游戏（KOOK、小黑盒、OP.GG）共 34 款主流应用全面替换为 Apple App Store 官方 512×512 连续曲率圆角原画；
-  - **AI 组全面统一**：ChatGPT、Claude、DeepSeek、Grok、Gemini 均配齐官方 App Store 原版圆角图标（PNG + SVG 双格式）；
-  - **组件版本递增**：宿主引用组件版本递增至 `?v=32`，彻底穿透旧缓存，全站质感对齐 iPadOS / macOS Launchpad 原生标准。
+- **全分类图标全面对齐 Apple App Store 官方规范 (v33)**：
+  - **全量升级覆盖**：全量覆盖所有具备 App Store 官方 App 的 52 款应用。新增涵盖 AI（Kimi、智谱清言、通义千问、豆包、秘塔写作猫、腾讯元宝）、搜索/工具（百度、Google、LocalSend）、游戏（SteamPY/匹歪、杉果游戏、Epic Games、3DM游戏、Oopz）、运营（抖音来客、抖音直播伴侣/专业版、巨量引擎、主播平台）及表情（闪萌表情），全量替换为 Apple App Store 官方 512×512 连续平滑圆角原画；
+  - **AI 组全面统一**：ChatGPT、Claude、DeepSeek、Grok、Gemini、Kimi、智谱清言、通义千问、豆包、腾讯元宝、秘塔写作猫全量配齐官方 App Store 原版圆角图标；
+  - **组件版本递增**：宿主引用组件版本递增至 `?v=33`，彻底穿透旧缓存，全站视觉质感对齐 iPadOS / macOS Launchpad 原生标准。
 
 ---
 
