@@ -43,13 +43,10 @@
   - `tests/sync-model.test.mjs`：测试 AES-GCM 数据模型、版本升级（v1/v2/v3 兼容）、并发合并冲突解决、站点墓碑（tombstone）与回收站生命周期（67 项子测试 pass）；
   - `tests/worker.test.mjs`：测试 Cloudflare Worker 鉴权、409 冲突拦截、合法性校验、只读与写入隔离（10 项子测试 pass）。
 - **静态安全验证**：测试用例显式断言“任何响应与异常均不回显同步口令、加密密钥或 GitHub 私钥”。
-- **AI 组图标全面对齐 Apple App Store 官方规范 (v31)**：
-  - **ChatGPT**：采用 Apple App Store 官方 512×512 纯白底黑结圆角 App 图标（`chatgpt.png`）；
-  - **Claude**：采用 Anthropic Claude 官方 App Store 512×512 赤陶底星芒圆角 App 图标（`claude.png`）；
-  - **DeepSeek**：采用 杭州深度求索 官方 App Store 512×512 白底蓝鲸圆角 App 图标（`deepseek.png`）；
-  - **Grok**：采用 xAI Grok 官方 App Store 512×512 黑底斜杠圆角 App 图标（`grok.png`）；
-  - **Gemini**：采用 Google 官方 App Store 512×512 白底星芒圆角 App 图标（`gemini.png`）；
-  - **缓存穿透与体验统一**：预设及候选链路全面切为 `.png`，彻底穿透旧 Service Worker/浏览器 SVG 缓存；与 Kimi、智谱清言、通义千问等原生 App Store 图标风格完美一致；版本递增至 `?v=31`。
+- **全分类图标全面对齐 Apple App Store 官方规范 (v32)**：
+  - **全量升级覆盖**：邮箱（Outlook、Gmail、QQ邮箱、网易邮箱）、社交（小红书、知乎、微博、豆瓣、X、Instagram、Discord、Reddit、贴吧）、影音（哔哩哔哩、YouTube、抖音、Twitch）、网盘（百度网盘、阿里云盘、夸克网盘、OneDrive、Google Drive、PikPak）、购物（淘宝、京东、什么值得买）、工具（Google翻译、DeepL、Speedtest、Notion、GitHub）、游戏（KOOK、小黑盒、OP.GG）共 34 款主流应用全面替换为 Apple App Store 官方 512×512 连续曲率圆角原画；
+  - **AI 组全面统一**：ChatGPT、Claude、DeepSeek、Grok、Gemini 均配齐官方 App Store 原版圆角图标（PNG + SVG 双格式）；
+  - **组件版本递增**：宿主引用组件版本递增至 `?v=32`，彻底穿透旧缓存，全站质感对齐 iPadOS / macOS Launchpad 原生标准。
 
 ---
 
