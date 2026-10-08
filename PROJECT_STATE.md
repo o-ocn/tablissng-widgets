@@ -43,12 +43,13 @@
   - `tests/sync-model.test.mjs`：测试 AES-GCM 数据模型、版本升级（v1/v2/v3 兼容）、并发合并冲突解决、站点墓碑（tombstone）与回收站生命周期（67 项子测试 pass）；
   - `tests/worker.test.mjs`：测试 Cloudflare Worker 鉴权、409 冲突拦截、合法性校验、只读与写入隔离（10 项子测试 pass）。
 - **静态安全验证**：测试用例显式断言“任何响应与异常均不回显同步口令、加密密钥或 GitHub 私钥”。
-- **AI 组图标高清纯净度与纯矢量重构 (v29)**：
-  - **ChatGPT**：替换为官方纯黑线条线框 Logo，彻底去除绿色实心底色，背景全透明；
-  - **Grok**：去除文字“Grok”，精简为官方圆角黑底斜杠方块，比例 1:1 无挤压；
-  - **DeepSeek**：去除文字“deepseek”及多余杂色背景，精确保留官方纯净深求索蓝鲸矢量（#4d6bfe），背景全透明；
-  - **Claude**：新增 Anthropic Claude 官方星芒（#D97757）矢量图库直链、预设及关键词自动匹配管线；
-  - **版本号递增**：宿主引用组件版本递增至 `?v=29`，杜绝旧缓存残留。
+- **AI 组图标全面对齐 Apple App Store 官方规范 (v31)**：
+  - **ChatGPT**：采用 Apple App Store 官方 512×512 纯白底黑结圆角 App 图标（`chatgpt.png`）；
+  - **Claude**：采用 Anthropic Claude 官方 App Store 512×512 赤陶底星芒圆角 App 图标（`claude.png`）；
+  - **DeepSeek**：采用 杭州深度求索 官方 App Store 512×512 白底蓝鲸圆角 App 图标（`deepseek.png`）；
+  - **Grok**：采用 xAI Grok 官方 App Store 512×512 黑底斜杠圆角 App 图标（`grok.png`）；
+  - **Gemini**：采用 Google 官方 App Store 512×512 白底星芒圆角 App 图标（`gemini.png`）；
+  - **缓存穿透与体验统一**：预设及候选链路全面切为 `.png`，彻底穿透旧 Service Worker/浏览器 SVG 缓存；与 Kimi、智谱清言、通义千问等原生 App Store 图标风格完美一致；版本递增至 `?v=31`。
 
 ---
 

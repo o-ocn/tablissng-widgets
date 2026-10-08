@@ -2718,12 +2718,27 @@ function resolveIcon(
 
         ((site.label && site.label.toLowerCase().includes("gemini"))
           || (site.url && site.url.toLowerCase().includes("gemini")))
-          ? "https://o-ocn.github.io/icons/icons/gemini.svg"
+          ? "https://o-ocn.github.io/icons/icons/gemini.png"
           : "",
 
         ((site.label && site.label.toLowerCase().includes("claude"))
           || (site.url && site.url.toLowerCase().includes("claude")))
-          ? "https://o-ocn.github.io/icons/icons/claude.svg"
+          ? "https://o-ocn.github.io/icons/icons/claude.png"
+          : "",
+
+        ((site.label && site.label.toLowerCase().includes("chatgpt"))
+          || (site.url && site.url.toLowerCase().includes("chatgpt.com")))
+          ? "https://o-ocn.github.io/icons/icons/chatgpt.png"
+          : "",
+
+        ((site.label && site.label.toLowerCase().includes("deepseek"))
+          || (site.url && site.url.toLowerCase().includes("deepseek.com")))
+          ? "https://o-ocn.github.io/icons/icons/deepseek.png"
+          : "",
+
+        ((site.label && site.label.toLowerCase().includes("grok"))
+          || (site.url && site.url.toLowerCase().includes("grok.com")))
+          ? "https://o-ocn.github.io/icons/icons/grok.png"
           : "",
 
         appleTouchIcon(
@@ -2988,25 +3003,25 @@ const sites = {
   chatgpt: {
     label: "ChatGPT",
     url: "https://chatgpt.com/",
-    icon: "https://o-ocn.github.io/icons/icons/chatgpt.svg"
+    icon: "https://o-ocn.github.io/icons/icons/chatgpt.png"
   },
 
   grok: {
     label: "Grok",
     url: "https://grok.com/",
-    icon: "https://o-ocn.github.io/icons/icons/grok.svg"
+    icon: "https://o-ocn.github.io/icons/icons/grok.png"
   },
 
   gemini: {
     label: "Gemini",
     url: "https://gemini.google.com/",
-    icon: "https://o-ocn.github.io/icons/icons/gemini.svg"
+    icon: "https://o-ocn.github.io/icons/icons/gemini.png"
   },
 
   claude: {
     label: "Claude",
     url: "https://claude.ai/",
-    icon: "https://o-ocn.github.io/icons/icons/claude.svg"
+    icon: "https://o-ocn.github.io/icons/icons/claude.png"
   },
 
   kimi: {
@@ -3024,7 +3039,7 @@ const sites = {
   deepseek: {
     label: "DeepSeek",
     url: "https://chat.deepseek.com/",
-    icon: "https://o-ocn.github.io/icons/icons/deepseek.svg"
+    icon: "https://o-ocn.github.io/icons/icons/deepseek.png"
   },
 
   tongyi: {
