@@ -2721,6 +2721,11 @@ function resolveIcon(
           ? "https://o-ocn.github.io/icons/icons/gemini.svg"
           : "",
 
+        ((site.label && site.label.toLowerCase().includes("claude"))
+          || (site.url && site.url.toLowerCase().includes("claude")))
+          ? "https://o-ocn.github.io/icons/icons/claude.svg"
+          : "",
+
         appleTouchIcon(
           site.url
         ),
@@ -2996,6 +3001,12 @@ const sites = {
     label: "Gemini",
     url: "https://gemini.google.com/",
     icon: "https://o-ocn.github.io/icons/icons/gemini.svg"
+  },
+
+  claude: {
+    label: "Claude",
+    url: "https://claude.ai/",
+    icon: "https://o-ocn.github.io/icons/icons/claude.svg"
   },
 
   kimi: {
