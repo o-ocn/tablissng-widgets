@@ -1742,7 +1742,7 @@ body {
     <h2 class="modal-title">云端同步</h2>
 
     <p class="modal-note">
-      同步新增快捷方式和自定义图标。同步口令只保存在当前浏览器，不会写入公开网页。
+      已启用全设备静默自动同步，新增快捷方式和分组会自动在所有设备同步。如需切换口令亦可在此自定义。
     </p>
 
     <label class="field">
@@ -1932,6 +1932,10 @@ const SYNC_META_STORAGE_KEY =
 
 const SYNC_ENDPOINT =
   "https://tablissng-sync.o-ous.workers.dev/sync";
+
+
+const DEFAULT_SYNC_TOKEN =
+  "b7fBsMgqUFu70FHMyw3uHFg9ZIaH-3pF19f6zS8Z7BRNMAmBS6ABM6JQToSlLSF1";
 
 
 /* ========================================
@@ -5582,13 +5586,19 @@ function showActionToast({
 
 function getSyncToken() {
 
-  return (
+  const customToken = (
     localStorage.getItem(
       SYNC_TOKEN_STORAGE_KEY
     )
     ||
     ""
   ).trim();
+
+  if (customToken === "__DISABLED__") {
+    return "";
+  }
+
+  return (customToken || DEFAULT_SYNC_TOKEN).trim();
 
 }
 
@@ -6888,6 +6898,7 @@ function refreshShortcutGroups() {
 
   groupElements.clear();
 
+  buildSidebar();
 
   buildAllGroups();
 
@@ -9668,7 +9679,7 @@ blankMenu.addEventListener(
         getSyncToken()
           ? meta.dirty
             ? "本机有等待上传的更改"
-            : "本机已启用自动同步"
+            : "全设备静默自动同步已就绪"
           : "尚未在本机启用同步"
       );
 
@@ -10029,8 +10040,9 @@ syncDisableButton.addEventListener(
     );
 
 
-    localStorage.removeItem(
-      SYNC_TOKEN_STORAGE_KEY
+    localStorage.setItem(
+      SYNC_TOKEN_STORAGE_KEY,
+      "__DISABLED__"
     );
 
 
@@ -10830,6 +10842,38 @@ updateNav();
 warmPersistentIconCache();
 
 initialiseCloudSync();
+
+function isAnyModalOpen() {
+  return (
+    (addModal && !addModal.hidden)
+    || (editModal && !editModal.hidden)
+    || (groupModal && !groupModal.hidden)
+    || (iconUrlModal && !iconUrlModal.hidden)
+    || (syncModal && !syncModal.hidden)
+    || (conflictModal && !conflictModal.hidden)
+    || (trashModal && !trashModal.hidden)
+    || (folderModal && !folderModal.hidden)
+  );
+}
+
+let lastVisibilitySync = 0;
+document.addEventListener("visibilitychange", () => {
+  const now = Date.now();
+  if (
+    document.visibilityState === "visible"
+    && now - lastVisibilitySync > 15000
+    && !syncInFlight
+    && !dragShortcutKey
+    && !isDraggingGroup
+    && !isAnyModalOpen()
+  ) {
+    lastVisibilitySync = now;
+    const meta = readSyncMeta();
+    if (!meta.dirty && getSyncToken()) {
+      pullCloudSync();
+    }
+  }
+});
 
 </script>
 

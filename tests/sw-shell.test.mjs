@@ -558,7 +558,7 @@ test("sw: 同一路径超过 3 个版本时只保留最近 3 个", async () => {
     shellStore.set(
       `${SCOPE}shortcuts.html?${v}`,
       makeResponse(`<html>${v}</html>`, {
-        headers: { "x-shell-stored-at": String(Date.parse(`2026-09-${10 + versions.indexOf(v)}T00:00:00Z`)) }
+        headers: { "x-shell-stored-at": String(Date.now() - (10 - versions.indexOf(v)) * 3600000) }
       })
     );
   }
