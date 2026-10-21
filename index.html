@@ -311,7 +311,7 @@ body {
         class="server-name"
         id="serverName"
       >
-        US-VMISS-9929
+        US-VMISS-TRI
       </span>
 
     </div>
@@ -460,14 +460,32 @@ try {
 const UUID =
   "312e359a-52d7-4725-98d1-593182f062e4";
 
+const BASE_URLS = [
+  "https://vps.monitor.o-ous.com",
+  "https://68-68-250-223.sslip.io:8444"
+];
+
+let currentBaseUrl =
+  BASE_URLS[0];
+
 const BASE =
-  "https://38-207-167-188.sslip.io:8444";
+  BASE_URLS[0];
 
-const RECENT_API =
-  `${BASE}/api/recent/${UUID}`;
-
-const NODES_API =
-  `${BASE}/api/nodes`;
+async function fetchFromMonitor(path) {
+  for (let i = 0; i < BASE_URLS.length; i++) {
+    const base = BASE_URLS[i];
+    try {
+      const res = await get(base + path);
+      if (res && res.ok) {
+        currentBaseUrl = base;
+        return res;
+      }
+    } catch (e) {
+      console.warn(`Fetch from ${base}${path} failed, attempting next endpoint...`, e);
+    }
+  }
+  throw new Error("All monitor endpoints unreachable");
+}
 
 let trafficLimit =
   536870912000;
@@ -853,6 +871,11 @@ function restoreCachedSnapshot() {
       return;
     }
 
+    if (saved.meta?.name && saved.meta.name.includes("9929")) {
+      localStorage.removeItem(VPS_CACHE_KEY);
+      return;
+    }
+
 
     applyMeta(saved.meta);
     renderLatest(saved.latest, true);
@@ -977,8 +1000,8 @@ async function loadMeta() {
   try {
 
     const res =
-      await get(
-        NODES_API
+      await fetchFromMonitor(
+        "/api/nodes"
       );
 
 
@@ -1020,8 +1043,8 @@ async function refresh() {
   try {
 
     const res =
-      await get(
-        RECENT_API
+      await fetchFromMonitor(
+        `/api/recent/${UUID}`
       );
 
 
@@ -1089,7 +1112,7 @@ $("card")
     () => {
 
       window.open(
-        BASE + "/",
+        "https://vps.monitor.o-ous.com/",
         "_blank",
         "noopener,noreferrer"
       );
