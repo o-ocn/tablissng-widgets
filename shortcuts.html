@@ -7374,10 +7374,15 @@ function resetIconOverride(key) {
 
   if (!iconOverrides[key]) {
 
-    showToast(
-      "当前已经是自动图标"
+    clearStoredIcon(
+      key
     );
 
+    refreshShortcutGroups();
+
+    showToast(
+      "已重新探测自动图标"
+    );
 
     return;
 
