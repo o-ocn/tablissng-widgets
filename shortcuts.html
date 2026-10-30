@@ -2292,6 +2292,8 @@ function getStoredIcon(
     entry.src.includes("icons.duckduckgo.com")
     ||
     entry.src.includes("google.com/s2/favicons")
+    ||
+    entry.src.includes("default-fallback.png")
   ) {
 
     return "";
@@ -2515,10 +2517,13 @@ function appleTouchIcon(url) {
     }
 
 
+    const bust = parsed.origin.includes("o-ous.com") ? "?v=20261030" : "";
     return (
       parsed.origin
       +
       "/apple-touch-icon.png"
+      +
+      bust
     );
 
   }
@@ -2738,6 +2743,11 @@ function resolveIcon(
         ((site.label && site.label.toLowerCase().includes("deepseek"))
           || (site.url && site.url.toLowerCase().includes("deepseek.com")))
           ? "https://o-ocn.github.io/icons/icons/deepseek.png"
+          : "",
+
+        ((site.label && (site.label.includes("主页") || site.label.includes("浮屿")))
+          || (site.url && site.url.toLowerCase().includes("o-ous.com")))
+          ? "https://o-ous.com/apple-touch-icon.png?v=20261030"
           : "",
 
         ((site.label && site.label.toLowerCase().includes("grok"))
@@ -3830,6 +3840,8 @@ function applyCustomSitesToRuntime(
         cached.src.includes("mengma.moe")
         ||
         cached.src.includes("tieba.svg")
+          ||
+          cached.src.includes("default-fallback.png")
       ) {
         delete storedIconCache[k];
         cacheCleaned = true;
